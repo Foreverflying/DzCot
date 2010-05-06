@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="win\DzAsmCoreWin32.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+    <MASM Include="win\DzAsmCoreWin64.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DzCore.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="win\DzCoreWin.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Dzcot.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DzcotPython.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="win\DzIoWin.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DzResourceMgr.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DzConstant.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzCore.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzCoreOs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="win\DzCoreWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzcotExports.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzIncOs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="win\DzIncWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzIoOs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="win\DzIoWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzResourceMgr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzSchedule.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzSocketReplace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzStructs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzStructsIoOs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="win\DzStructsIoWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzStructsOs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzStructsQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="win\DzStructsWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzSynObj.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzTimer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="Dzcot.def">
+      <Filter>源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuildStep Include="Dzcot.h">
+      <Filter>头文件</Filter>
+    </CustomBuildStep>
+  </ItemGroup>
+</Project>
