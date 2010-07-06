@@ -11,6 +11,7 @@
 #include "TestIocpConnect.h"
 #include "TestLibpq.h"
 #include "TestMap.h"
+#include "TestCallbackTimer.h"
 #include "Global.h"
 
 #pragma comment( lib, "Dzcot.lib" )
@@ -51,7 +52,8 @@ int _tmain(int argc, _TCHAR* argv[])
     gIp = gIp ? gIp : htonl( MAKEIPADDRESS( 127, 0, 0, 1 ) );
     gPort = gPort ? gPort : htons( 59999 );
 
-    MainTest( TestMultiMapHost, (void*)( numParam ? numParam : 200 ) );
+    //MainTest( StartTestCallbackTimer, (void*)10 ) ;
+    //MainTest( TestMultiMapHost, (void*)( numParam ? numParam : 200 ) );
     //MainTest( TestMapHost, (void*)0 );
     //MainTest( TestMapServer, (void*)4096 );
     //MainTest( StartTestException, (void*)10 );
@@ -63,7 +65,7 @@ int _tmain(int argc, _TCHAR* argv[])
     //MainTest( TestReadFile, (void*)0 );
     //MainTest( StartTestSynobj, (void*)10 );
     //MainTest( StartTestSwitch, (void*)10000 );
-    //MainTest( StartTestLibpq, (void*)150 );
+    MainTest( StartTestLibpq, (void*)150 );
     //MainTest( TestLibpq, "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=template1" );
     //TestFastConnect( (void*)1000 );
     //TestLibpq( "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=OgameX" );

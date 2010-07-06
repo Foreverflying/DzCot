@@ -77,8 +77,16 @@ DZCOT_API DzHandle DzCreateSem( u_int count );
 DZCOT_API u_int DzReleaseSem( DzHandle sem, int count );
 DZCOT_API DzHandle DzCloneSynObj( DzHandle obj );
 DZCOT_API BOOL DzCloseSynObj( DzHandle obj );
-DZCOT_API DzHandle DzCreateTimer( int milSec, BOOL repeat );
+DZCOT_API DzHandle DzCreateTimer( int milSec, int repeat );
 DZCOT_API BOOL DzCloseTimer( DzHandle timer );
+DZCOT_API DzHandle DzCreateCallbackTimer(
+    DzRoutine   callback,
+    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
+    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    );
+DZCOT_API BOOL DzStartCallbackTimer( DzHandle timer, int milSec, int repeat, void *context );
+DZCOT_API BOOL DzStopCallbackTimer( DzHandle timer );
+DZCOT_API BOOL DzCloseCallbackTimer( DzHandle timer );
 
 DZCOT_API int DzOpenFileA( char *fileName, int flags );
 DZCOT_API int DzOpenFileW( wchar_t *fileName, int flags );
@@ -91,7 +99,7 @@ DZCOT_API size_t DzGetFileSize( int fd );
 DZCOT_API BOOL DzSockStartup();
 DZCOT_API BOOL DzSockCleanup();
 DZCOT_API int DzSocket( int domain, int type, int protocol );
-DZCOT_API int DzShutDown( int fd, int how );
+DZCOT_API int DzShutdown( int fd, int how );
 DZCOT_API int DzCloseSocket( int fd );
 DZCOT_API int DzBind( int fd, struct sockaddr *addr, int addrLen );
 DZCOT_API int DzListen( int fd, int backlog );

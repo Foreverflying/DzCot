@@ -7,7 +7,7 @@
 #define INIT_TIME_HEAP_SIZE     512
 #define MIN_TIME_INTERVAL       5
 
-void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode );
+void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode, BOOL lastTime );
 
 inline int64 DzCurrentTime()
 {
@@ -158,13 +158,17 @@ inline void NotifyMinTimers( DzHost *host )
     currTime = DzCurrentTime() + MIN_TIME_INTERVAL;
     do{
         timerNode = GetMinTimerNode( host );
-        if( timerNode->type == TYPE_TIMER_REPEAT ){
+        if( timerNode->repeat != 1 ){
+            if( timerNode->repeat ){
+                timerNode->repeat--;
+            }
             timerNode->timestamp -= timerNode->interval;    //timerNode->interval is negative
             AdjustMinTimer( host, timerNode );
+            NotifyTimerNode( host, timerNode, FALSE );
         }else{
             RemoveMinTimer( host );
+            NotifyTimerNode( host, timerNode, TRUE );
         }
-        NotifyTimerNode( host, timerNode );
     }while( host->timerCount > 0 && GetMinTimerNode( host )->timestamp < currTime );
 }
 

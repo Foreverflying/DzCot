@@ -12,6 +12,14 @@
 extern "C"{
 #endif
 
+int StartCot(
+    DzHost*     host,
+    DzRoutine   entry,
+    void        *context,
+    int         priority,
+    int         sSize
+    );
+
 inline BOOL IsNotified( DzSynObj *obj )
 {
     return obj->count > 0;
@@ -181,65 +189,107 @@ inline DzSynObj* CreateTimer( DzHost *host, int milSec, unsigned short repeat )
     if( !obj ){
         return NULL;
     }
+    obj->type = TYPE_TIMER;
     obj->timerNode.timestamp = DzCurrentTime() + milSec;
     obj->timerNode.repeat = repeat;
-    if( repeat ){
-        obj->notified = FALSE;
-    }else{
-        obj->timerNode.interval = - milSec;
-    }
+    obj->timerNode.interval = - milSec;
     obj->ref = 1;
     AddTimer( host, &obj->timerNode );
     return obj;
 }
 
-inline void CloseTimer( DzHost *host, DzSynObj *obj )
+inline void CloseTimer( DzHost *host, DzSynObj *timer )
 {
-    obj->ref--;
-    if( obj->ref == 0 ){
-        if( IsTimeNodeInHeap( &obj->timerNode ) ){
-            RemoveTimer( host, &obj->timerNode );
+    timer->ref--;
+    if( timer->ref == 0 ){
+        if( IsTimeNodeInHeap( &timer->timerNode ) ){
+            RemoveTimer( host, &timer->timerNode );
         }
-        FreeSynObj( host, obj );
+        FreeSynObj( host, timer );
     }
 }
 
-//inline DzSynObj* CreateCallbackTimer( DzHost *host, int milSec, )
-/*
-inline void NotifyTimeOut( DzHost *host, DzFastEvt *fastEvt )
+inline DzSynObj* CreateCallbackTimer(
+    DzHost      *host,
+    DzRoutine   callback,
+    int         priority,
+    int         sSize
+    )
 {
-    DzThread *dzThread;
+    DzSynObj *obj;
 
-    if( fastEvt->type == TYPE_TIMEOUT ){
-        fastEvt->helper->notifyNode = NULL;
-        ClearWait( host, fastEvt->helper );
-        DispatchThread( host, fastEvt->helper->dzThread );
-    }else{
-        fastEvt->status = DS_TIMEOUT;
-        dzThread = fastEvt->dzThread;
-        fastEvt->dzThread = NULL;
-        DispatchThread( host, dzThread );
+    obj = AllocSynObj( host );
+    if( !obj ){
+        return NULL;
     }
+    obj->type = TYPE_CALLBACK_TIMER;
+    obj->routine = callback;
+    obj->priority = priority;
+    obj->sSize = sSize;
+    obj->timerNode.index = -1;
+    obj->ref = 1;
+    return obj;
 }
 
-inline void NotifyTimer( DzHost *host, DzSynObj *timer )
+inline BOOL StartCallbackTimer(
+    DzHost          *host,
+    DzSynObj        *timer,
+    int             milSec,
+    unsigned short  repeat,
+    void            *context
+    )
 {
-    if( timer->type == TYPE_TIMER_ONCE ){
-        timer->notified = TRUE;
+    if( IsTimeNodeInHeap( &timer->timerNode ) ){
+        return FALSE;
     }
-    if( NotifyWaitAllQueue( host, timer ) ){
-        NotifyWaitQueue( host, timer );
+    timer->context = context;
+    timer->timerNode.timestamp = DzCurrentTime() + milSec;
+    timer->timerNode.repeat = repeat;
+    timer->timerNode.interval = - milSec;
+    AddTimer( host, &timer->timerNode );
+    return TRUE;
+}
+
+inline BOOL StopCallbackTimer( DzHost *host, DzSynObj *timer )
+{
+    if( IsTimeNodeInHeap( &timer->timerNode ) ){
+        RemoveTimer( host, &timer->timerNode );
+        return TRUE;
+    }
+    return FALSE;
+}
+
+inline void CloseCallbackTimer( DzHost *host, DzSynObj *timer )
+{
+    timer->ref--;
+    if( timer->ref == 0 ){
+        if( IsTimeNodeInHeap( &timer->timerNode ) ){
+            RemoveTimer( host, &timer->timerNode );
+        }
+        InitDeque( &timer->waitQ );
+        InitDeque( &timer->waitAllQ );
+        FreeSynObj( host, timer );
     }
 }
-*/
 
-inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode )
+inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode, BOOL lastTime )
 {
     DzFastEvt *fastEvt;
     DzSynObj *timer;
     DzThread *dzThread;
 
     switch( timerNode->type ){
+    case TYPE_TIMER:
+        timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
+        timer->notified = lastTime;
+        if( NotifyWaitAllQueue( host, timer ) ){
+            NotifyWaitQueue( host, timer );
+        }
+        break;
+    case TYPE_CALLBACK_TIMER:
+        timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
+        StartCot( host, timer->routine, timer->context, timer->priority, timer->sSize );
+        break;
     case TYPE_TIMEOUT:
         fastEvt = MEMBER_BASE( timerNode, DzFastEvt, timerNode );
         fastEvt->helper->notifyNode = NULL;
@@ -253,27 +303,7 @@ inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode )
         fastEvt->dzThread = NULL;
         DispatchThread( host, dzThread );
         break;
-    case TYPE_TIMER_ONCE:
-        timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
-        timer->notified = TRUE;
-        if( NotifyWaitAllQueue( host, timer ) ){
-            NotifyWaitQueue( host, timer );
-        }
-        break;
-    case TYPE_TIMER_REPEAT:
-        timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
-        if( NotifyWaitAllQueue( host, timer ) ){
-            NotifyWaitQueue( host, timer );
-        }
-        break;
     }
-    /*
-    if( timerNode->type >= TYPE_TIMEOUT ){
-        NotifyTimeOut( host, MEMBER_BASE( timerNode, DzFastEvt, timerNode ) );
-    }else{
-        NotifyTimer( host, MEMBER_BASE( timerNode, DzSynObj, timerNode ) );
-    }
-    */
 }
 
 inline DzSynObj* CloneSynObj( DzSynObj *obj )
@@ -293,6 +323,7 @@ inline void CloseSynObj( DzHost *host, DzSynObj *obj )
 inline void InitTimeOut( DzFastEvt *timeOut, int milSec, DzWaitHelper *helper )
 {
     timeOut->type = TYPE_TIMEOUT;
+    timeOut->timerNode.repeat = 1;
     timeOut->timerNode.timestamp = DzCurrentTime() + milSec;
     timeOut->helper = helper;
     timeOut->timerNode.index = -1;
@@ -330,6 +361,7 @@ inline int WaitFastEvt( DzHost *host, DzFastEvt *obj, int timeOut )
     }
     obj->dzThread = host->currThread;
     if( timeOut > 0 ){
+        obj->timerNode.repeat = 1;
         obj->timerNode.timestamp = DzCurrentTime() + timeOut;
         AddTimer( host, &obj->timerNode );
     }

@@ -94,7 +94,7 @@ int __stdcall TestMapServerRoutine( void *context )
     if( bytes < 0 ){
         sendErrCount++;
         printf( "send error! count = %d\r\n", sendErrCount );
-        DzShutDown( conn->fd, SD_BOTH );
+        DzShutdown( conn->fd, SD_BOTH );
         DzCloseSocket( conn->fd );
         return -1;
     }
@@ -126,7 +126,7 @@ int __stdcall TestMapServerRoutine( void *context )
             break;
         }
     }
-    DzShutDown( conn->fd, SD_BOTH );
+    DzShutdown( conn->fd, SD_BOTH );
     DzCloseSocket( conn->fd );
     return 1;
 }

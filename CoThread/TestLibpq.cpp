@@ -5,7 +5,7 @@
 #include <iostream>
 using namespace std;
 
-//#define  TEST_LIBPQ
+#define  TEST_LIBPQ
 #ifdef TEST_LIBPQ
 
 #pragma comment( lib, "libpqdll.lib" )
@@ -46,7 +46,8 @@ int __stdcall TestLibpq( void *context )
      * 并且对其它连接使用环境变量或者缺省值。
      * 
      */
-    conninfo = "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=template1";
+    conninfo = "user=BombBabyMgr password=asdf hostaddr=192.168.1.109 port=5432 dbname=template1";
+    conninfo = "user=BombBabyMgr password=asdf hostaddr=192.168.1.109 port=5432 dbname=BombBaby";
 
     /* 和数据库建立链接 */
     conn = PQconnectdb(conninfo);

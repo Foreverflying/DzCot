@@ -173,7 +173,7 @@ BOOL DzCloseSynObj( DzHandle obj )
     return TRUE;
 }
 
-DzHandle DzCreateTimer( int milSec, BOOL repeat )
+DzHandle DzCreateTimer( int milSec, int repeat )
 {
     DzHost *host = GetHost();
     assert( host );
@@ -188,6 +188,41 @@ BOOL DzCloseTimer( DzHandle timer )
     assert( host );
 
     CloseTimer( host, timer );
+    return TRUE;
+}
+
+
+DzHandle DzCreateCallbackTimer( DzRoutine callback, int priority, int sSize )
+{
+    DzHost *host = GetHost();
+    assert( host );
+
+    return CreateCallbackTimer( host, callback, priority, sSize );
+}
+
+BOOL DzStartCallbackTimer( DzHandle timer, int milSec, int repeat, void* context )
+{
+    DzHost *host = GetHost();
+    assert( host );
+    assert( repeat >= 0 && repeat < 65536 );
+
+    return StartCallbackTimer( host, timer, milSec, (unsigned short)repeat, context );
+}
+
+BOOL DzStopCallbackTimer( DzHandle timer )
+{
+    DzHost *host = GetHost();
+    assert( host );
+
+    return StopCallbackTimer( host, timer );
+}
+
+BOOL DzCloseCallbackTimer( DzHandle timer )
+{
+    DzHost *host = GetHost();
+    assert( host );
+
+    CloseCallbackTimer( host, timer );
     return TRUE;
 }
 
@@ -281,11 +316,11 @@ int DzSocket( int domain, int type, int protocol )
     return Socket( host, domain, type, protocol );
 }
 
-int DzShutDown( int fd, int how )
+int DzShutdown( int fd, int how )
 {
     assert( isSocketStarted );
 
-    return ShutDown( fd, how );
+    return Shutdown( fd, how );
 }
 
 int DzCloseSocket( int fd )

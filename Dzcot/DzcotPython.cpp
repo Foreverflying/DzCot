@@ -236,7 +236,7 @@ namespace DzcotPython{
         //         def( "DzSockStartup", DzSockStartup );
         //         def( "DzSockCleanup", DzSockCleanup );
         //         def( "DzSocket", DzSocket );
-        //         def( "DzShutDown", DzShutDown );
+        //         def( "DzShutdown", DzShutdown );
         //         def( "DzCloseSocket", DzCloseSocket );
         //         def( "DzBind", DzBind );
         //         def( "DzListen", DzListen );

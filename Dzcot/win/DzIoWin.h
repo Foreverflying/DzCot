@@ -50,7 +50,7 @@ inline int Socket( DzHost *host, int domain, int type, int protocol )
     return (int)fd;
 }
 
-inline int ShutDown( int fd, int how )
+inline int Shutdown( int fd, int how )
 {
     return shutdown( (SOCKET)fd, how );
 }

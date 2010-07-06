@@ -58,7 +58,7 @@ int __stdcall TestClient( void *context )
         //printf( "connect error code: %d\r\n", WSAGetLastError() );
         connErrCount++;
     }
-    DzShutDown( fd, SD_BOTH );
+    DzShutdown( fd, SD_BOTH );
     DzCloseSocket( fd );
     globalCount--;
     //printf( "globalCount: %d\r\n", globalCount );
@@ -101,7 +101,7 @@ int __stdcall TestServerRoutine( void *context )
     }else{
         recvErrCount++;
     }
-    DzShutDown( fd, SD_BOTH );
+    DzShutdown( fd, SD_BOTH );
     DzCloseSocket( fd );
     globalCount--;
     //printf( "globalCount: %d\r\n", globalCount );

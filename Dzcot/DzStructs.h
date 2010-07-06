@@ -18,8 +18,8 @@ typedef enum _SynObjType
     TYPE_SEM,
     TYPE_EVT_AUTO,
     TYPE_EVT_MANUAL,
-    TYPE_TIMER_ONCE,
-    TYPE_TIMER_REPEAT,
+    TYPE_TIMER,
+    TYPE_CALLBACK_TIMER,
     TYPE_TIMEOUT,
     TYPE_FAST_EVT
 }SynObjType;
@@ -70,8 +70,18 @@ typedef struct _DzSynObj
         };
     };
     int                 ref;
-    DzDeque             waitQ;
-    DzDeque             waitAllQ;
+    union{
+        struct{
+            DzRoutine   routine;            //for CallbackTimer
+            void*       context;            //should reset the waitQ and waitAllQ
+            int         priority;           //when release CallbackTimer
+            int         sSize;
+        };
+        struct{
+            DzDeque     waitQ;
+            DzDeque     waitAllQ;
+        };
+    };
 }DzSynObj;
 
 typedef struct _DzWaitNode

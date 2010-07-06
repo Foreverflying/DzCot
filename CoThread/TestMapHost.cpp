@@ -41,7 +41,7 @@ int __stdcall SendRountine( void *context )
         if( bytes < 0 ){
             sendErrCount++;
             printf( "send error! count = %d\r\n", sendErrCount );
-            DzShutDown( conn->fd, SD_BOTH );
+            DzShutdown( conn->fd, SD_BOTH );
             DzCloseSocket( conn->fd );
             break;
         }
@@ -84,7 +84,7 @@ int __stdcall TestMapHost( void *context )
         }else{
             recvErrCount++;
             printf( "recv error! count = %d\r\n", recvErrCount );
-            DzShutDown( fd, SD_BOTH );
+            DzShutdown( fd, SD_BOTH );
             DzCloseSocket( fd );
             return -1;
         }
@@ -100,7 +100,7 @@ int __stdcall TestMapHost( void *context )
             if( bytes < 0 ){
                 recvErrCount++;
                 printf( "recv error! count = %d\r\n", recvErrCount );
-                DzShutDown( fd, SD_BOTH );
+                DzShutdown( fd, SD_BOTH );
                 DzCloseSocket( fd );
                 return -1;
             }else{
@@ -112,7 +112,7 @@ int __stdcall TestMapHost( void *context )
         //printf( "connect error code: %d\r\n", WSAGetLastError() );
         connErrCount++;
     }
-    DzShutDown( fd, SD_BOTH );
+    DzShutdown( fd, SD_BOTH );
     DzCloseSocket( fd );
 
     return 1;

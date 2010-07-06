@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CoThread", "CoThread\CoThread.vcxproj", "{3CD9E6E4-010C-4927-9171-9442F82F18B1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8831D583-8EF8-4406-B736-6F84C5AC4E54} = {8831D583-8EF8-4406-B736-6F84C5AC4E54}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dzcot", "Dzcot\Dzcot.vcxproj", "{8831D583-8EF8-4406-B736-6F84C5AC4E54}"
 EndProject
