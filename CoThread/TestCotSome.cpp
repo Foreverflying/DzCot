@@ -23,7 +23,7 @@ int __stdcall StartTestException( void *context )
     return 0;
 }
 
-//#define _MULT_SWITCH_TEST_
+#define _MULT_SWITCH_TEST_
 static int countTime = 0;
 static int currCount = 0;
 

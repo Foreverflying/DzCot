@@ -107,6 +107,9 @@ inline void RemoveTimer( DzHost *host, DzTimerNode *timerNode )
     host->timerCount--;
     curr = timerNode->index;
     timerNode->index = -1;
+    if( curr == host->timerCount ){
+        return;
+    }
     timerNode = host->timerHeap[ host->timerCount ];
     if( curr != 0 && LessThanNode( host->timerHeap[ ParentNodeIdx( curr ) ], timerNode ) ){
         do{
@@ -125,6 +128,9 @@ inline void RemoveMinTimer( DzHost *host )
 
     host->timerHeap[0]->index = -1;
     host->timerCount--;
+    if( !host->timerCount ){
+        return;
+    }
     timerNode = host->timerHeap[ host->timerCount ];
     ShiftDownNode( host, 0, timerNode );
 }
@@ -139,24 +145,17 @@ inline DzTimerNode* GetMinTimerNode( DzHost *host )
     return host->timerHeap[0];
 }
 
-inline int GetMinWaitTime( DzHost *host )
-{
-    int ret;
-
-    if( !host->timerCount ){
-        return INFINITE;
-    }
-    ret = (int)( host->timerHeap[0]->timestamp - DzCurrentTime() );
-    return ret > 0 ? ret : 0;
-}
-
-inline void NotifyMinTimers( DzHost *host )
+inline BOOL NotifyMinTimers( DzHost *host, int *timeOut )
 {
     DzTimerNode *timerNode;
     int64 currTime;
+    int64 cmpTime;
+    BOOL ret = FALSE;
 
-    currTime = DzCurrentTime() + MIN_TIME_INTERVAL;
-    do{
+    currTime = DzCurrentTime();
+    cmpTime = currTime + MIN_TIME_INTERVAL;
+    while( host->timerCount > 0 && GetMinTimerNode( host )->timestamp <= cmpTime ){
+        ret = TRUE;
         timerNode = GetMinTimerNode( host );
         if( timerNode->repeat != 1 ){
             if( timerNode->repeat ){
@@ -169,7 +168,14 @@ inline void NotifyMinTimers( DzHost *host )
             RemoveMinTimer( host );
             NotifyTimerNode( host, timerNode, TRUE );
         }
-    }while( host->timerCount > 0 && GetMinTimerNode( host )->timestamp < currTime );
+    }
+    if( ret ){
+        return TRUE;
+    }
+    if( timeOut ){
+        *timeOut = host->timerCount > 0 ? (int)( GetMinTimerNode( host )->timestamp - currTime ) : INFINITE;
+    }
+    return FALSE;
 }
 
 #endif      //#ifndef _DZ_TIMER_H_

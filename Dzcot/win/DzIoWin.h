@@ -538,10 +538,9 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
     static int DEBUGcallTime = 0;
 
     while( !host->isExiting || host->threadCount > 1 ){
-        timeOut = (DWORD)GetMinWaitTime( host );
-        while( timeOut == 0 ){
-            NotifyMinTimers( host );
-            timeOut = (DWORD)GetMinWaitTime( host );
+        while( NotifyMinTimers( host, (int*)&timeOut ) ){
+            host->currPriority = CP_INSTANT;
+            Schedule( host );
         }
         GetQueuedCompletionStatus( host->ioMgr.iocp, &bytes, &key, &overlapped, timeOut );
         host->currPriority = CP_INSTANT;
@@ -559,10 +558,9 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
                 GetQueuedCompletionStatus( host->ioMgr.iocp, &bytes, &key, &overlapped, 0 );
             }while( overlapped != NULL );
         }else if( GetLastError() == WAIT_TIMEOUT ){
-            NotifyMinTimers( host );
+            NotifyMinTimers( host, NULL );
         }
         Schedule( host );
-        //printf( "IoComplete called again! time:\t%d\r\n", DEBUGcallTime++ );
     }
 }
 

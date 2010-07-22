@@ -378,6 +378,7 @@
     <ClCompile Include="TestLibpq.cpp" />
     <ClCompile Include="TestMapHost.cpp" />
     <ClCompile Include="TestMapServer.cpp" />
+    <ClCompile Include="TestResourceMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DlMalloc.h" />
@@ -392,6 +393,7 @@
     <ClInclude Include="TestIocpConnect.h" />
     <ClInclude Include="TestLibpq.h" />
     <ClInclude Include="TestMap.h" />
+    <ClInclude Include="TestResourceMgr.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
