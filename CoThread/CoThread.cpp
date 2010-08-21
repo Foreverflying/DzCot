@@ -54,11 +54,12 @@ int _tmain(int argc, _TCHAR* argv[])
     gPort = gPort ? gPort : htons( 59999 );
 
     //MainTest( StartTestResourceMgr, (void*)100000 );
-    MainTest( StartTestCallbackTimer, (void*)50 ) ;
+    //MainTest( StartTestCallbackTimer, (void*)50 ) ;
     //MainTest( TestMultiMapHost, (void*)( numParam ? numParam : 200 ) );
     //MainTest( TestMapHost, (void*)0 );
     //MainTest( TestMapServer, (void*)4096 );
     //MainTest( StartTestException, (void*)10 );
+    MainTest( TestMiniDump, NULL );
     //MainTest( TestException, (void*)0 );
     //MainTest( TestServer, (void*)SOMAXCONN );
     //MainTest( TestServer, (void*)12000 );

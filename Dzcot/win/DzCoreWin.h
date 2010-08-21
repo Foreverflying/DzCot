@@ -7,6 +7,8 @@
 
 #define PAGE_SIZE                   4096
 #define DZ_STACK_UNIT_SIZE          65536
+
+#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
 
 #ifdef __cplusplus
@@ -171,7 +173,7 @@ inline DzHost* GetHost()
 #if defined( _X86_ )
     return (DzHost*)__readfsdword( 20 );
 #elif defined( _M_AMD64 )
-    return *(DzHost**)(__readgsqword( 0x30 ) + 40);
+    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
 #endif
 #else
     return (DzHost*)TlsGetValue( tlsIndex );
@@ -184,7 +186,7 @@ inline void SetHost( DzHost *host )
 #if defined( _X86_ )
     __writefsdword( 20, (DWORD)host );
 #elif defined( _M_AMD64 )
-    *(DzHost**)(__readgsqword( 0x30 ) + 40) = host;
+    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
 #endif
 #else
     TlsSetValue( tlsIndex, host );

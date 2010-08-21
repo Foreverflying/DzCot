@@ -111,7 +111,7 @@ inline void RemoveTimer( DzHost *host, DzTimerNode *timerNode )
         return;
     }
     timerNode = host->timerHeap[ host->timerCount ];
-    if( curr != 0 && LessThanNode( host->timerHeap[ ParentNodeIdx( curr ) ], timerNode ) ){
+    if( curr != 0 && LessThanNode( timerNode, host->timerHeap[ ParentNodeIdx( curr ) ] ) ){
         do{
             SetTimerNode( host->timerHeap, curr, host->timerHeap[ ParentNodeIdx( curr ) ] );
             curr = ParentNodeIdx( curr );

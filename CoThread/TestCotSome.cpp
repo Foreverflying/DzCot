@@ -1,6 +1,18 @@
 #include "StdAfx.h"
 #include "../Dzcot/Dzcot.h"
 
+void GenerateException()
+{
+    int *p = 0;
+    *p = 0;
+}
+
+int __stdcall TestMiniDump( void *context )
+{
+    GenerateException();
+    return 0;
+}
+
 int __stdcall TestException( void *context )
 {
     int b = 10;
