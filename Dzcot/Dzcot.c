@@ -284,7 +284,7 @@ size_t DzWriteFile( int fd, void *buff, size_t count )
     return Write( host, fd, buff, count );
 }
 
-off_t DzSeekFile( int fd, off_t offset, int whence )
+size_t DzSeekFile( int fd, size_t offset, int whence )
 {
     DzHost *host = GetHost();
     assert( host );
@@ -396,4 +396,14 @@ void DzFreeParamNode( DzParamNode *node )
     assert( host );
 
     FreeQNode( host, (DzQNode*)node );
+}
+
+unsigned long long DzUnixTime()
+{
+    return (unsigned long long)UnixTime();
+}
+
+unsigned long long DzMilUnixTime()
+{
+    return (unsigned long long)MilUnixTime();
 }

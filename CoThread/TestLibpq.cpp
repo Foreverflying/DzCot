@@ -5,7 +5,7 @@
 #include <iostream>
 using namespace std;
 
-#define  TEST_LIBPQ
+//#define  TEST_LIBPQ
 #ifdef TEST_LIBPQ
 
 #pragma comment( lib, "libpqdll.lib" )

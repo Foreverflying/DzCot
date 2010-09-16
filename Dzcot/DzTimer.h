@@ -9,7 +9,7 @@
 
 void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode, BOOL lastTime );
 
-inline int64 DzCurrentTime()
+inline int64 MilUnixTime()
 {
     struct timeb t;
     int64 ret;
@@ -19,6 +19,14 @@ inline int64 DzCurrentTime()
     ret *= 1000;
     ret += t.millitm;
     return ret;
+}
+
+inline int64 UnixTime()
+{
+    struct timeb t;
+
+    ftime( &t );
+    return (int64)t.time;
 }
 
 inline BOOL LessThanNode( DzTimerNode *left, DzTimerNode *right )
@@ -152,7 +160,7 @@ inline BOOL NotifyMinTimers( DzHost *host, int *timeOut )
     int64 cmpTime;
     BOOL ret = FALSE;
 
-    currTime = DzCurrentTime();
+    currTime = MilUnixTime();
     cmpTime = currTime + MIN_TIME_INTERVAL;
     while( host->timerCount > 0 && GetMinTimerNode( host )->timestamp <= cmpTime ){
         ret = TRUE;

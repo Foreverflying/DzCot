@@ -15,7 +15,7 @@
 #include "TestResourceMgr.h"
 #include "Global.h"
 
-#pragma comment( lib, "Dzcot.lib" )
+//#pragma comment( lib, "Dzcot.lib" )
 
 void MainTest( DzRoutine firstEntry, void *context )
 {

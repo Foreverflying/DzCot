@@ -190,7 +190,7 @@ inline DzSynObj* CreateTimer( DzHost *host, int milSec, unsigned short repeat )
         return NULL;
     }
     obj->type = TYPE_TIMER;
-    obj->timerNode.timestamp = DzCurrentTime() + milSec;
+    obj->timerNode.timestamp = MilUnixTime() + milSec;
     obj->timerNode.repeat = repeat;
     obj->timerNode.interval = - milSec;
     obj->ref = 1;
@@ -243,7 +243,7 @@ inline BOOL StartCallbackTimer(
         return FALSE;
     }
     timer->context = context;
-    timer->timerNode.timestamp = DzCurrentTime() + milSec;
+    timer->timerNode.timestamp = MilUnixTime() + milSec;
     timer->timerNode.repeat = repeat;
     timer->timerNode.interval = - milSec;
     AddTimer( host, &timer->timerNode );
@@ -324,7 +324,7 @@ inline void InitTimeOut( DzFastEvt *timeOut, int milSec, DzWaitHelper *helper )
 {
     timeOut->type = TYPE_TIMEOUT;
     timeOut->timerNode.repeat = 1;
-    timeOut->timerNode.timestamp = DzCurrentTime() + milSec;
+    timeOut->timerNode.timestamp = MilUnixTime() + milSec;
     timeOut->helper = helper;
     timeOut->timerNode.index = -1;
 }
@@ -362,7 +362,7 @@ inline int WaitFastEvt( DzHost *host, DzFastEvt *obj, int timeOut )
     obj->dzThread = host->currThread;
     if( timeOut > 0 ){
         obj->timerNode.repeat = 1;
-        obj->timerNode.timestamp = DzCurrentTime() + timeOut;
+        obj->timerNode.timestamp = MilUnixTime() + timeOut;
         AddTimer( host, &obj->timerNode );
     }
     Schedule( host );

@@ -36,7 +36,6 @@
 #include <windows.h>
 
 typedef __int64 int64;
-typedef size_t off_t;
 
 #ifndef __cplusplus
 #define inline __inline

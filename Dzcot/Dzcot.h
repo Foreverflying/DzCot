@@ -2,7 +2,7 @@
 #ifndef _DZCOT_H_
 #define _DZCOT_H_
 
-#if defined(_WIN32) && defined(USE_DZCOT_DLL)
+#if defined(WIN32) && defined(USE_DZCOT_DLL)
 #   ifdef DZCOT_EXPORTS
 #       define DZCOT_API __declspec(dllexport)
 #   else
@@ -93,7 +93,7 @@ DZCOT_API int DzOpenFileW( wchar_t *fileName, int flags );
 DZCOT_API int DzCloseFd( int fd );
 DZCOT_API size_t DzReadFile( int fd, void *buff, size_t count );
 DZCOT_API size_t DzWriteFile( int fd, void *buff, size_t count );
-DZCOT_API off_t DzSeekFile( int fd, off_t offset, int whence );
+DZCOT_API size_t DzSeekFile( int fd, size_t offset, int whence );
 DZCOT_API size_t DzGetFileSize( int fd );
 
 DZCOT_API BOOL DzSockStartup();
@@ -111,6 +111,8 @@ DZCOT_API int DzRecv( int fd, void *buf, int len, int flag );
 DZCOT_API DzParamNode* DzAllocParamNode();
 DZCOT_API void DzFreeParamNode( DzParamNode *node );
 
+DZCOT_API unsigned long long DzUnixTime();
+DZCOT_API unsigned long long DzMilUnixTime();
 #ifdef __cplusplus
 };
 #endif

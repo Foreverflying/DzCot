@@ -38,7 +38,7 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 
 int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 {
-
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 #endif // GENERATE_MINIDUMP_FOR_UNHANDLED_EXP

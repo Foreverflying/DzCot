@@ -490,12 +490,12 @@ endproc:
     return bytes;
 }
 
-inline off_t Seek( DzHost *host, int fd, off_t offset, int whence )
+inline size_t Seek( DzHost *host, int fd, size_t offset, int whence )
 {
-    off_t ret;
+    size_t ret;
 
 #if defined( _X86_ )
-    ret = (off_t)SetFilePointer( (HANDLE)fd, (long)offset, NULL, whence );
+    ret = (size_t)SetFilePointer( (HANDLE)fd, (long)offset, NULL, whence );
 #elif defined( _M_AMD64 )
     SetFilePointerEx( (HANDLE)fd, *(LARGE_INTEGER*)&offset, (LARGE_INTEGER*)&ret, whence );
 #endif
@@ -538,7 +538,7 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
     static int DEBUGcallTime = 0;
 
     while( !host->isExiting || host->threadCount > 1 ){
-        while( NotifyMinTimers( host, (int*)&timeOut ) ){
+        if( NotifyMinTimers( host, (int*)&timeOut ) ){
             host->currPriority = CP_INSTANT;
             Schedule( host );
         }
