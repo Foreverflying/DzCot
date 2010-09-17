@@ -30,6 +30,9 @@ inline int InitHost(
     if( !host ){
         return DS_NO_MEMORY;
     }
+    if( defaultPri == CP_DEFAULT ){
+        defaultPri = lowestPriority;
+    }
 
     host->currThread = NULL;
     host->lowestPriority = lowestPriority;
@@ -37,7 +40,7 @@ inline int InitHost(
     for( i=0; i<=lowestPriority; i++ ){
         InitQueue( &host->taskQs[i] );
     }
-    host->originThread.priority = CP_INSTANT;
+    host->originThread.priority = CP_FIRST;
     host->qNodePool.next = NULL;
     host->taskCheckTag = 0;
     host->poolDepth = 0;
@@ -60,6 +63,7 @@ inline int InitHost(
     host->isExiting = FALSE;
     host->isBlocking = FALSE;
 
+    InitOsAppend( host );
     SetHost( host );
     return DS_OK;
 }
@@ -93,13 +97,48 @@ inline int StartCot(
         host->maxThreadCount++;
     }
     dzThread->priority = priority;
-
     SetThreadEntry( dzThread, entry, context );
+
+    if( priority < host->currPriority ){
+        host->currPriority = priority;
+    }
     DispatchThread( host, dzThread );
-    if( TrySetCurrPriority( host, priority ) ){
-        DispatchCurrThread( host );
+    return DS_OK;
+}
+
+// StartCotInstant:
+// create a new co thread
+inline int StartCotInstant(
+    DzHost*     host,
+    DzRoutine   entry,
+    void        *context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzThread *dzThread;
+
+    if( sSize == SS_DEFAULT ){
+        sSize = host->defaultSSize;
+    }
+    if( priority == CP_DEFAULT ){
+        priority = host->defaultPri;
     }
 
+    dzThread = AllocDzThread( host, sSize );
+    if( !dzThread ){
+        return DS_NO_MEMORY;
+    }
+
+    host->threadCount++;
+    if( host->threadCount > host->maxThreadCount ){
+        host->maxThreadCount++;
+    }
+    dzThread->priority = priority;
+    SetThreadEntry( dzThread, entry, context );
+
+    TemporaryPushThread( host, host->currThread );
+    SwitchToCot( host, dzThread );
     return DS_OK;
 }
 

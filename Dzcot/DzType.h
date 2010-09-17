@@ -23,17 +23,18 @@ enum
 
 enum
 {
-    CP_INSTANT,
-    CP_HIGH,
+    CP_FIRST,
+    CP_HIGH = CP_FIRST,
     CP_NORMAL,
     CP_LOW,
     COT_PRIORITY_COUNT,     //should not use this;
-    CP_DEFAULT
+    CP_DEFAULT = COT_PRIORITY_COUNT
 };
 
 enum
 {
-    SS_64K,
+    SS_FIRST,
+    SS_64K = SS_FIRST,
     SS_128K,
     SS_256K,
     SS_512K,
@@ -42,7 +43,7 @@ enum
     SS_4M,
     SS_8M,
     STACK_SIZE_COUNT,       //should not use this
-    SS_DEFAULT
+    SS_DEFAULT = STACK_SIZE_COUNT
 };
 
 typedef struct _DzParamNode

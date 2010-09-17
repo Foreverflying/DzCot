@@ -21,11 +21,11 @@ int DzInitHost(
         lowestPriority < COT_PRIORITY_COUNT
         );
     assert(
-        defaultPri >= CP_HIGH &&
-        defaultPri < COT_PRIORITY_COUNT
+        defaultPri == CP_DEFAULT ||
+        ( defaultPri >= CP_HIGH && defaultPri <= lowestPriority )
         );
     assert(
-        defaultSSize >= SS_64K &&
+        defaultSSize >= SS_FIRST &&
         defaultSSize < STACK_SIZE_COUNT
         );
     assert( !GetHost() );
@@ -62,18 +62,41 @@ int DzStartCot(
     assert( host );
     assert( entry );
     assert(
-        priority >= CP_INSTANT &&
-        priority <= CP_DEFAULT &&
-        priority != COT_PRIORITY_COUNT
+        priority >= CP_FIRST &&
+        priority <= COT_PRIORITY_COUNT
         );
     assert(
-        sSize >= SS_64K &&
-        sSize <= SS_DEFAULT &&
-        sSize != STACK_SIZE_COUNT
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
         );
     assert( host->threadCount > 0 );
 
     return StartCot( host, entry, context, priority, sSize );
+}
+
+// StartCot:
+// create a new co thread
+int DzStartCotInstant(
+    DzRoutine   entry,
+    void*       context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost *host = GetHost();
+    assert( host );
+    assert( entry );
+    assert(
+        priority >= CP_FIRST &&
+        priority <= COT_PRIORITY_COUNT
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+    assert( host->threadCount > 0 );
+
+    return StartCotInstant( host, entry, context, priority, sSize );
 }
 
 int DzGetCotCount()
@@ -97,9 +120,8 @@ void DzInitCotPool( u_int count, u_int depth, int sSize )
     DzHost *host = GetHost();
     assert( host );
     assert(
-        sSize >= SS_64K &&
-        sSize <= SS_DEFAULT &&
-        sSize != STACK_SIZE_COUNT
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
         );
 
     InitCotPool( host, count, depth, sSize );
@@ -109,14 +131,34 @@ int DzSleep( int milSec )
 {
     DzHost *host = GetHost();
     assert( host );
-    assert( milSec >= 0 );
+    assert( milSec > 0 );
 
-    if( !milSec ){
-        DispatchCurrThread( host );
-    }else{
-        DelayCurrThread( host, milSec );
-    }
+    DelayCurrThread( host, milSec );
     return DS_OK;
+}
+
+int DzSleep0()
+{
+    DzHost *host = GetHost();
+    assert( host );
+
+    DispatchCurrThread( host );
+    return DS_OK;
+}
+
+int DzChangePriority( int priority )
+{
+    int ret;
+    DzHost *host = GetHost();
+    assert( host );
+    assert( priority > CP_FIRST && priority <= host->lowestPriority );
+
+    ret = host->currThread->priority;
+    host->currThread->priority = priority;
+    if( priority < ret ){
+        host->currPriority = priority;
+    }
+    return ret;
 }
 
 DzHandle DzCreateEvt( BOOL notified, BOOL autoReset )

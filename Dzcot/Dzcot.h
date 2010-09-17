@@ -24,7 +24,7 @@ extern "C"{
 
 DZCOT_API int DzInitHost(
     int         lowestPriority,
-    int         defaultPri      __DZ_DFT_ARG( CP_HIGH ),
+    int         defaultPri      __DZ_DFT_ARG( CP_DEFAULT ),
     int         defaultSSize    __DZ_DFT_ARG( SS_64K )
     );
 
@@ -36,6 +36,13 @@ DZCOT_API int DzStartHost(
     );
 
 DZCOT_API int DzStartCot(
+    DzRoutine   entry,
+    void*       context         __DZ_DFT_ARG( NULL ),
+    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
+    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    );
+
+DZCOT_API int DzStartCotInstant(
     DzRoutine   entry,
     void*       context         __DZ_DFT_ARG( NULL ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
@@ -57,6 +64,10 @@ DZCOT_API void DzInitCotPool(
 DZCOT_API int DzSleep(
     int         milSec          __DZ_DFT_ARG( 0 )
     );
+
+DZCOT_API int DzSleep0();
+
+DZCOT_API int DzChangePriority( int priority );
 
 DZCOT_API int DzWaitSynObj(
     DzHandle    obj,

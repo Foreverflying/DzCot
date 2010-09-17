@@ -69,6 +69,16 @@ void CallDzcotRoutine();
 
 #endif
 
+inline void InitOsAppend( DzHost *host )
+{
+#if defined( _X86_ )
+    host->osAppend.originalStack = (char*)__readfsdword( 4 );
+#elif defined( _M_AMD64 )
+    host->osAppend.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
+#endif
+    host->osAppend.reservedStack = NULL;
+}
+
 inline void DzInitCot( DzHost *host, DzThread *dzThread )
 {
     struct DzStackBottom *bottom;

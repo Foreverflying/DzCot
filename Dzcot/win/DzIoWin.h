@@ -538,12 +538,12 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
     static int DEBUGcallTime = 0;
 
     while( !host->isExiting || host->threadCount > 1 ){
-        if( NotifyMinTimers( host, (int*)&timeOut ) ){
-            host->currPriority = CP_INSTANT;
+        while( NotifyMinTimers( host, (int*)&timeOut ) ){
+            host->currPriority = CP_FIRST;
             Schedule( host );
         }
         GetQueuedCompletionStatus( host->ioMgr.iocp, &bytes, &key, &overlapped, timeOut );
-        host->currPriority = CP_INSTANT;
+        host->currPriority = CP_FIRST;
         if( overlapped != NULL ){
             do{
                 asynIo = MEMBER_BASE( overlapped, DzAsynIo, overlapped );

@@ -11,21 +11,12 @@ extern "C"{
 
 inline BOOL UpdateCurrPriority( DzHost *host, int currPriority )
 {
-    if( currPriority > CP_INSTANT  ){
-        if( host->taskQs[ CP_INSTANT ].head ){
-            host->currPriority = CP_INSTANT;
+    if( currPriority > CP_FIRST  ){
+        if( host->taskQs[ CP_FIRST ].head ){
+            host->currPriority = CP_FIRST;
             return TRUE;
         }
         host->currPriority = CP_HIGH;
-    }
-    return FALSE;
-}
-
-inline BOOL TrySetCurrPriority( DzHost *host, int priority )
-{
-    if( priority < host->currPriority ){
-        host->currPriority = priority;
-        return priority == CP_INSTANT;
     }
     return FALSE;
 }
@@ -35,8 +26,13 @@ inline BOOL TrySetCurrPriority( DzHost *host, int priority )
 // put the thread to the active queue
 inline void DispatchThread( DzHost *host, DzThread *dzThread )
 {
-    DzQueue *queue = &host->taskQs[ dzThread->priority ];
-    AddQItrToTail( queue, &dzThread->qItr );
+    AddQItrToTail( &host->taskQs[ dzThread->priority ], &dzThread->qItr );
+}
+
+inline void TemporaryPushThread( DzHost *host, DzThread *dzThread )
+{
+    host->currPriority = CP_FIRST;
+    AddQItrToHead( &host->taskQs[ CP_FIRST ], &dzThread->qItr );
 }
 
 inline void SwitchToCot( DzHost *host, DzThread *dzThread )

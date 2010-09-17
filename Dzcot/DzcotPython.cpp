@@ -57,7 +57,7 @@ namespace DzcotPython{
             defaultPri < COT_PRIORITY_COUNT
             );
         assert(
-            defaultSSize >= SS_64K &&
+            defaultSSize >= SS_FIRST &&
             defaultSSize < STACK_SIZE_COUNT
             );
         assert( !GetHost() );
@@ -119,13 +119,11 @@ namespace DzcotPython{
         assert( entry );
         assert(
             priority >= CP_INSTANT &&
-            priority <= CP_DEFAULT &&
-            priority != COT_PRIORITY_COUNT
+            priority <= COT_PRIORITY_COUNT
             );
         assert(
-            sSize >= SS_64K &&
-            sSize <= SS_DEFAULT &&
-            sSize != STACK_SIZE_COUNT
+            sSize >= SS_FIRST &&
+            sSize <= STACK_SIZE_COUNT
             );
         assert( host->threadCount > 0 );
 
@@ -161,9 +159,8 @@ namespace DzcotPython{
         DzHost *host = GetHost();
         assert( host );
         assert(
-            sSize >= SS_64K &&
-            sSize <= SS_DEFAULT &&
-            sSize != STACK_SIZE_COUNT
+            sSize >= SS_FIRST &&
+            sSize <= STACK_SIZE_COUNT
             );
 
         return InitCotPool( host, count, depth, sSize );

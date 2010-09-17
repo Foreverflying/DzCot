@@ -7,7 +7,7 @@
 #define INIT_TIME_HEAP_SIZE     512
 #define MIN_TIME_INTERVAL       5
 
-void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode, BOOL lastTime );
+void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode );
 
 inline int64 MilUnixTime()
 {
@@ -169,12 +169,12 @@ inline BOOL NotifyMinTimers( DzHost *host, int *timeOut )
             if( timerNode->repeat ){
                 timerNode->repeat--;
             }
-            timerNode->timestamp -= timerNode->interval;    //timerNode->interval is negative
+            timerNode->timestamp -= timerNode->interval;   //interval is negative
             AdjustMinTimer( host, timerNode );
-            NotifyTimerNode( host, timerNode, FALSE );
+            NotifyTimerNode( host, timerNode );
         }else{
             RemoveMinTimer( host );
-            NotifyTimerNode( host, timerNode, TRUE );
+            NotifyTimerNode( host, timerNode );
         }
     }
     if( ret ){

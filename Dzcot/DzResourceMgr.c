@@ -131,11 +131,13 @@ BOOL AllocSynObjPool( DzHost *host, int count )
     host->synObjPool.next = &p->qItr;
     end = p + count - 1;
     end->qItr.next = NULL;
-    InitDeque( &end->waitQ );
-    InitDeque( &end->waitAllQ );
+    InitDeque( &end->waitQ[ CP_HIGH ] );
+    InitDeque( &end->waitQ[ CP_NORMAL ] );
+    InitDeque( &end->waitQ[ CP_LOW ] );
     while( p != end ){
-        InitDeque( &p->waitQ );
-        InitDeque( &p->waitAllQ );
+        InitDeque( &p->waitQ[ CP_HIGH ] );
+        InitDeque( &p->waitQ[ CP_NORMAL ] );
+        InitDeque( &p->waitQ[ CP_LOW ] );
         qItr = &p->qItr;
         qItr->next = &(++p)->qItr;
     }

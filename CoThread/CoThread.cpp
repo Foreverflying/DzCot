@@ -20,7 +20,7 @@
 void MainTest( DzRoutine firstEntry, void *context )
 {
     DzSockStartup();
-    DzInitHost( CP_HIGH );
+    DzInitHost( CP_NORMAL );
     DzStartHost( firstEntry, context );
     DzSockCleanup();
 }
@@ -53,20 +53,22 @@ int _tmain(int argc, _TCHAR* argv[])
     gIp = gIp ? gIp : htonl( MAKEIPADDRESS( 127, 0, 0, 1 ) );
     gPort = gPort ? gPort : htons( 59999 );
 
+    //StartTestStackAlloc( (void*)2 );
+    //MainTest( StartTestStackAlloc, (void*)20 );
     //MainTest( StartTestResourceMgr, (void*)100000 );
     //MainTest( StartTestCallbackTimer, (void*)50 ) ;
     //MainTest( TestMultiMapHost, (void*)( numParam ? numParam : 200 ) );
     //MainTest( TestMapHost, (void*)0 );
     //MainTest( TestMapServer, (void*)4096 );
     //MainTest( StartTestException, (void*)10 );
-    MainTest( TestMiniDump, NULL );
+    //MainTest( TestMiniDump, NULL );
     //MainTest( TestException, (void*)0 );
     //MainTest( TestServer, (void*)SOMAXCONN );
     //MainTest( TestServer, (void*)12000 );
     //MainTest( TestMultiClient, (void*)3000 );
     //MainTest( TestClient, (void*)0 );
     //MainTest( TestReadFile, (void*)0 );
-    //MainTest( StartTestSynobj, (void*)10 );
+    MainTest( StartTestSynobj, (void*)10 );
     //MainTest( StartTestSwitch, (void*)10000 );
     //MainTest( StartTestLibpq, (void*)150 );
     //MainTest( TestLibpq, "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=template1" );

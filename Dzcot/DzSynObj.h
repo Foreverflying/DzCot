@@ -54,63 +54,52 @@ inline void ClearWait( DzHost *host, DzWaitHelper *helper )
     }
 }
 
-inline BOOL NotifyWaitAllQueue( DzHost *host, DzSynObj *obj )
-{
-    DzDeque *queue;
-    DzDqItr *dqItr;
-    DzWaitNode *node;
-    DzWaitHelper *helper;
-    DzWaitNode *head;
-    int i;
-
-    queue = &obj->waitAllQ;
-    dqItr = queue->entry.next;
-    while( dqItr != &queue->entry ){
-        node = MEMBER_BASE( dqItr, DzWaitNode, dqItr );
-        dqItr = dqItr->next;
-        helper = node->helper;
-        helper->nowCount--;
-        if( helper->nowCount == 0 ){
-            head = helper->nodeArray;
-            for( i=0; i < helper->waitCount; i++ ){
-                if( !IsNotified( head[i].synObj ) ){
-                    helper->nowCount++;
-                }
-            }
-            if( helper->nowCount == 0 ){
-                for( i=0; i < helper->waitCount; i++ ){
-                    WaitNotified( head[i].synObj );
-                }
-                ClearWait( host, helper );
-                DispatchThread( host, helper->dzThread );
-                helper->notifyNode = node;
-                if( !IsNotified( obj ) ){
-                    return FALSE;
-                }
-            }
-        }
-    }
-    return TRUE;
-}
-
 inline BOOL NotifyWaitQueue( DzHost *host, DzSynObj *obj )
 {
     DzDeque *queue;
     DzDqItr *dqItr;
     DzWaitNode *node;
+    DzWaitNode *head;
+    int priority;
+    int i;
 
-    queue = &obj->waitQ;
-    dqItr = queue->entry.next;
-    while( dqItr != &queue->entry ){
-        node = MEMBER_BASE( dqItr, DzWaitNode, dqItr );
-        dqItr = dqItr->next;
-        WaitNotified( obj );
-        ClearWait( host, node->helper );
-        DispatchThread( host, node->helper->dzThread );
-        node->helper->notifyNode = node;
+    for( priority = CP_FIRST; priority <= host->lowestPriority; priority++ ){
+        queue = &obj->waitQ[ priority ];
+        dqItr = queue->entry.next;
+        while( dqItr != &queue->entry ){
+            node = MEMBER_BASE( dqItr, DzWaitNode, dqItr );
+            dqItr = dqItr->next;
+            if( node->helper->nowCount ){
+                node->helper->nowCount--;
+                if( node->helper->nowCount == 0 ){
+                    head = node->helper->nodeArray;
+                    for( i=0; i < node->helper->waitCount; i++ ){
+                        if( !IsNotified( head[i].synObj ) ){
+                            node->helper->nowCount++;
+                        }
+                    }
+                    if( node->helper->nowCount == 0 ){
+                        for( i=0; i < node->helper->waitCount; i++ ){
+                            WaitNotified( head[i].synObj );
+                        }
+                        ClearWait( host, node->helper );
+                        DispatchThread( host, node->helper->dzThread );
+                        node->helper->notifyNode = node;
+                        if( !IsNotified( obj ) ){
+                            return FALSE;
+                        }
+                    }
+                }
+            }else{
+                WaitNotified( obj );
+                ClearWait( host, node->helper );
+                DispatchThread( host, node->helper->dzThread );
+                node->helper->notifyNode = node;
 
-        if( !IsNotified( obj ) ){
-            return FALSE;
+                if( !IsNotified( obj ) ){
+                    return FALSE;
+                }
+            }
         }
     }
     return TRUE;
@@ -137,12 +126,7 @@ inline void SetEvt( DzHost *host, DzSynObj *evt )
         return;
     }
     evt->notified = TRUE;
-    if( NotifyWaitAllQueue( host, evt ) ){
-        NotifyWaitQueue( host, evt );
-    }
-    if( UpdateCurrPriority( host, host->currPriority ) ){
-        DispatchCurrThread( host );
-    }
+    NotifyWaitQueue( host, evt );
 }
 
 inline void ResetEvt( DzSynObj *evt )
@@ -172,12 +156,7 @@ inline u_int ReleaseSem( DzHost *host, DzSynObj *sem, int count )
         return sem->count;
     }
     sem->count += count;
-    if( NotifyWaitAllQueue( host, sem ) ){
-        NotifyWaitQueue( host, sem );
-    }
-    if( UpdateCurrPriority( host, host->currPriority ) ){
-        DispatchCurrThread( host );
-    }
+    NotifyWaitQueue( host, sem );
     return sem->count;
 }
 
@@ -266,13 +245,13 @@ inline void CloseCallbackTimer( DzHost *host, DzSynObj *timer )
         if( IsTimeNodeInHeap( &timer->timerNode ) ){
             RemoveTimer( host, &timer->timerNode );
         }
-        InitDeque( &timer->waitQ );
-        InitDeque( &timer->waitAllQ );
+        InitDeque( &timer->waitQ[ CP_HIGH ] );
+        InitDeque( &timer->waitQ[ CP_NORMAL ] );
         FreeSynObj( host, timer );
     }
 }
 
-inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode, BOOL lastTime )
+inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode )
 {
     DzFastEvt *fastEvt;
     DzSynObj *timer;
@@ -281,9 +260,16 @@ inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode, BOOL lastTime
     switch( timerNode->type ){
     case TYPE_TIMER:
         timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
-        timer->notified = lastTime;
-        if( NotifyWaitAllQueue( host, timer ) ){
-            NotifyWaitQueue( host, timer );
+        //since DzTimerNode.interval and DzTimerNode.notified is union,
+        //negative DzTimerNode.notified means not notified.
+        //so interval is a negative number
+        //when notifying Timer, DzTimerNode.notified should keep positive,
+        timer->notified = - timer->notified;
+        NotifyWaitQueue( host, timer );
+        //well, if a timer can be notified more than one time, it is still in timer heap.
+        //so we set it to NOT notified, or else, we keep it notified.
+        if( IsTimeNodeInHeap( timerNode ) ){
+            timer->notified = - timer->notified;
         }
         break;
     case TYPE_CALLBACK_TIMER:
@@ -389,6 +375,7 @@ inline int WaitSynObj( DzHost *host, DzSynObj *obj, int timeOut )
     if( timeOut == 0 ){
         return -1;
     }
+    helper.nowCount = 0;
     helper.nodeArray = &waitNode;
     helper.waitCount = 1;
     helper.nodeArray[0].helper = &helper;
@@ -399,7 +386,7 @@ inline int WaitSynObj( DzHost *host, DzSynObj *obj, int timeOut )
     }else{
         helper.timeOut.timerNode.index = -1;
     }
-    AppendToWaitQ( &obj->waitQ, &helper.nodeArray[0] );
+    AppendToWaitQ( &obj->waitQ[ host->currThread->priority ], &helper.nodeArray[0] );
     Schedule( host );
     return 0;
 }
@@ -447,15 +434,9 @@ inline int WaitMultiSynObj( DzHost *host, int count, DzSynObj **obj, BOOL waitAl
     }else{
         helper.timeOut.timerNode.index = -1;
     }
-    if( waitAll ){
-        helper.nowCount = nowCount;
-        for( i=0; i<count; i++ ){
-            AppendToWaitQ( &obj[i]->waitAllQ, &helper.nodeArray[i] );
-        }
-    }else{
-        for( i=0; i<count; i++ ){
-            AppendToWaitQ( &obj[i]->waitQ, &helper.nodeArray[i] );
-        }
+    helper.nowCount = nowCount;
+    for( i=0; i<count; i++ ){
+        AppendToWaitQ( &obj[i]->waitQ[ host->currThread->priority ], &helper.nodeArray[i] );
     }
     Schedule( host );
     if( !helper.notifyNode ){

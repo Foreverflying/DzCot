@@ -52,7 +52,7 @@ int __stdcall TestCotSwitch( void *context )
             countTime++;
             printf( "%d\t times called\r\n", countTime );
         }
-        DzSleep( 0 );
+        DzSleep0();
 #else
         printf( "thread %d\t scheduled\r\n", id );
         //cout << "thread " << id << endl;
@@ -68,5 +68,18 @@ int __stdcall StartTestSwitch( void *context )
     for( int i=0; i<count; i++ ){
         DzStartCot( TestCotSwitch, (void*)i );
     }
+    return 0;
+}
+
+int __stdcall StartTestStackAlloc( void *context )
+{
+    if( !context ){
+        return 0;
+    }
+    int mem[ 512 ];
+    for( int i = 0; i < 512; i++ ){
+        mem[ i ] = 0;
+    }
+    StartTestStackAlloc( (void*)((size_t)context-1) );
     return 0;
 }
