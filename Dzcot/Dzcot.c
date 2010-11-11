@@ -148,17 +148,11 @@ int DzSleep0()
 
 int DzChangePriority( int priority )
 {
-    int ret;
     DzHost *host = GetHost();
     assert( host );
     assert( priority > CP_FIRST && priority <= host->lowestPriority );
 
-    ret = host->currThread->priority;
-    host->currThread->priority = priority;
-    if( priority < ret ){
-        host->currPriority = priority;
-    }
-    return ret;
+    return SetCurrCotPriority( host, priority );
 }
 
 DzHandle DzCreateEvt( BOOL notified, BOOL autoReset )

@@ -30,9 +30,6 @@ inline int InitHost(
     if( !host ){
         return DS_NO_MEMORY;
     }
-    if( defaultPri == CP_DEFAULT ){
-        defaultPri = lowestPriority;
-    }
 
     host->currThread = NULL;
     host->lowestPriority = lowestPriority;
@@ -58,7 +55,7 @@ inline int InitHost(
     host->synObjPool.next = NULL;
     host->asynIoPool.next = NULL;
     host->originExceptPtr = GetExceptPtr();
-    host->defaultPri = defaultPri;
+    host->defaultPri = defaultPri == CP_DEFAULT ? host->lowestPriority : defaultPri;
     host->defaultSSize = defaultSSize;
     host->isExiting = FALSE;
     host->isBlocking = FALSE;
@@ -83,9 +80,6 @@ inline int StartCot(
     if( sSize == SS_DEFAULT ){
         sSize = host->defaultSSize;
     }
-    if( priority == CP_DEFAULT ){
-        priority = host->defaultPri;
-    }
 
     dzThread = AllocDzThread( host, sSize );
     if( !dzThread ){
@@ -96,11 +90,11 @@ inline int StartCot(
     if( host->threadCount > host->maxThreadCount ){
         host->maxThreadCount++;
     }
-    dzThread->priority = priority;
+    dzThread->priority = priority == CP_DEFAULT ? host->defaultPri : priority;
     SetThreadEntry( dzThread, entry, context );
 
-    if( priority < host->currPriority ){
-        host->currPriority = priority;
+    if( dzThread->priority < host->currPriority ){
+        host->currPriority = dzThread->priority;
     }
     DispatchThread( host, dzThread );
     return DS_OK;
@@ -121,9 +115,6 @@ inline int StartCotInstant(
     if( sSize == SS_DEFAULT ){
         sSize = host->defaultSSize;
     }
-    if( priority == CP_DEFAULT ){
-        priority = host->defaultPri;
-    }
 
     dzThread = AllocDzThread( host, sSize );
     if( !dzThread ){
@@ -134,7 +125,7 @@ inline int StartCotInstant(
     if( host->threadCount > host->maxThreadCount ){
         host->maxThreadCount++;
     }
-    dzThread->priority = priority;
+    dzThread->priority = priority == CP_DEFAULT ? host->defaultPri : priority;
     SetThreadEntry( dzThread, entry, context );
 
     TemporaryPushThread( host, host->currThread );
@@ -152,15 +143,28 @@ inline int StartHost(
     int         sSize
     )
 {
+    int ret = DS_OK;
     host->currThread = &host->originThread;
 
     InitIoMgr( host );
     if( firstEntry ){
-        StartCot( host, firstEntry, context, priority, sSize );
+        ret = StartCot( host, firstEntry, context, priority, sSize );
         Schedule( host );
     }
     IoMgrRoutine( host, TRUE );
-    return DS_OK;
+    return ret;
+}
+
+inline int SetCurrCotPriority( DzHost *host, int priority )
+{
+    int ret;
+
+    ret = host->currThread->priority;
+    host->currThread->priority = priority;
+    if( priority < ret ){
+        host->currPriority = priority;
+    }
+    return ret;
 }
 
 inline int GetCotCount( DzHost *host )

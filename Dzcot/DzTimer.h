@@ -169,13 +169,12 @@ inline BOOL NotifyMinTimers( DzHost *host, int *timeOut )
             if( timerNode->repeat ){
                 timerNode->repeat--;
             }
-            timerNode->timestamp -= timerNode->interval;   //interval is negative
+            timerNode->timestamp -= timerNode->interval;    //timerNode->interval is negative
             AdjustMinTimer( host, timerNode );
-            NotifyTimerNode( host, timerNode );
         }else{
             RemoveMinTimer( host );
-            NotifyTimerNode( host, timerNode );
         }
+        NotifyTimerNode( host, timerNode );
     }
     if( ret ){
         return TRUE;
