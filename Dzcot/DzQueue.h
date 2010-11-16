@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:03
+    file:       DzQueue.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_QUEUE_H_
-#define _DZ_QUEUE_H_
+#ifndef __DzQueue_h__
+#define __DzQueue_h__
 
 #include "DzStructsQueue.h"
 
@@ -95,4 +101,4 @@ inline void PopQItr( DzQItr *head )
 };
 #endif
 
-#endif  //#ifndef _DZ_QUEUE_H_
+#endif // __DzQueue_h__

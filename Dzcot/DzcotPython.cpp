@@ -1,3 +1,10 @@
+/********************************************************************
+    created:    2010/02/11 22:12
+    file:       DzcotPython.cpp
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
+
 #include "DzIncOs.h"
 //#include "DzcotExports.h"
 

@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:06
+    file:       DzStructsWin.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_STRUCTS_WIN_H_
-#define _DZ_STRUCTS_WIN_H_
+#ifndef __DzStructsWin_h__
+#define __DzStructsWin_h__
 
 #include "../DzStructsQueue.h"
 
@@ -15,4 +21,4 @@ typedef struct _DzOsAppend
     DzQItr*         reservedStack;
 }DzOsAppend;
 
-#endif  //#ifdef _DZ_STRUCTS_WIN_H_
+#endif // __DzStructsWin_h__

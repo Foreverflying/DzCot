@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 21:50
+    file:       DzCoreOs.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_CORE_OS_H_
-#define _DZ_CORE_OS_H_
+#ifndef __DzCoreOs_h__
+#define __DzCoreOs_h__
 
 #ifdef _WIN32
     #include "win/DzCoreWin.h"
@@ -8,4 +14,4 @@
     #include "linux/DzCoreLinux.h"
 #endif
 
-#endif  //#ifdef _DZ_CORE_OS_H_
+#endif // __DzCoreOs_h__

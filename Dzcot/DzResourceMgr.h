@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:03
+    file:       DzResourceMgr.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_STRUCT_MGR_H_
-#define _DZ_STRUCT_MGR_H_
+#ifndef __DzResourceMgr_h__
+#define __DzResourceMgr_h__
 
 #include "DzStructs.h"
 #include "DzQueue.h"
@@ -144,4 +150,4 @@ inline void FreeDzThread( DzHost *host, DzThread *dzThread )
 };
 #endif
 
-#endif  //#ifndef _DZ_STRUCT_MGR_H_
+#endif // __DzResourceMgr_h__

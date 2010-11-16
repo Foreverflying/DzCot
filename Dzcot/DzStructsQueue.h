@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:06
+    file:       DzStructsQueue.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_STRUCT_QUEUE_H_
-#define _DZ_STRUCT_QUEUE_H_
+#ifndef __DzStructsQueue_h__
+#define __DzStructsQueue_h__
 
 typedef struct _DzQItr
 {
@@ -40,4 +46,4 @@ typedef struct _DzQNode
     void*               content;
 }DzQNode;
 
-#endif  //#ifndef _DZ_STRUCTS_QUEUE_H_
+#endif // __DzStructsQueue_h__

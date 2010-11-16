@@ -1,27 +1,14 @@
+/********************************************************************
+    created:    2010/11/17 3:19
+    file:       DzStructsIoLnx.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_STRUCTS_IO_WIN_H_
-#define _DZ_STRUCTS_IO_WIN_H_
+#ifndef __DzStructsIoLnx_h__
+#define __DzStructsIoLnx_h__
 
 #include "../DzStructs.h"
-
-/*
-typedef struct _DzFd
-{
-    union{
-        DzQItr      qItr;
-        HANDLE      file;
-        SOCKET      s;
-    };
-    BOOL        isFile;
-    union{
-        off_t64     offset;
-        struct{
-            DWORD   offsetLow;
-            DWORD   offsetHigh;
-        };
-    };
-}DzFd;
-*/
 
 typedef struct _DzAsynIo
 {
@@ -36,4 +23,4 @@ typedef struct _DzAsynIo
     OVERLAPPED      overlapped;
 }DzAsynIo;
 
-#endif  //#ifdef _DZ_STRUCTS_IO_WIN_H_
+#endif // __DzStructsIoLnx_h__

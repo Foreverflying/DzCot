@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:04
+    file:       DzSchedule.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_SCHEDULE_H_
-#define _DZ_SCHEDULE_H_
+#ifndef __DzSchedule_h__
+#define __DzSchedule_h__
 
 #include "DzQueue.h"
 #include "DzCoreOs.h"
@@ -71,4 +77,4 @@ inline void DispatchCurrThread( DzHost *host )
 };
 #endif
 
-#endif      //#ifndef _DZ_SCHEDULE_H_
+#endif // __DzSchedule_h__

@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:03
+    file:       DzIoWin.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_IO_WIN_H_
-#define _DZ_IO_WIN_H_
+#ifndef __DzIoWin_h__
+#define __DzIoWin_h__
 
 #include "../DzConstant.h"
 #include "../DzStructs.h"
@@ -568,4 +574,4 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
 };
 #endif
 
-#endif  //#ifndef _DZ_IO_WIN_H_
+#endif // __DzIoWin_h__

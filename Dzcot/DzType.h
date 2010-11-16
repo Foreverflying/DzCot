@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:07
+    file:       DzType.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_TYPE_H_
-#define _DZ_TYPE_H_
+#ifndef __DzType_h__
+#define __DzType_h__
 
 #undef FALSE
 #undef TRUE
@@ -59,4 +65,4 @@ typedef struct _DzSynObj* DzHandle;
 
 typedef int (__stdcall *DzRoutine)( void *context );
 
-#endif      //#ifndef _DZ_TYPE_H_
+#endif // __DzType_h__

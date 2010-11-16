@@ -543,7 +543,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|x64'">true</ExcludedFromBuild>
     </CustomBuildStep>
-    <ClInclude Include="DzcotExports.h" />
     <ClInclude Include="DzIncOs.h" />
     <ClInclude Include="win\DzIncWin.h" />
     <ClInclude Include="DzIoOs.h" />

@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:04
+    file:       DzSocketReplace.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_SOCKET_REPLACE_H_
-#define _DZ_SOCKET_REPLACE_H_
+#ifndef __DzSocketReplace_h__
+#define __DzSocketReplace_h__
 
 #include "Dzcot.h"
 
@@ -16,5 +22,4 @@
 #define send( s, buf, len, flag ) DzSend( (s), (buf), (len), (flag) )
 #define recv( s, buf, len, flag ) DzRecv( (s), (buf), (len), (flag) )
 
-#endif
-
+#endif // __DzSocketReplace_h__

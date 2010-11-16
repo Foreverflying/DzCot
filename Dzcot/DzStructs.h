@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:05
+    file:       DzStructs.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_STRUCTS_H_
-#define _DZ_STRUCTS_H_
+#ifndef __DzStructs_h__
+#define __DzStructs_h__
 
 #include "DzType.h"
 #include "DzStructsQueue.h"
@@ -176,4 +182,4 @@ typedef struct _DzHost
     BOOL            isBlocking;
 }DzHost;
 
-#endif  //#ifndef _DZ_STRUCTS_H_
+#endif // __DzStructs_h__

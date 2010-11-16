@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 21:49
+    file:       DzCore.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZCOT_CORE_H_
-#define _DZCOT_CORE_H_
+#ifndef __DzCore_h__
+#define __DzCore_h__
 
 #include "DzType.h"
 #include "DzStructs.h"
@@ -217,4 +223,4 @@ inline void InitCotPool( DzHost *host, u_int count, u_int depth, int sSize )
 };
 #endif
 
-#endif  //#ifndef _DZCOT_CORE_H_
+#endif // __DzCore_h__

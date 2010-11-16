@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:02
+    file:       DzIoOs.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_IO_OS_H_
-#define _DZ_IO_OS_H_
+#ifndef __DzIoOs_h__
+#define __DzIoOs_h__
 
 #ifdef _WIN32
     #include "win/DzIoWin.h"
@@ -8,4 +14,4 @@
     #include "linux/DzIoLinux.h"
 #endif
 
-#endif  //#ifdef _DZ_IO_OS_H_
+#endif // __DzIoOs_h__

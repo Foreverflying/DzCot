@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:06
+    file:       DzStructsOs.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_STRUCTS_OS_H_
-#define _DZ_STRUCTS_OS_H_
+#ifndef __DzStructsOs_h__
+#define __DzStructsOs_h__
 
 #ifdef _WIN32
     #include "win/DzStructsWin.h"
@@ -8,4 +14,4 @@
     #include "linux/DzStructsLinux.h"
 #endif
 
-#endif  //#ifdef _DZ_STRUCTS_OS_H_
+#endif // __DzStructsOs_h__

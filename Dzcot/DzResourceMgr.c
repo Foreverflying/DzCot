@@ -1,3 +1,10 @@
+/********************************************************************
+    created:    2010/02/11 22:13
+    file:       DzResourceMgr.c
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
+
 #include "DzIncOs.h"
 #include "DzResourceMgr.h"
 

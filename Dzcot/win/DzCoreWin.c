@@ -1,3 +1,10 @@
+/********************************************************************
+    created:    2010/02/11 22:12
+    file:       DzCoreWin.c
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
+
 #include "DzIncWin.h"
 #include "DzCoreWin.h"
 #include "../DzCore.h"

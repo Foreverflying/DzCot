@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 21:50
+    file:       Dzcot.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZCOT_H_
-#define _DZCOT_H_
+#ifndef __Dzcot_h__
+#define __Dzcot_h__
 
 #if defined(WIN32) && defined(USE_DZCOT_DLL)
 #   ifdef DZCOT_EXPORTS
@@ -128,4 +134,4 @@ DZCOT_API unsigned long long DzMilUnixTime();
 };
 #endif
 
-#endif  //#ifndef _DZCOT_H_
+#endif // __Dzcot_h__

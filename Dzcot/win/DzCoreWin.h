@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 21:50
+    file:       DzCoreWin.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_CORE_WIN_H_
-#define _DZ_CORE_WIN_H_
+#ifndef __DzCoreWin_h__
+#define __DzCoreWin_h__
 
 #include "../DzStructs.h"
 #include "../../DzcotData/DzcotData.h"
@@ -207,4 +213,4 @@ inline void SetHost( DzHost *host )
 };
 #endif
 
-#endif  //#ifndef _DZ_CORE_WIN_H_
+#endif // __DzCoreWin_h__

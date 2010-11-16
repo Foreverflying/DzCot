@@ -1,4 +1,9 @@
-;DzAsmCoreWin.asm: funciton used for switch cot
+;********************************************************************
+;    created:    2010/02/11 22:07
+;    file:       DzAsmCoreWin64.asm
+;    author:     Foreverflying
+;    purpose:    funciton used for switch cot on win64
+;********************************************************************
 
 ;PUBLIC	DzSwitch PROC    ; DzSwitch
 EXTRN	DzcotRoutine:PROC

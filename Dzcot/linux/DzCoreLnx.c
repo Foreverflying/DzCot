@@ -1,3 +1,10 @@
+/********************************************************************
+    created:    2010/11/17 3:22
+    file:       DzCoreLnx.c
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
+
 #include "DzIncWin.h"
 #include "DzCoreWin.h"
 #include "../DzCore.h"

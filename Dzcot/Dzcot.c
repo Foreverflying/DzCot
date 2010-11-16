@@ -1,6 +1,11 @@
-#include "DzIncOs.h"
-#include "DzcotExports.h"
+/********************************************************************
+    created:    2010/02/11 22:12
+    file:       Dzcot.c
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
+#include "DzIncOs.h"
 #include "Dzcot.h"
 #include "DzSynObj.h"
 #include "DzCore.h"

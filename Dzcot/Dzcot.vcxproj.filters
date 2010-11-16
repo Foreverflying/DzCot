@@ -55,9 +55,6 @@
     <ClInclude Include="win\DzCoreWin.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DzcotExports.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DzIncOs.h">
       <Filter>头文件</Filter>
     </ClInclude>

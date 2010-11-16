@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:07
+    file:       DzSynObj.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_SYN_OBJ_H_
-#define _DZ_SYN_OBJ_H_
+#ifndef __DzSynObj_h__
+#define __DzSynObj_h__
 
 #include <malloc.h>
 #include "DzStructs.h"
@@ -453,4 +459,4 @@ inline int WaitMultiSynObj( DzHost *host, int count, DzSynObj **obj, BOOL waitAl
 };
 #endif
 
-#endif  // #ifndef _DZ_SYN_OBJ_H_
+#endif // __DzSynObj_h__

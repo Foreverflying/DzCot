@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 22:07
+    file:       DzTimer.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_TIMER_H_
-#define _DZ_TIMER_H_
+#ifndef __DzTimer_h__
+#define __DzTimer_h__
 
 #include "DzStructs.h"
 
@@ -185,4 +191,4 @@ inline BOOL NotifyMinTimers( DzHost *host, int *timeOut )
     return FALSE;
 }
 
-#endif      //#ifndef _DZ_TIMER_H_
+#endif // __DzTimer_h__

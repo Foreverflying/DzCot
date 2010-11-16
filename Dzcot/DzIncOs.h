@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/02/11 21:55
+    file:       DzIncOs.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_INC_OS_H_
-#define _DZ_INC_OS_H_
+#ifndef __DzIncOs_h__
+#define __DzIncOs_h__
 
 #ifdef _WIN32
     #include "win/DzIncWin.h"
@@ -8,4 +14,4 @@
     #include "linux/DzIncLinux.h"
 #endif
 
-#endif  //#ifdef _DZ_INC_OS_H_
+#endif // __DzIncOs_h__

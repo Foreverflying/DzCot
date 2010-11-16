@@ -1,6 +1,12 @@
+/********************************************************************
+    created:    2010/11/17 3:21
+    file:       DzCoreLnx.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_CORE_WIN_H_
-#define _DZ_CORE_WIN_H_
+#ifndef __DzCoreLnx_h__
+#define __DzCoreLnx_h__
 
 #include "../DzStructs.h"
 #include "../../DzcotData/DzcotData.h"
@@ -8,8 +14,7 @@
 #define PAGE_SIZE                   4096
 #define DZ_STACK_UNIT_SIZE          65536
 
-#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
-#define STORE_HOST_IN_ARBITRARY_USER_POINTER
+#define STORE_HOST_IN_SPECIFIC_POINTER
 
 #ifdef __cplusplus
 extern "C"{
@@ -207,4 +212,4 @@ inline void SetHost( DzHost *host )
 };
 #endif
 
-#endif  //#ifndef _DZ_CORE_WIN_H_
+#endif // __DzCoreLnx_h__
