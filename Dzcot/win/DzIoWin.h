@@ -52,7 +52,7 @@ inline int Socket( DzHost *host, int domain, int type, int protocol )
     SOCKET fd;
 
     fd = socket( domain, type, protocol );
-    CreateIoCompletionPort( (HANDLE)fd, host->ioMgr.iocp, (ULONG_PTR)NULL, 0 );
+    CreateIoCompletionPort( (HANDLE)fd, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     return (int)fd;
 }
 
@@ -165,7 +165,7 @@ inline int Accept( DzHost *host, int fd, struct sockaddr *addr, int *addrLen )
         //complete directly
         asynIo->fd = -1;
     }
-    CreateIoCompletionPort( (HANDLE)s, host->ioMgr.iocp, (ULONG_PTR)NULL, 0 );
+    CreateIoCompletionPort( (HANDLE)s, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     if( addr ){
         _GetAcceptExSockAddrs( buff, bytes, 32, 32, &lAddr, &lAddrLen, &rAddr, addrLen );
         memcpy( addr, rAddr, *addrLen );
@@ -312,7 +312,7 @@ inline int GetFd( DzHost *host, HANDLE file, int flags )
     if( file == INVALID_HANDLE_VALUE ){
         return -1;
     }
-    CreateIoCompletionPort( file, host->ioMgr.iocp, (ULONG_PTR)NULL, 0 );
+    CreateIoCompletionPort( file, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     if( flags & DZ_O_APPEND && GetFileType( file ) == FILE_TYPE_DISK ){
         SetFilePointer( file, 0, 0, FILE_END );
     }
@@ -521,16 +521,6 @@ inline size_t FileSize( int fd )
     return ret;
 }
 
-inline void InitIoMgr( DzHost *host )
-{
-    host->ioMgr.iocp = CreateIoCompletionPort(
-        INVALID_HANDLE_VALUE,
-        NULL,
-        (ULONG_PTR)NULL,
-        1
-        );
-}
-
 // DzIoMgrRoutine:
 // the IO mgr thread uses the host's origin thread's stack
 // manager all kernel objects that may cause real block
@@ -548,7 +538,7 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
             host->currPriority = CP_FIRST;
             Schedule( host );
         }
-        GetQueuedCompletionStatus( host->ioMgr.iocp, &bytes, &key, &overlapped, timeOut );
+        GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeOut );
         host->currPriority = CP_FIRST;
         if( overlapped != NULL ){
             do{
@@ -561,7 +551,7 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
                     }
                 }
                 CloseAsynIo( host, asynIo );
-                GetQueuedCompletionStatus( host->ioMgr.iocp, &bytes, &key, &overlapped, 0 );
+                GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
             }while( overlapped != NULL );
         }else if( GetLastError() == WAIT_TIMEOUT ){
             NotifyMinTimers( host, NULL );

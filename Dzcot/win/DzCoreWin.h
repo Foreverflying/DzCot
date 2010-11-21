@@ -75,14 +75,21 @@ void CallDzcotRoutine();
 
 #endif
 
-inline void InitOsAppend( DzHost *host )
+inline void InitOsStruct( DzHost *host )
 {
+    host->osStruct.iocp = CreateIoCompletionPort(
+        INVALID_HANDLE_VALUE,
+        NULL,
+        (ULONG_PTR)NULL,
+        1
+        );
+
 #if defined( _X86_ )
-    host->osAppend.originalStack = (char*)__readfsdword( 4 );
+    host->osStruct.originalStack = (char*)__readfsdword( 4 );
 #elif defined( _M_AMD64 )
-    host->osAppend.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
+    host->osStruct.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
 #endif
-    host->osAppend.reservedStack = NULL;
+    host->osStruct.reservedStack = NULL;
 }
 
 inline void DzInitCot( DzHost *host, DzThread *dzThread )

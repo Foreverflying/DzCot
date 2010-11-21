@@ -83,36 +83,14 @@ BOOL AllocAsynIoPool( DzHost *host, int count )
     host->asynIoPool.next = &p->qItr;
     end = p + count - 1;
     end->qItr.next = NULL;
+    InitAsynIo( end );
     while( p != end ){
+        InitAsynIo( p );
         qItr = &p->qItr;
         qItr->next = &(++p)->qItr;
     }
     return TRUE;
 }
-
-/*
-BOOL AllocAsynIoPool( DzHost *host, int count )
-{
-    DzFd *p;
-    if( !count ){
-        count = PAGE_SIZE / sizeof( int );
-    }
-    p = (DzFd*)malloc( count * sizeof( DzFd ) );
-    if( !p ){
-        return FALSE;
-    }
-
-    AddMallocRecord( host, p );
-    host->fdPool.next = &p->qItr;
-    DzFd *end = p + count - 1;
-    end->qItr.next = NULL;
-    while( p != end ){
-        DzQItr *qItr = &p->qItr;
-        qItr->next = &(++p)->qItr;
-    }
-    return TRUE;
-}
-//*/
 
 BOOL AllocSynObjPool( DzHost *host, int count )
 {

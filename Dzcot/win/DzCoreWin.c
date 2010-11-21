@@ -70,11 +70,11 @@ char* AllocStack( int sSize )
         if( !base ){
             return NULL;
         }
-        if( base < host->osAppend.originalStack ){
+        if( base < host->osStruct.originalStack ){
             node = AllocQNode( host );
             node->content = base;
-            node->qItr.next = host->osAppend.reservedStack;
-            host->osAppend.reservedStack = &node->qItr;
+            node->qItr.next = host->osStruct.reservedStack;
+            host->osStruct.reservedStack = &node->qItr;
         }else{
             return base + size;
         }

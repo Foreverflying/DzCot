@@ -13,14 +13,20 @@
 typedef struct _DzAsynIo
 {
     union{
-        DzQItr      qItr;
-        DzRoutine   callback;
+        DzQItr              qItr;
+        DzRoutine           callback;
     };
-    void*           context;
+    struct epoll_event      epollEvt;
     int             fd;
     int             ref;
     DzFastEvt       fastEvt;
     OVERLAPPED      overlapped;
 }DzAsynIo;
+
+inline void InitAsynIo( DzAsynIo *asynIo )
+{
+    asynIo->epollEvt.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLET;
+    asynIo->epollEvt.data = asynIo;
+}
 
 #endif // __DzStructsIoLnx_h__

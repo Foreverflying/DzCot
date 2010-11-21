@@ -1,18 +1,22 @@
+/********************************************************************
+    created:    2010/11/16 15:36
+    file:       DzStructsLnx.h
+    author:     Foreverflying
+    purpose:    
+*********************************************************************/
 
-#ifndef _DZ_STRUCTS_WIN_H_
-#define _DZ_STRUCTS_WIN_H_
+#ifndef __DzStructsLnx_h__
+#define __DzStructsLnx_h__
 
 #include "../DzStructsQueue.h"
 
 typedef struct _DzIoMgr
 {
-    HANDLE      iocp;
+    int     epollFd;
 }DzIoMgr;
 
 typedef struct _DzOsAppend
 {
-    char*           originalStack;
-    DzQItr*         reservedStack;
 }DzOsAppend;
 
-#endif  //#ifdef _DZ_STRUCTS_WIN_H_
+#endif // __DzStructsLnx_h__

@@ -10,8 +10,8 @@
 
 #ifdef _WIN32
     #include "win/DzStructsWin.h"
-#elif defined LINUX
-    #include "linux/DzStructsLinux.h"
+#elif defined __linux__
+    #include "linux/DzStructsLnx.h"
 #endif
 
 #endif // __DzStructsOs_h__

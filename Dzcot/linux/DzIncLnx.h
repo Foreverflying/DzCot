@@ -11,7 +11,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <sys/timeb.h>
+#include <errno.h>
 
 typedef __int64 int64;
 

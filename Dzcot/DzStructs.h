@@ -156,11 +156,8 @@ typedef struct _DzHost
     int             timerHeapSize;
     DzTimerNode**   timerHeap;
 
-    //Io Manager
-    DzIoMgr         ioMgr;
-
-    //Os Append info
-    DzOsAppend      osAppend;
+    //Os struct
+    DzOsStruct      osStruct;
 
     //record malloc history
     int             mallocCount;

@@ -18,7 +18,7 @@ LPFN_ACCEPTEX _AcceptEx = NULL;
 LPFN_CONNECTEX _ConnectEx = NULL;
 LPFN_GETACCEPTEXSOCKADDRS _GetAcceptExSockAddrs = NULL;
 
-#elif defined LINUX
+#elif defined __linux__
 
 int tlsIndex = -1;
 int tlsLock = 0;

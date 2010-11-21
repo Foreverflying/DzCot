@@ -66,7 +66,7 @@ inline int InitHost(
     host->isExiting = FALSE;
     host->isBlocking = FALSE;
 
-    InitOsAppend( host );
+    InitOsStruct( host );
     SetHost( host );
     return DS_OK;
 }
@@ -152,7 +152,6 @@ inline int StartHost(
     int ret = DS_OK;
     host->currThread = &host->originThread;
 
-    InitIoMgr( host );
     if( firstEntry ){
         ret = StartCot( host, firstEntry, context, priority, sSize );
         Schedule( host );

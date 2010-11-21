@@ -66,26 +66,6 @@ inline void FreeAsynIo( DzHost *host, DzAsynIo *asynIo )
     PushQItr( &host->asynIoPool, &asynIo->qItr );
 }
 
-/*
-inline DzFd* AllocAsynIo( DzHost *host )
-{
-    DzQItr *head = &host->fdPool;
-    if( !head->next ){
-        if( !AllocAsynIoPool( host ) ){
-            return NULL;
-        }
-    }
-    DzFd *node = MEMBER_BASE( head->next, DzFd, qItr );
-    PopQItr( head );
-    return node;
-}
-
-inline void FreeDzFd( DzHost *host, DzFd *node )
-{
-    PushQItr( &host->fdPool, &node->qItr );
-}
-//*/
-
 inline DzSynObj* AllocSynObj( DzHost *host )
 {
     DzQItr *head;

@@ -23,4 +23,9 @@ typedef struct _DzAsynIo
     OVERLAPPED      overlapped;
 }DzAsynIo;
 
+inline void InitAsynIo( DzAsynIo *asynIo )
+{
+
+}
+
 #endif // __DzStructsIoWin_h__

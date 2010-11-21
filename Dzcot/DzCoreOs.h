@@ -10,8 +10,8 @@
 
 #ifdef _WIN32
     #include "win/DzCoreWin.h"
-#elif defined LINUX
-    #include "linux/DzCoreLinux.h"
+#elif defined __linux__
+    #include "linux/DzCoreLnx.h"
 #endif
 
 #endif // __DzCoreOs_h__

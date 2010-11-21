@@ -10,15 +10,11 @@
 
 #include "../DzStructsQueue.h"
 
-typedef struct _DzIoMgr
-{
-    HANDLE      iocp;
-}DzIoMgr;
-
 typedef struct _DzOsAppend
 {
+    HANDLE          iocp;
     char*           originalStack;
     DzQItr*         reservedStack;
-}DzOsAppend;
+}DzOsStruct;
 
 #endif // __DzStructsWin_h__

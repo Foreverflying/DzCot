@@ -34,7 +34,7 @@
 // Windows Í·ÎÄ¼ş:
 #include <windows.h>
 
-typedef __int64 int64;
+typedef long long int64;
 
 #ifndef __cplusplus
 #define inline __inline

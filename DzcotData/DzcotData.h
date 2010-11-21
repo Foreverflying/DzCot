@@ -40,7 +40,7 @@ extern DZCOTDATA_API LPFN_ACCEPTEX _AcceptEx;
 extern DZCOTDATA_API LPFN_CONNECTEX _ConnectEx;
 extern DZCOTDATA_API LPFN_GETACCEPTEXSOCKADDRS _GetAcceptExSockAddrs;
 
-#elif defined LINUX
+#elif defined __linux__
 
 extern int tlsIndex;
 extern int tlsLock;

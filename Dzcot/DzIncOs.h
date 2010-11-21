@@ -10,8 +10,8 @@
 
 #ifdef _WIN32
     #include "win/DzIncWin.h"
-#elif defined LINUX
-    #include "linux/DzIncLinux.h"
+#elif defined __linux__
+    #include "linux/DzIncLnx.h"
 #endif
 
 #endif // __DzIncOs_h__

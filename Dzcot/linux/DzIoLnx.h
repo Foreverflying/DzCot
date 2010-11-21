@@ -29,7 +29,7 @@ inline DzAsynIo* CreateAsynIo( DzHost *host )
     DzAsynIo *asynIo;
 
     asynIo = AllocAsynIo( host );
-    asynIo->ref = 1;
+    //asynIo->
     return asynIo;
 }
 
@@ -49,10 +49,13 @@ inline void CloseAsynIo( DzHost *host, DzAsynIo *asynIo )
 
 inline int Socket( DzHost *host, int domain, int type, int protocol )
 {
-    SOCKET fd;
+    int fd;
+    DzAsynIo *asynIo;
 
     fd = socket( domain, type, protocol );
-    CreateIoCompletionPort( (HANDLE)fd, host->ioMgr.iocp, (ULONG_PTR)NULL, 0 );
+    fcntl( fd, F_SETFL, O_NONBLOCK );
+    asynIo = CreateAsynIo( host );
+    epoll_ctl( host->ioMgr.epollFd, EPOLL_CTL_ADD, fd, &asynIo->epollEvt );
     return (int)fd;
 }
 
@@ -78,6 +81,7 @@ inline int Listen( int fd, int backlog )
 
 inline int Connect( DzHost *host, int fd, struct sockaddr *addr, int addrLen )
 {
+
     BOOL result = TRUE;
     DWORD bytes;
     DzAsynIo *asynIo;
