@@ -5,13 +5,13 @@
 ;    purpose:    funciton used for switch cot on win32
 ;********************************************************************
 
-	.386
+    .386
 
 ;PUBLIC @DzSwitchFast@8 PROC    ; DzSwitchFast
 
 _TEXT   SEGMENT
 
-; void __fastcall DzSwitchFast( DzHost *host, DzThread *dzThread );
+; void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
 ; host$ = ecx
 ; dzThread$ = edx
 @DzSwitchFast@8 PROC    ; DzSwitchFast

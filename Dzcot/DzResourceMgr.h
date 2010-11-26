@@ -9,39 +9,51 @@
 #define __DzResourceMgr_h__
 
 #include "DzStructs.h"
-#include "DzQueue.h"
+#include "DzList.h"
 #include "DzStructsIoOs.h"
+#include "DzBaseOs.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-void AddMallocRecord( DzHost *host, void *p );
-void ReleaseAllMalloc( DzHost *host );
-BOOL AllocQueueNodePool( DzHost *host, int count );
-BOOL AllocAsynIoPool( DzHost *host, int count );
-BOOL AllocSynObjPool( DzHost *host, int count );
-BOOL AllocDzThreadPool( DzHost *host, int sSize, int count );
+BOOL MemeryPoolGrow( DzHost* host );
+void ReleaseMemoryPool( DzHost* host );
+BOOL AllocQueueNodePool( DzHost* host );
+BOOL AllocAsynIoPool( DzHost* host );
+BOOL AllocSynObjPool( DzHost* host );
+BOOL AllocDzThreadPool( DzHost* host, int sSize );
 
-inline DzQNode* AllocQNode( DzHost *host )
+inline void* AllocChunk( DzHost* host, size_t size )
 {
-    DzQNode *node;
-    DzQItr *head;
-
-    head = &host->qNodePool;
-    if( !head->next ){
-        if( !AllocQueueNodePool( host, 0 ) ){
+    host->memPoolPos += size;
+    if( host->memPoolPos > host->memPoolEnd ){
+        if( !MemeryPoolGrow( host ) ){
             return NULL;
         }
     }
-    node = MEMBER_BASE( head->next, DzQNode, qItr );
-    PopQItr( head );
+    return PageCommit( host->memPoolPos, size );
+}
+
+inline DzLNode* AllocQNode( DzHost* host )
+{
+    DzLNode* node;
+    DzLItr* head;
+
+    head = &host->lNodePool;
+    if( !head->next ){
+        if( !AllocQueueNodePool( host ) ){
+            return NULL;
+        }
+    }
+    node = MEMBER_BASE( head->next, DzLNode, lItr );
+    PopSList( head );
     return node;
 }
 
-inline void FreeQNode( DzHost *host, DzQNode *node )
+inline void FreeQNode( DzHost* host, DzLNode* node )
 {
-    PushQItr( &host->qNodePool, &node->qItr );
+    PushSList( &host->lNodePool, &node->lItr );
 }
 
 #ifdef __cplusplus

@@ -9,7 +9,7 @@
 #include "../DzIoOs.h"
 #include "../DzCore.h"
 
-inline void GetWinSockFunc( SOCKET tmpSock, GUID *guid, void *funcAddr )
+inline void GetWinSockFunc( SOCKET tmpSock, GUID* guid, void* funcAddr )
 {
     DWORD bytes;
     WSAIoctl(

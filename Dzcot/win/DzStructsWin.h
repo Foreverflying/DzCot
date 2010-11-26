@@ -8,7 +8,7 @@
 #ifndef __DzStructsWin_h__
 #define __DzStructsWin_h__
 
-#include "../DzStructsQueue.h"
+#include "../DzStructsList.h"
 
 struct _DzSynObj;
 
@@ -17,12 +17,12 @@ typedef struct _DzOsStruct
     HANDLE          iocp;
     void*           originExceptPtr;
     char*           originalStack;
-    DzQItr*         reservedStack;
+    DzLItr*         reservedStack;
 }DzOsStruct;
 
 typedef struct _DzThread
 {
-    DzQItr              qItr;
+    DzLItr              lItr;
     void*               sp;
     char*               stack;
     char*               stackLimit;

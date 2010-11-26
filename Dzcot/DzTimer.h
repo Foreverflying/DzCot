@@ -9,15 +9,16 @@
 #define __DzTimer_h__
 
 #include "DzStructs.h"
+#include "DzBaseOs.h"
 
-#define INIT_TIME_HEAP_SIZE     512
+#define TIME_HEAP_SIZE          ( 1024 * 128 )
 #define MIN_TIME_INTERVAL       5
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode );
+inline void NotifyTimerNode( DzHost* host, DzTimerNode* timerNode );
 
 inline int64 MilUnixTime()
 {
@@ -39,12 +40,12 @@ inline int64 UnixTime()
     return (int64)t.time;
 }
 
-inline BOOL LessThanNode( DzTimerNode *left, DzTimerNode *right )
+inline BOOL LessThanNode( DzTimerNode* left, DzTimerNode* right )
 {
     return left->timestamp < right->timestamp;
 }
 
-inline void SetTimerNode( DzTimerNode **timeHeap, int index, DzTimerNode *timerNode )
+inline void SetTimerNode( DzTimerNode** timeHeap, int index, DzTimerNode* timerNode )
 {
     timeHeap[ index ] = timerNode;
     timerNode->index = index;
@@ -65,10 +66,10 @@ inline int ParentNodeIdx( int index )
     return ( index - 1 ) / 2;
 }
 
-inline void ShiftDownNode( DzHost *host, int index, DzTimerNode *timerNode )
+inline void ShiftDownNode( DzHost* host, int index, DzTimerNode* timerNode )
 {
-    DzTimerNode *node;
-    DzTimerNode *right;
+    DzTimerNode* node;
+    DzTimerNode* right;
     int tmpIndex;
 
     while( index < host->timerCount / 2 ){
@@ -90,21 +91,14 @@ inline void ShiftDownNode( DzHost *host, int index, DzTimerNode *timerNode )
     SetTimerNode( host->timerHeap, index, timerNode );
 }
 
-inline void AddTimer( DzHost *host, DzTimerNode *timerNode )
+inline void AddTimer( DzHost* host, DzTimerNode* timerNode )
 {
     int curr;
 
     curr = host->timerCount++;
     if( host->timerCount > host->timerHeapSize ){
-        if( host->timerHeapSize ){
-            host->timerHeapSize *= 2;
-        }else{
-            host->timerHeapSize = INIT_TIME_HEAP_SIZE;
-        }
-        host->timerHeap = (DzTimerNode**)realloc(
-            host->timerHeap,
-            sizeof(DzTimerNode*) * host->timerHeapSize
-            );
+        PageCommit( host->timerHeap + host->timerHeapSize, PAGE_SIZE );
+        host->timerHeapSize += PAGE_SIZE / sizeof(DzTimerNode*);
     }
     while( curr != 0 && LessThanNode(  timerNode, host->timerHeap[ ParentNodeIdx( curr ) ] ) ){
         SetTimerNode( host->timerHeap, curr, host->timerHeap[ ParentNodeIdx( curr ) ] );
@@ -113,12 +107,12 @@ inline void AddTimer( DzHost *host, DzTimerNode *timerNode )
     SetTimerNode( host->timerHeap, curr, timerNode );
 }
 
-inline BOOL IsTimeNodeInHeap( DzTimerNode *timeNode )
+inline BOOL IsTimeNodeInHeap( DzTimerNode* timeNode )
 {
     return timeNode->index >= 0;
 }
 
-inline void RemoveTimer( DzHost *host, DzTimerNode *timerNode )
+inline void RemoveTimer( DzHost* host, DzTimerNode* timerNode )
 {
     int curr;
 
@@ -140,9 +134,9 @@ inline void RemoveTimer( DzHost *host, DzTimerNode *timerNode )
     }
 }
 
-inline void RemoveMinTimer( DzHost *host )
+inline void RemoveMinTimer( DzHost* host )
 {
-    DzTimerNode *timerNode;
+    DzTimerNode* timerNode;
 
     host->timerHeap[0]->index = -1;
     host->timerCount--;
@@ -153,19 +147,19 @@ inline void RemoveMinTimer( DzHost *host )
     ShiftDownNode( host, 0, timerNode );
 }
 
-inline void AdjustMinTimer( DzHost *host, DzTimerNode *timerNode )
+inline void AdjustMinTimer( DzHost* host, DzTimerNode* timerNode )
 {
     ShiftDownNode( host, 0, timerNode );
 }
 
-inline DzTimerNode* GetMinTimerNode( DzHost *host )
+inline DzTimerNode* GetMinTimerNode( DzHost* host )
 {
     return host->timerHeap[0];
 }
 
-inline BOOL NotifyMinTimers( DzHost *host, int *timeout )
+inline BOOL NotifyMinTimers( DzHost* host, int* timeout )
 {
-    DzTimerNode *timerNode;
+    DzTimerNode* timerNode;
     int64 currTime;
     int64 cmpTime;
     BOOL ret = FALSE;

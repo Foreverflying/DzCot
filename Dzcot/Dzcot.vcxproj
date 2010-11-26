@@ -549,7 +549,7 @@
     <ClInclude Include="win\DzIncWin.h" />
     <ClInclude Include="DzIoOs.h" />
     <ClInclude Include="win\DzIoWin.h" />
-    <ClInclude Include="DzQueue.h" />
+    <ClInclude Include="DzList.h" />
     <ClInclude Include="DzResourceMgr.h" />
     <ClInclude Include="DzSchedule.h" />
     <ClInclude Include="DzSocketReplace.h" />
@@ -557,7 +557,7 @@
     <ClInclude Include="DzStructsIoOs.h" />
     <ClInclude Include="win\DzStructsIoWin.h" />
     <ClInclude Include="DzStructsOs.h" />
-    <ClInclude Include="DzStructsQueue.h" />
+    <ClInclude Include="DzStructsList.h" />
     <ClInclude Include="win\DzStructsWin.h" />
     <ClInclude Include="DzSynObj.h" />
     <ClInclude Include="DzTimer.h" />

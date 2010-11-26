@@ -20,16 +20,16 @@ using namespace std;
 
 namespace DzcotPython{
 
-    PyThreadState *tsState = NULL;
+    PyThreadState* tsState = NULL;
 
-    int __stdcall PythonFunc( void *context )
+    int __stdcall PythonFunc( void* context )
     {
         PyEval_RestoreThread( tsState );
 
-        DzQNode *node = (DzQNode*)context;
-        PyObject *func = (PyObject*)node->content;
-        PyObject *arg = (PyObject*)node->context1;
-        DzHost *host = (DzHost*)node->context3;
+        DzLNode* node = (DzLNode*)context;
+        PyObject* func = (PyObject*)node->content;
+        PyObject* arg = (PyObject*)node->context1;
+        DzHost* host = (DzHost*)node->context3;
         FreeQNode( host, node );
         object entry( (detail::new_non_null_reference)func );
         object argObj( (detail::new_reference)arg );
@@ -81,17 +81,17 @@ namespace DzcotPython{
         int         sSize
         )
     {
-        DzHost *host = GetHost();
+        DzHost* host = GetHost();
         assert( host );
         assert( host->threadCount == 0 );
 
         tsState = PyEval_SaveThread();
 
-        DzQNode *node = NULL;
-        PyObject *func = firstEntry.ptr();
+        DzLNode* node = NULL;
+        PyObject* func = firstEntry.ptr();
         if( func ){
             Py_INCREF( func );
-            PyObject *arg = context.ptr();
+            PyObject* arg = context.ptr();
             Py_XINCREF( arg );
 
             node = AllocQNode( host );
@@ -121,7 +121,7 @@ namespace DzcotPython{
         int         sSize
         )
     {
-        DzHost *host = GetHost();
+        DzHost* host = GetHost();
         assert( host );
         assert( entry );
         assert(
@@ -136,12 +136,12 @@ namespace DzcotPython{
 
         tsState = PyEval_SaveThread();
 
-        DzQNode *node = NULL;
-        PyObject *func = entry.ptr();
+        DzLNode* node = NULL;
+        PyObject* func = entry.ptr();
         assert( func );
 
         Py_INCREF( func );
-        PyObject *arg = context.ptr();
+        PyObject* arg = context.ptr();
         Py_XINCREF( arg );
 
         node = AllocQNode( host );
@@ -161,9 +161,9 @@ namespace DzcotPython{
         return ret;
     }
 
-    void DzInitCotPool( u_int count, u_int depth, int sSize )
+    void DzInitCotPool( uint count, uint depth, int sSize )
     {
-        DzHost *host = GetHost();
+        DzHost* host = GetHost();
         assert( host );
         assert(
             sSize >= SS_FIRST &&
@@ -175,7 +175,7 @@ namespace DzcotPython{
 
     int DzSleep( int milSec )
     {
-        DzHost *host = GetHost();
+        DzHost* host = GetHost();
         assert( host );
 
         tsState = PyEval_SaveThread();

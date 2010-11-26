@@ -9,7 +9,7 @@
 #include "../DzCoreOs.h"
 #include "../DzCore.h"
 
-void InitAsynIo( DzAsynIo *asynIo )
+void InitAsynIo( DzAsynIo* asynIo )
 {
     InitFastEvt( &asynIo->inEvt );
     InitFastEvt( &asynIo->outEvt );
@@ -17,7 +17,7 @@ void InitAsynIo( DzAsynIo *asynIo )
     asynIo->outEvt.dzThread = NULL;
 }
 
-void InitDzThread( DzThread *dzThread, int sSize )
+void InitDzThread( DzThread* dzThread, int sSize )
 {
 
 }
@@ -26,18 +26,34 @@ void InitDzThread( DzThread *dzThread, int sSize )
 // the real entry the co thread starts, it call the user entry
 // after that, the thread is finished, so put itself to the thread pool
 // schedule next thread
-void __stdcall DzcotRoutine( DzRoutine entry, void* context )
+#ifdef __i386
+void __stdcall DzcotRoutine(
+    DzRoutine entry,
+    void* context
+    )
+#elif defined __amd64
+void __stdcall DzcotRoutine(
+    void* unused1,
+    void* unused2,
+    void* unused3,
+    void* unused4,
+    void* unused5,
+    void* unused6,
+    DzRoutine entry,
+    void* context
+    )
+#endif
 {
-    DzHost *host = GetHost();
-	while(1){
-		//call the entry
-		( *(DzRoutine volatile *)(&entry) )( *(void* volatile *)(&context) );
+    DzHost* host = GetHost();
+    while(1){
+        //call the entry
+        ( *(DzRoutine volatile *)(&entry) )( *(void* volatile *)(&context) );
 
-		//free the thread
-		host->threadCount--;
-		FreeDzThread( host, host->currThread );
+        //free the thread
+        host->threadCount--;
+        FreeDzThread( host, host->currThread );
 
-		//then schedule another thread
-		Schedule( host );
-	}
+        //then schedule another thread
+        Schedule( host );
+    }
 }

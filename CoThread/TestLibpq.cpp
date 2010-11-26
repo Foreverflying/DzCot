@@ -54,22 +54,22 @@ int __stdcall TestLibpq( void *context )
     /* ����ݿ⽨������ */
     conn = PQconnectdb(conninfo);
 
-	/*
-	* ���һ����������������Ƿ�ɹ�����
-	*/
-	if (PQstatus(conn) != CONNECTION_OK)
-	{
+    /*
+    * ���һ����������������Ƿ�ɹ�����
+    */
+    if (PQstatus(conn) != CONNECTION_OK)
+    {
         printf( "Connection to database failed: %s", PQerrorMessage(conn) );
         fprintf(stderr, "Connection to database failed: %s", PQerrorMessage(conn));
         exit_nicely(conn);
-	}
+    }
 
     /*
      * ��������Ĳ��԰����漰ʹ���α꣬������������Ǳ�����һ����������档
      * ���ǿ�����һ���򵥵� PQexec()��ִ��
      * "select * from pg_database"�����ȫ����������������Ļ���һ�����Ӿ�̫���ˡ�
      */
-	res = PQexec(conn, "BEGIN");
+    res = PQexec(conn, "BEGIN");
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         printf( "BEGIN command failed: %s\r\n", PQerrorMessage(conn) );
@@ -78,14 +78,14 @@ int __stdcall TestLibpq( void *context )
         exit_nicely(conn);
     }
 
-	/*
-	 * �������Ҫ PGresult �ˣ�����Ӧ�� PQclear���Ա����ڴ�й©
-	 */
-	 PQclear(res);
+    /*
+     * �������Ҫ PGresult �ˣ�����Ӧ�� PQclear���Ա����ڴ�й©
+     */
+     PQclear(res);
 
-	/*
-	 * �Ӵ洢��ݿ���Ϣ��ϵͳ�� pg_database ��ץȡ�����
-	 */
+    /*
+     * �Ӵ洢��ݿ���Ϣ��ϵͳ�� pg_database ��ץȡ�����
+     */
     res = PQexec(conn, "DECLARE myportal CURSOR FOR select * from pg_database");
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
@@ -122,19 +122,19 @@ int __stdcall TestLibpq( void *context )
     PQclear(res);
 
 
-	/* �ر���ڣ����ǲ��ù��Ĵ�����... */
+    /* �ر���ڣ����ǲ��ù��Ĵ�����... */
         res = PQexec(conn, "CLOSE myportal");
         PQclear(res);
 
-	/* �ύ���� */
+    /* �ύ���� */
         res = PQexec(conn, "END");
         PQclear(res);
 
-	/* �ر�����ݿ�����Ӳ������� */
+    /* �ر�����ݿ�����Ӳ������� */
         PQfinish(conn);
 
         cout << "cot end: \t" << (int)context << "\r\n";
-	return 0;
+    return 0;
 
 }
 

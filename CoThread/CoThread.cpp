@@ -18,8 +18,7 @@
 void MainTest( DzRoutine firstEntry, void *context )
 {
     DzSockStartup();
-    DzInitHost( CP_NORMAL );
-    DzStartHost( firstEntry, context );
+    DzRunHost( CP_LOW, CP_LOW, SS_64K, firstEntry, context );
     DzSockCleanup();
 }
 
@@ -63,16 +62,15 @@ int _tmain(int argc, _TCHAR* argv[])
     //MainTest( TestException, (void*)0 );
     //MainTest( TestServer, (void*)SOMAXCONN );
     //MainTest( TestServer, (void*)12000 );
-    MainTest( TestMultiClient, (void*)800 );
+    //MainTest( TestMultiClient, (void*)800 );
     //MainTest( TestClient, (void*)0 );
     //MainTest( TestReadFile, (void*)0 );
-    //MainTest( StartTestSynobj, (void*)10 );
+    MainTest( StartTestSynobj, (void*)10 );
     //MainTest( StartTestSwitch, (void*)10000 );
     //MainTest( StartTestLibpq, (void*)150 );
     //MainTest( TestLibpq, "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=template1" );
     //TestFastConnect( (void*)1000 );
     //TestLibpq( "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=OgameX" );
     printf( "finish, yes!!!!!\r\n" );
-	return 0;
+    return 0;
 }
-

@@ -123,7 +123,7 @@ BOOL TestSynObj2()
     DzStartCot( Wait7Evt1_Sem1_Timer );
     DzStartCot( Wait6Evt1 );
 
-	DzSetEvt( synEvt1 );
+    DzSetEvt( synEvt1 );
     DzSleep0();
     DzSetEvt( synEvt2 );
     DzSleep0();
@@ -135,7 +135,7 @@ BOOL TestSynObj2()
     DzSleep0();
     DzReleaseSem( synSem2, 2 );
 
-	DzSleep( 500 );
+    DzSleep( 500 );
     int rightRet[] = { 2, 3, 6, 4, 2, 7, 5, 5, 5, 7 };
     if( retCount != 4 ){
         return FALSE;
@@ -175,92 +175,92 @@ BOOL TestSynObj2()
 
 BOOL TestSynObj3()
 {
-	retCount = 0;
-	int i = 0;
+    retCount = 0;
+    int i = 0;
 
-	DzStartCot( Wait8Evt2 );
-	DzStartCot( Wait2Evt1_Evt2, NULL, CP_HIGH );
-	DzStartCot( Wait4Evt2_Sem1 );
-	DzStartCot( Wait7Evt1_Sem1_Timer );
-	DzStartCot( Wait3Evt1_Timer );
-	DzStartCot( Wait5Sem2_Timer );
-	DzStartCot( Wait5Sem2_Timer );
-	DzStartCot( Wait5Sem2_Timer );
-	DzStartCot( Wait7Evt1_Sem1_Timer );
-	DzStartCot( Wait6Evt1 );
+    DzStartCot( Wait8Evt2 );
+    DzStartCot( Wait2Evt1_Evt2, NULL, CP_HIGH );
+    DzStartCot( Wait4Evt2_Sem1 );
+    DzStartCot( Wait7Evt1_Sem1_Timer );
+    DzStartCot( Wait3Evt1_Timer );
+    DzStartCot( Wait5Sem2_Timer );
+    DzStartCot( Wait5Sem2_Timer );
+    DzStartCot( Wait5Sem2_Timer );
+    DzStartCot( Wait7Evt1_Sem1_Timer );
+    DzStartCot( Wait6Evt1 );
 
-	DzSetEvt( synEvt1 );
-	DzSleep0();
-	DzSetEvt( synEvt2 );
-	DzSleep0();
-	DzResetEvt( synEvt1 );
-	DzSleep0();
-	DzReleaseSem( synSem1, 2 );
-	DzSleep0();
-	DzSetEvt( synEvt2 );
-	DzSleep0();
-	DzReleaseSem( synSem2, 2 );
+    DzSetEvt( synEvt1 );
+    DzSleep0();
+    DzSetEvt( synEvt2 );
+    DzSleep0();
+    DzResetEvt( synEvt1 );
+    DzSleep0();
+    DzReleaseSem( synSem1, 2 );
+    DzSleep0();
+    DzSetEvt( synEvt2 );
+    DzSleep0();
+    DzReleaseSem( synSem2, 2 );
 
-	DzSleep0();
-	int rightRet[] = { 2, 3, 6, 8, 4, 5, 5, 7, 5, 7 };
-	if( retCount != 5 ){
-		return FALSE;
-	}
-	for( ; i < retCount; i++ ){
-		if( ret[i] != rightRet[i] ){
-			return FALSE;
-		}
-	}
+    DzSleep0();
+    int rightRet[] = { 2, 3, 6, 8, 4, 5, 5, 7, 5, 7 };
+    if( retCount != 5 ){
+        return FALSE;
+    }
+    for( ; i < retCount; i++ ){
+        if( ret[i] != rightRet[i] ){
+            return FALSE;
+        }
+    }
 
     DzSleep( 1500 );
-	DzSetEvt( synEvt1 );
+    DzSetEvt( synEvt1 );
 
-	DzSleep( 1500 );
-	if( retCount != 8 ){
-		return FALSE;
-	}
-	for( ; i < retCount; i++ ){
-		if( ret[i] != rightRet[i] ){
-			return FALSE;
-		}
-	}
+    DzSleep( 1500 );
+    if( retCount != 8 ){
+        return FALSE;
+    }
+    for( ; i < retCount; i++ ){
+        if( ret[i] != rightRet[i] ){
+            return FALSE;
+        }
+    }
 
-	DzReleaseSem( synSem2, 1 );
+    DzReleaseSem( synSem2, 1 );
     DzReleaseSem( synSem1, 1 );
-	DzSleep( 1 );
-	if( retCount != 10 ){
-		return FALSE;
-	}
-	for( ; i < retCount; i++ ){
-		if( ret[i] != rightRet[i] ){
-			return FALSE;
-		}
-	}
+    DzSleep( 1 );
+    if( retCount != 10 ){
+        return FALSE;
+    }
+    for( ; i < retCount; i++ ){
+        if( ret[i] != rightRet[i] ){
+            return FALSE;
+        }
+    }
 
-	return TRUE;
+    return TRUE;
 }
 
 void InitSynObj()
 {
-	synEvt1 = DzCreateEvt( FALSE, FALSE );
-	synEvt2 = DzCreateEvt( TRUE, TRUE );
-	synSem1 = DzCreateSem( 0 );
-	synSem2 = DzCreateSem( 0 );
-	synTimer = DzCreateTimer( 1000, 3 );
+    synEvt1 = DzCreateEvt( FALSE, FALSE );
+    synEvt2 = DzCreateEvt( TRUE, TRUE );
+    synSem1 = DzCreateSem( 0 );
+    synSem2 = DzCreateSem( 0 );
+    synTimer = DzCreateTimer( 1000, 3 );
 }
 
 void ReleaseSynObj()
 {
-	DzCloseSynObj( synEvt1 );
-	DzCloseSynObj( synEvt2 );
-	DzCloseSynObj( synSem1 );
-	DzCloseSynObj( synSem2 );
-	DzCloseSynObj( synTimer );
+    DzCloseSynObj( synEvt1 );
+    DzCloseSynObj( synEvt2 );
+    DzCloseSynObj( synSem1 );
+    DzCloseSynObj( synSem2 );
+    DzCloseSynObj( synTimer );
 }
 
 int __stdcall StartTestSynobj( void *context )
 {
-	BOOL ret;
+    BOOL ret;
 
     InitSynObj();
     ret = TestSynObj1();
@@ -272,10 +272,10 @@ int __stdcall StartTestSynobj( void *context )
     printf( "TestSynObj2 result: %d\r\n", ret );
     ReleaseSynObj();
 
-	InitSynObj();
-	ret = TestSynObj3();
-	printf( "TestSynObj3 result: %d\r\n", ret );
-	ReleaseSynObj();
+    InitSynObj();
+    ret = TestSynObj3();
+    printf( "TestSynObj3 result: %d\r\n", ret );
+    ReleaseSynObj();
 
     return DS_OK;
 }

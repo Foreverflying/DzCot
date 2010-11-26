@@ -20,78 +20,28 @@
 extern "C"{
 #endif
 
-inline DzThread* AllocDzThread( DzHost *host, int sSize )
+inline DzThread* AllocDzThread( DzHost* host, int sSize )
 {
-    DzThread *dzThread;
-    DzQItr *head;
+    DzThread* dzThread;
+    DzLItr* head;
 
     head = &host->threadPools[ sSize ];
     if( !head->next ){
-        if( !AllocDzThreadPool( host, sSize, 0 ) ){
+        if( !AllocDzThreadPool( host, sSize ) ){
             return NULL;
         }
     }
 
-    dzThread = MEMBER_BASE( head->next, DzThread, qItr );
-    PopQItr( head );
+    dzThread = MEMBER_BASE( head->next, DzThread, lItr );
+    PopSList( head );
     return InitCot( host, dzThread, sSize );
 }
 
-inline void FreeDzThread( DzHost *host, DzThread *dzThread )
+inline void FreeDzThread( DzHost* host, DzThread* dzThread )
 {
-    PushQItr( &host->threadPools[ dzThread->stackSize ], &dzThread->qItr );
+    PushSList( &host->threadPools[ dzThread->stackSize ], &dzThread->lItr );
     //DeCommitStack( dzThread->stack, dzThread->stackLimit );
     //dzThread->stackLimit = NULL;
-}
-
-// InitHost:
-// create struct needed
-inline int InitHost(
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize
-    )
-{
-    DzHost *host;
-    int i;
-
-    InitTlsIndex();
-    host = (DzHost*)malloc( sizeof( DzHost ) );
-    if( !host ){
-        return DS_NO_MEMORY;
-    }
-
-    host->currThread = NULL;
-    host->lowestPriority = lowestPriority;
-    host->currPriority = lowestPriority + 1;
-    for( i=0; i<=lowestPriority; i++ ){
-        InitQueue( &host->taskQs[i] );
-    }
-    host->originThread.priority = CP_FIRST;
-    host->qNodePool.next = NULL;
-    host->taskCheckTag = 0;
-    host->poolDepth = 0;
-    for( i=0; i<=STACK_SIZE_COUNT; i++ ){
-        host->threadPools[i].next = NULL;
-        host->poolCotCounts[i] = 0;
-    }
-    host->threadCount = 0;
-    host->maxThreadCount = 0;
-    host->timerCount = 0;
-    host->timerHeapSize = 0;
-    host->timerHeap = NULL;
-    host->mallocList.next = NULL;
-    host->mallocCount = 0;
-    host->synObjPool.next = NULL;
-    host->asynIoPool.next = NULL;
-    host->defaultPri = defaultPri == CP_DEFAULT ? host->lowestPriority : defaultPri;
-    host->defaultSSize = defaultSSize;
-    host->isExiting = FALSE;
-    host->isBlocking = FALSE;
-
-    InitOsStruct( host );
-    SetHost( host );
-    return DS_OK;
 }
 
 // StartCot:
@@ -99,12 +49,12 @@ inline int InitHost(
 inline int StartCot(
     DzHost*     host,
     DzRoutine   entry,
-    void        *context,
+    void*       context,
     int         priority,
     int         sSize
     )
 {
-    DzThread *dzThread;
+    DzThread* dzThread;
 
     if( sSize == SS_DEFAULT ){
         sSize = host->defaultSSize;
@@ -134,12 +84,12 @@ inline int StartCot(
 inline int StartCotInstant(
     DzHost*     host,
     DzRoutine   entry,
-    void        *context,
+    void*       context,
     int         priority,
     int         sSize
     )
 {
-    DzThread *dzThread;
+    DzThread* dzThread;
 
     if( sSize == SS_DEFAULT ){
         sSize = host->defaultSSize;
@@ -162,10 +112,14 @@ inline int StartCotInstant(
     return DS_OK;
 }
 
-// StartHost:
-// create the Io mgr co thread, so the host can serve requests
-inline int StartHost(
-    DzHost*     host,
+// RunHost:
+// Initial and start the cot host
+// the function will block while there are cots running
+// after all cots exit, the host will stop and the block ends
+inline int RunHost(
+    int         lowestPriority,
+    int         defaultPri,
+    int         defaultSSize,
     DzRoutine   firstEntry,
     void*       context,
     int         priority,
@@ -173,17 +127,48 @@ inline int StartHost(
     )
 {
     int ret = DS_OK;
-    host->currThread = &host->originThread;
+    DzHost host;
+    int i;
 
-    if( firstEntry ){
-        ret = StartCot( host, firstEntry, context, priority, sSize );
-        Schedule( host );
+    InitTlsIndex();
+
+    host.currThread = &host.originThread;
+    host.lowestPriority = lowestPriority;
+    host.currPriority = lowestPriority + 1;
+    for( i=0; i<=lowestPriority; i++ ){
+        InitSList( &host.taskLs[i] );
     }
-    IoMgrRoutine( host );
+    //host.originThread.priority = CP_FIRST;
+    host.lNodePool.next = NULL;
+    host.poolDepth = 0;
+    for( i=0; i<=STACK_SIZE_COUNT; i++ ){
+        host.threadPools[i].next = NULL;
+    }
+    host.threadCount = 0;
+    host.maxThreadCount = 0;
+    host.timerCount = 0;
+    host.timerHeapSize = 0;
+    host.timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+    host.poolGrowList.next = NULL;
+    host.memPoolPos = NULL;
+    host.memPoolEnd = NULL;
+    host.synObjPool.next = NULL;
+    host.asynIoPool.next = NULL;
+    host.defaultPri = defaultPri == CP_DEFAULT ? host.lowestPriority : defaultPri;
+    host.defaultSSize = defaultSSize;
+
+    InitOsStruct( &host );
+    SetHost( &host );
+
+    ret = StartCot( &host, firstEntry, context, priority, sSize );
+    Schedule( &host );
+    IoMgrRoutine( &host );
+    PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+    ReleaseMemoryPool( &host );
     return ret;
 }
 
-inline int SetCurrCotPriority( DzHost *host, int priority )
+inline int SetCurrCotPriority( DzHost* host, int priority )
 {
     int ret;
 
@@ -195,12 +180,12 @@ inline int SetCurrCotPriority( DzHost *host, int priority )
     return ret;
 }
 
-inline int GetCotCount( DzHost *host )
+inline int GetCotCount( DzHost* host )
 {
     return host->threadCount;
 }
 
-inline int GetMaxCotCount( DzHost *host, BOOL reset )
+inline int GetMaxCotCount( DzHost* host, BOOL reset )
 {
     int ret;
 
@@ -211,32 +196,32 @@ inline int GetMaxCotCount( DzHost *host, BOOL reset )
     return ret;
 }
 
-inline void InitCotPool( DzHost *host, u_int count, u_int depth, int sSize )
+inline void InitCotPool( DzHost* host, uint count, uint depth, int sSize )
 {
-    DzThread *head;
-    DzThread *thd;
-    DzQItr *qItr;
-    u_int i;
+    DzThread* head;
+    DzThread* thd;
+    DzLItr* lItr;
+    uint i;
 
     if( sSize == SS_DEFAULT ){
         sSize = host->defaultSSize;
     }
 
     head = AllocDzThread( host, sSize );
-    qItr = &head->qItr;
+    lItr = &head->lItr;
     for( i=1; i<count; i++ ){
         thd = AllocDzThread( host, sSize );
         if( !thd ){
             break;
         }
-        qItr->next = &thd->qItr;
-        qItr = qItr->next;
+        lItr->next = &thd->lItr;
+        lItr = lItr->next;
     }
-    qItr->next = NULL;
-    qItr = &head->qItr;
-    while( qItr ){
-        head = MEMBER_BASE( qItr, DzThread, qItr );
-        qItr = qItr->next;
+    lItr->next = NULL;
+    lItr = &head->lItr;
+    while( lItr ){
+        head = MEMBER_BASE( lItr, DzThread, lItr );
+        lItr = lItr->next;
         FreeDzThread( host, head );
     }
 }

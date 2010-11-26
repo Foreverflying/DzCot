@@ -20,14 +20,13 @@
 extern "C"{
 #endif
 
-void InitAsynIo( DzAsynIo *asynIo );
-void InitDzThread( DzThread *dzThread, int sSize );
-void __stdcall DzcotRoutine( DzRoutine entry, void* context );
+void InitAsynIo( DzAsynIo* asynIo );
+void InitDzThread( DzThread* dzThread, int sSize );
 
 #ifdef SWITCH_COT_FLOAT_SAFE
 #define DzSwitch DzSwitchFloatSafe
 #else
-void __fastcall DzSwitchFast( DzHost *host, DzThread *dzThread );
+void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
 #define DzSwitch DzSwitchFast
 #endif
 
@@ -45,7 +44,10 @@ struct DzStackBottom
     void*       context;
 };
 
-#define DzcotRoutineEntry DzcotRoutine
+void __stdcall DzcotRoutine(
+    DzRoutine entry,
+    void* context
+    );
 
 #elif defined( __amd64 )
 
@@ -55,37 +57,40 @@ struct DzStackBottom
     void*       unusedR14;
     void*       unusedR13;
     void*       unusedR12;
-    void*       unusedRdi;
-    void*       unusedRsi;
     void*       unusedRbx;
     void*       unusedRbp;
     void*       routineEntry;
     void*       unusedEip;
     DzRoutine   entry;
     void*       context;
-    void*       unusedR8;
-    void*       unusedR9;
 };
 
-void CallDzcotRoutine();
-
-#define DzcotRoutineEntry CallDzcotRoutine
+void DzcotRoutine(
+    void* unused1,
+    void* unused2,
+    void* unused3,
+    void* unused4,
+    void* unused5,
+    void* unused6,
+    DzRoutine entry,
+    void* context
+    );
 
 #endif
 
-inline void InitOsStruct( DzHost *host )
+inline void InitOsStruct( DzHost* host )
 {
     struct rlimit fdLimit;
 
     getrlimit( RLIMIT_NOFILE, &fdLimit );
-	host->osStruct.maxFd = fdLimit.rlim_cur;
-	host->osStruct.fdTable = BaseAlloc( sizeof(int) * host->osStruct.maxFd );
+    host->osStruct.maxFd = fdLimit.rlim_cur;
+    host->osStruct.fdTable = BaseAlloc( sizeof(int) * host->osStruct.maxFd );
     host->osStruct.epollFd = epoll_create( host->osStruct.maxFd );
 }
 
-inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
+inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
 {
-    struct DzStackBottom *bottom;
+    struct DzStackBottom* bottom;
 
     bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
     bottom->entry = entry;
@@ -106,7 +111,7 @@ inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
 inline char* AllocStack( int sSize )
 {
     size_t size;
-    char *base;
+    char* base;
 
     size = DZ_STACK_UNIT_SIZE << sSize;
     base = (char*)mmap(
@@ -124,26 +129,26 @@ inline char* AllocStack( int sSize )
     return base + size;
 }
 
-inline void FreeStack( char *stack, int sSize )
+inline void FreeStack( char* stack, int sSize )
 {
     size_t size;
-    char *base;
+    char* base;
 
     size = DZ_STACK_UNIT_SIZE << sSize;
     base = stack - size;
     munmap( base, size );
 }
 
-inline void InitCotStack( DzHost *host, DzThread *dzThread )
+inline void InitCotStack( DzHost* host, DzThread* dzThread )
 {
-    struct DzStackBottom *bottom;
+    struct DzStackBottom* bottom;
 
     bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
-    bottom->routineEntry = DzcotRoutineEntry;
+    bottom->routineEntry = DzcotRoutine;
     dzThread->sp = bottom;
 }
 
-inline DzThread* InitCot( DzHost *host, DzThread *dzThread, int sSize )
+inline DzThread* InitCot( DzHost* host, DzThread* dzThread, int sSize )
 {
     if( !dzThread->stack ){
         dzThread->stack = AllocStack( sSize );

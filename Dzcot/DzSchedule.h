@@ -8,17 +8,17 @@
 #ifndef __DzSchedule_h__
 #define __DzSchedule_h__
 
-#include "DzQueue.h"
+#include "DzList.h"
 #include "DzCoreOs.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-inline BOOL UpdateCurrPriority( DzHost *host, int currPriority )
+inline BOOL UpdateCurrPriority( DzHost* host, int currPriority )
 {
     if( currPriority > CP_FIRST  ){
-        if( host->taskQs[ CP_FIRST ].head ){
+        if( host->taskLs[ CP_FIRST ].head ){
             host->currPriority = CP_FIRST;
             return TRUE;
         }
@@ -30,18 +30,18 @@ inline BOOL UpdateCurrPriority( DzHost *host, int currPriority )
 // DispatchThread:
 // the dzThread is in the block queue or new created
 // put the thread to the active queue
-inline void DispatchThread( DzHost *host, DzThread *dzThread )
+inline void DispatchThread( DzHost* host, DzThread* dzThread )
 {
-    AddQItrToTail( &host->taskQs[ dzThread->priority ], &dzThread->qItr );
+    AddLItrToTail( &host->taskLs[ dzThread->priority ], &dzThread->lItr );
 }
 
-inline void TemporaryPushThread( DzHost *host, DzThread *dzThread )
+inline void TemporaryPushThread( DzHost* host, DzThread* dzThread )
 {
     host->currPriority = CP_FIRST;
-    AddQItrToHead( &host->taskQs[ CP_FIRST ], &dzThread->qItr );
+    AddLItrToHead( &host->taskLs[ CP_FIRST ], &dzThread->lItr );
 }
 
-inline void SwitchToCot( DzHost *host, DzThread *dzThread )
+inline void SwitchToCot( DzHost* host, DzThread* dzThread )
 {
     DzSwitch( host, dzThread );
 }
@@ -49,13 +49,13 @@ inline void SwitchToCot( DzHost *host, DzThread *dzThread )
 // Schedule:
 // schedule the thread according to the priority
 // if no thread is active, schedule the IO manager thread
-inline void Schedule( DzHost *host )
+inline void Schedule( DzHost* host )
 {
     do{
-        if( host->taskQs[ host->currPriority ].head ){
-            DzThread *dzThread =
-                MEMBER_BASE( host->taskQs[ host->currPriority ].head, DzThread, qItr );
-            DelHeadQItr( &host->taskQs[ host->currPriority ] );
+        if( host->taskLs[ host->currPriority ].head ){
+            DzThread* dzThread =
+                MEMBER_BASE( host->taskLs[ host->currPriority ].head, DzThread, lItr );
+            EraseListHead( &host->taskLs[ host->currPriority ] );
             SwitchToCot( host, dzThread );
             return;
         }else{
@@ -67,7 +67,7 @@ inline void Schedule( DzHost *host )
     }
 }
 
-inline void DispatchCurrThread( DzHost *host )
+inline void DispatchCurrThread( DzHost* host )
 {
     DispatchThread( host, host->currThread );
     Schedule( host );

@@ -21,9 +21,24 @@
 extern "C"{
 #endif
 
-inline void* BaseAlloc( size_t size )
+inline void* PageAlloc( size_t size )
 {
-	return malloc( size );
+    return mmap( NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
+}
+
+inline void* PageReserv( size_t size )
+{
+    return mmap( NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
+}
+
+inline void* PageCommit( void* p, size_t size )
+{
+    return p;
+}
+
+inline void PageFree( void* p, size_t size )
+{
+    munmap( base, size );
 }
 
 #ifdef CONFIG_SMP
@@ -34,18 +49,18 @@ inline void* BaseAlloc( size_t size )
 
 inline int InterlockedExchange( volatile int* addr, int value )
 {
-	//TODO: rewrite with atom asm
-	//	int ret = *addr;
-	//	*addr = value;
-	//	return ret;
+    //TODO: rewrite with atom asm
+    //    int ret = *addr;
+    //    *addr = value;
+    //    return ret;
 
-	int ret;
-	__asm__ __volatile__(
-		LOCK "movl %3, %1; movl %2, %0"
-		: "=m" (addr), "=ir" (ret)
-		: "ir" (value), "m" (addr)
-	);
-	return ret;
+    int ret;
+    __asm__ __volatile__(
+        LOCK "movl %3, %1; movl %2, %0"
+        : "=m" (addr), "=ir" (ret)
+        : "ir" (value), "m" (addr)
+    );
+    return ret;
 }
 
 inline void InitTlsIndex()
@@ -75,7 +90,7 @@ inline DzHost* GetHost()
 #endif
 }
 
-inline void SetHost( DzHost *host )
+inline void SetHost( DzHost* host )
 {
 #ifdef STORE_HOST_IN_SPECIFIC_POINTER
 #if defined( __i386 )

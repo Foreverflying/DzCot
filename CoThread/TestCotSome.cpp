@@ -9,10 +9,10 @@ void GenerateException()
 
 int __stdcall TestPrintf( void *context )
 {
-	int ret = 1;
-	DzSleep(1000);
+    int ret = 1;
+    DzSleep(1000);
     printf( "wo qu, I can print in COT!! number: %d", ret );
-	//printf( "%d\n", ret );
+    //printf( "%d\n", ret );
     DzStartCot( TestPrintf, 0 );
     return 0;
 }

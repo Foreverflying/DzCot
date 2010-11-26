@@ -12,7 +12,7 @@
 
 .globl DzSwitchFast
         .type  DzSwitchFast, @function
-# void __fastcall DzSwitch( DzHost *host, DzThread *dzThread );
+# void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
 # host$ = ecx
 # dzThread$ = edx
 DzSwitchFast:
@@ -21,10 +21,10 @@ DzSwitchFast:
         pushl   %esi
         pushl   %edi
 
-        movl    (%ecx), %esi
-        movl    %esp, 4(%esi)
-        movl    %edx, (%ecx)
-        movl    4(%edx), %esp
+        movl    (%ecx), %esi    #esi = host->currThread
+        movl    %esp, 4(%esi)   #host->currThread->esp = esp
+        movl    %edx, (%ecx)    #host->currThread = dzThread
+        movl    4(%edx), %esp   #esp = dzThread.esp
 
         popl    %edi
         popl    %esi

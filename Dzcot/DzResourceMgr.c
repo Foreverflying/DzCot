@@ -13,156 +13,162 @@
 #include "DzCoreOs.h"
 #include "DzCore.h"
 
-void AddMallocRecord( DzHost *host, void *p )
+BOOL MemeryPoolGrow( DzHost* host )
 {
-    DzQNode *node = AllocQNode( host );
-    node->content = p;
-    PushQItr( &host->mallocList, &node->qItr );
-    host->mallocCount++;
+    char* pool;
+    DzLNode* node;
+
+    pool = (char*)PageReserv( MEMERY_POOL_GROW_SIZE );
+    if( !pool ){
+        return FALSE;
+    }
+    host->memPoolPos = pool;
+    host->memPoolEnd = pool + MEMERY_POOL_GROW_SIZE;
+    node = AllocQNode( host );
+    node->content = pool;
+    node->context1 = (void*)MEMERY_POOL_GROW_SIZE;
+    PushSList( &host->poolGrowList, &node->lItr );
+    return TRUE;
 }
 
-void ReleaseAllMalloc( DzHost *host )
+void ReleaseMemoryPool( DzHost* host )
 {
-    void **p = (void**)BaseAlloc( sizeof(void*) * host->mallocCount );
-    DzQItr *qItr = host->mallocList.next;
-    void **tmp = p;
-    while( qItr ){
-        *tmp++ = MEMBER_BASE( qItr, DzQNode, qItr )->content;
-        qItr = qItr->next;
+    DzLNode* node;
+    void** p;
+    int* len;
+    int count = 0;
+    int poolGrowCount = 0;
+    DzLItr* lItr = host->poolGrowList.next;
+
+    while( lItr ){
+        poolGrowCount++;
+        lItr = lItr->next;
     }
-    while( p != tmp ){
-        free( *p++ );
+    p = (void**)alloca( sizeof(void*) * poolGrowCount );
+    len = (int*)alloca( sizeof(int) * poolGrowCount );
+    lItr = host->poolGrowList.next;
+    while( lItr ){
+        node = MEMBER_BASE( lItr, DzLNode, lItr );
+        *(p + count) = node->content;
+        *(len + count++) = (int)node->context1;
+        lItr = lItr->next;
     }
-    free( p );
-    host->mallocList.next = NULL;
+    for( count = 0; count < poolGrowCount; count++ ){
+        PageFree( p[ count ], len[ count ] );
+    }
+    host->poolGrowList.next = NULL;
 }
 
-BOOL AllocQueueNodePool( DzHost *host, int count )
+BOOL AllocQueueNodePool( DzHost* host )
 {
-    DzQNode *p;
-    DzQNode *end;
-    DzQNode *tmp;
-    DzQItr *qItr;
+    DzLNode* p;
+    DzLNode* end;
+    DzLNode* tmp;
+    DzLItr* lItr;
 
-    if( !count ){
-        count = PAGE_SIZE / sizeof( int );
-    }
-    p = (DzQNode*)BaseAlloc( count * sizeof( DzQNode ) );
+    p = (DzLNode*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzLNode ) );
     if( !p ){
         return FALSE;
     }
 
-    host->qNodePool.next = &p->qItr;
-    end = p + count - 1;
-    end->qItr.next = NULL;
+    host->lNodePool.next = &p->lItr;
+    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    end->lItr.next = NULL;
     tmp = p;
     while( tmp != end ){
-        qItr = &tmp->qItr;
-        qItr->next = &(++tmp)->qItr;
+        lItr = &tmp->lItr;
+        lItr->next = &(++tmp)->lItr;
     }
-    AddMallocRecord( host, p );
     return TRUE;
 }
 
-BOOL AllocAsynIoPool( DzHost *host, int count )
+BOOL AllocAsynIoPool( DzHost* host )
 {
-    DzAsynIo *p;
-    DzAsynIo *end;
-    DzQItr *qItr;
+    DzAsynIo* p;
+    DzAsynIo* end;
+    DzLItr* lItr;
 
-    if( !host->qNodePool.next ){
-        if( !AllocQueueNodePool( host, 0 ) ){
+    if( !host->lNodePool.next ){
+        if( !AllocQueueNodePool( host ) ){
             return FALSE;
         }
     }
 
-    if( !count ){
-        count = PAGE_SIZE / sizeof( int );
-    }
-    p = (DzAsynIo*)BaseAlloc( count * sizeof( DzAsynIo ) );
+    p = (DzAsynIo*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzAsynIo ) );
     if( !p ){
         return FALSE;
     }
 
-    AddMallocRecord( host, p );
-    host->asynIoPool.next = &p->qItr;
-    end = p + count - 1;
-    end->qItr.next = NULL;
+    host->asynIoPool.next = &p->lItr;
+    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    end->lItr.next = NULL;
     InitAsynIo( end );
     while( p != end ){
         InitAsynIo( p );
-        qItr = &p->qItr;
-        qItr->next = &(++p)->qItr;
+        lItr = &p->lItr;
+        lItr->next = &(++p)->lItr;
     }
     return TRUE;
 }
 
-BOOL AllocSynObjPool( DzHost *host, int count )
+BOOL AllocSynObjPool( DzHost* host )
 {
-    DzSynObj *p;
-    DzSynObj *end;
-    DzQItr *qItr;
+    DzSynObj* p;
+    DzSynObj* end;
+    DzLItr* lItr;
 
-    if( !host->qNodePool.next ){
-        if( !AllocQueueNodePool( host, 0 ) ){
+    if( !host->lNodePool.next ){
+        if( !AllocQueueNodePool( host ) ){
             return FALSE;
         }
     }
 
-    if( !count ){
-        count = PAGE_SIZE / sizeof( int );
-    }
-    p = (DzSynObj*)BaseAlloc( count * sizeof( DzSynObj ) );
+    p = (DzSynObj*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzSynObj ) );
     if( !p ){
         return FALSE;
     }
 
-    AddMallocRecord( host, p );
-    host->synObjPool.next = &p->qItr;
-    end = p + count - 1;
-    end->qItr.next = NULL;
-    InitDeque( &end->waitQ[ CP_HIGH ] );
-    InitDeque( &end->waitQ[ CP_NORMAL ] );
-    InitDeque( &end->waitQ[ CP_LOW ] );
+    host->synObjPool.next = &p->lItr;
+    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    end->lItr.next = NULL;
+    InitDList( &end->waitQ[ CP_HIGH ] );
+    InitDList( &end->waitQ[ CP_NORMAL ] );
+    InitDList( &end->waitQ[ CP_LOW ] );
     while( p != end ){
-        InitDeque( &p->waitQ[ CP_HIGH ] );
-        InitDeque( &p->waitQ[ CP_NORMAL ] );
-        InitDeque( &p->waitQ[ CP_LOW ] );
-        qItr = &p->qItr;
-        qItr->next = &(++p)->qItr;
+        InitDList( &p->waitQ[ CP_HIGH ] );
+        InitDList( &p->waitQ[ CP_NORMAL ] );
+        InitDList( &p->waitQ[ CP_LOW ] );
+        lItr = &p->lItr;
+        lItr->next = &(++p)->lItr;
     }
     return TRUE;
 }
 
-BOOL AllocDzThreadPool( DzHost *host, int sSize, int count )
+BOOL AllocDzThreadPool( DzHost* host, int sSize )
 {
-    DzThread *p;
-    DzThread *end;
-    DzQItr *qItr;
+    DzThread* p;
+    DzThread* end;
+    DzLItr* lItr;
 
-    if( !host->qNodePool.next ){
-        if( !AllocQueueNodePool( host, 0 ) ){
+    if( !host->lNodePool.next ){
+        if( !AllocQueueNodePool( host ) ){
             return FALSE;
         }
     }
 
-    if( !count ){
-        count = PAGE_SIZE / sizeof( int );
-    }
-    p = (DzThread*)BaseAlloc( count * sizeof( DzThread ) );
+    p = (DzThread*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzThread ) );
     if( !p ){
         return FALSE;
     }
 
-    AddMallocRecord( host, p );
-    host->threadPools[ sSize ].next = &p->qItr;
-    end = p + count - 1;
-    end->qItr.next = NULL;
+    host->threadPools[ sSize ].next = &p->lItr;
+    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    end->lItr.next = NULL;
     InitDzThread( end, sSize );
     while( p != end ){
         InitDzThread( p, sSize );
-        qItr = &p->qItr;
-        qItr->next = &(++p)->qItr;
+        lItr = &p->lItr;
+        lItr->next = &(++p)->lItr;
     }
     return TRUE;
 }

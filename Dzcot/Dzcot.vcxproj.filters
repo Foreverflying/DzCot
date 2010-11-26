@@ -67,9 +67,6 @@
     <ClInclude Include="win\DzIoWin.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DzQueue.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DzResourceMgr.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -91,9 +88,6 @@
     <ClInclude Include="DzStructsOs.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DzStructsQueue.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="win\DzStructsWin.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -110,6 +104,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DzBaseOs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzStructsList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzList.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -25,38 +25,38 @@ extern "C"{
 BOOL SockStartup();
 BOOL SockCleanup();
 
-inline DzAsynIo* CreateAsynIo( DzHost *host )
+inline DzAsynIo* CreateAsynIo( DzHost* host )
 {
-    DzQItr *head;
-    DzAsynIo *asynIo;
+    DzLItr* head;
+    DzAsynIo* asynIo;
 
     head = &host->asynIoPool;
     if( !head->next ){
-        if( !AllocAsynIoPool( host, 0 ) ){
+        if( !AllocAsynIoPool( host ) ){
             return NULL;
         }
     }
-    asynIo = MEMBER_BASE( head->next, DzAsynIo, qItr );
-    PopQItr( head );
+    asynIo = MEMBER_BASE( head->next, DzAsynIo, lItr );
+    PopSList( head );
     asynIo->ref = 1;
     return asynIo;
 }
 
-inline DzAsynIo* CloneAsynIo( DzAsynIo *asynIo )
+inline DzAsynIo* CloneAsynIo( DzAsynIo* asynIo )
 {
     asynIo->ref++;
     return asynIo;
 }
 
-inline void CloseAsynIo( DzHost *host, DzAsynIo *asynIo )
+inline void CloseAsynIo( DzHost* host, DzAsynIo* asynIo )
 {
     asynIo->ref--;
     if( asynIo->ref == 0 ){
-        PushQItr( &host->asynIoPool, &asynIo->qItr );
+        PushSList( &host->asynIoPool, &asynIo->lItr );
     }
 }
 
-inline int Socket( DzHost *host, int domain, int type, int protocol )
+inline int Socket( DzHost* host, int domain, int type, int protocol )
 {
     SOCKET fd;
 
@@ -70,12 +70,12 @@ inline int Shutdown( int fd, int how )
     return shutdown( (SOCKET)fd, how );
 }
 
-inline int CloseSocket( DzHost *host, int fd )
+inline int CloseSocket( DzHost* host, int fd )
 {
     return closesocket( (SOCKET)fd );
 }
 
-inline int Bind( int fd, struct sockaddr *addr, int addrLen )
+inline int Bind( int fd, struct sockaddr* addr, int addrLen )
 {
     return bind( (SOCKET)fd, addr, addrLen );
 }
@@ -85,11 +85,11 @@ inline int Listen( int fd, int backlog )
     return listen( (SOCKET)fd, backlog );
 }
 
-inline int Connect( DzHost *host, int fd, struct sockaddr *addr, int addrLen )
+inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
 {
     BOOL result = TRUE;
     DWORD bytes;
-    DzAsynIo *asynIo;
+    DzAsynIo* asynIo;
     struct sockaddr temp;
     DWORD flag;
     int err;
@@ -126,17 +126,17 @@ endproc:
     return result ? 0 : -1;
 }
 
-inline int Accept( DzHost *host, int fd, struct sockaddr *addr, int *addrLen )
+inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
 {
     SOCKET s;
     char buff[64];
     DWORD bytes;
-    DzAsynIo *asynIo;
+    DzAsynIo* asynIo;
     DWORD err;
     DWORD flag;
     BOOL result;
-    struct sockaddr *lAddr;
-    struct sockaddr *rAddr;
+    struct sockaddr* lAddr;
+    struct sockaddr* rAddr;
     int lAddrLen;
 
     s = socket( AF_INET, SOCK_STREAM, 0 );
@@ -185,10 +185,10 @@ endproc:
     return (int)s;
 }
 
-inline int Send( DzHost *host, int fd, const void *buf, int len, int flag )
+inline int Send( DzHost* host, int fd, const void* buf, int len, int flag )
 {
     DWORD bytes;
-    DzAsynIo *asynIo;
+    DzAsynIo* asynIo;
     WSABUF tmpBuf;
     DWORD err;
     DWORD tmpFlag;
@@ -229,10 +229,10 @@ endproc:
     return bytes;
 }
 
-inline int Recv( DzHost *host, int fd, void *buf, int len, int flag )
+inline int Recv( DzHost* host, int fd, void* buf, int len, int flag )
 {
     DWORD bytes;
-    DzAsynIo *asynIo;
+    DzAsynIo* asynIo;
     WSABUF tmpBuf;
     DWORD tmpFlag; 
     DWORD err;
@@ -274,7 +274,7 @@ endproc:
     return bytes;
 }
 
-inline DWORD GetFileFlag( int flags, DWORD *accessFlag )
+inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
 {
     DWORD access = 0;
     DWORD createFlag = 0;
@@ -305,7 +305,7 @@ inline DWORD GetFileFlag( int flags, DWORD *accessFlag )
     return createFlag;
 }
 
-inline int GetFd( DzHost *host, HANDLE file, int flags )
+inline int GetFd( DzHost* host, HANDLE file, int flags )
 {
     if( file == INVALID_HANDLE_VALUE ){
         return -1;
@@ -317,7 +317,7 @@ inline int GetFd( DzHost *host, HANDLE file, int flags )
     return (int)file;
 }
 
-inline int OpenA( DzHost *host, const char *fileName, int flags )
+inline int OpenA( DzHost* host, const char* fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -336,7 +336,7 @@ inline int OpenA( DzHost *host, const char *fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline int OpenW( DzHost *host, const wchar_t *fileName, int flags )
+inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -355,7 +355,7 @@ inline int OpenW( DzHost *host, const wchar_t *fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline int Close( DzHost *host, int fd )
+inline int Close( DzHost* host, int fd )
 {
     BOOL ret;
         
@@ -363,11 +363,11 @@ inline int Close( DzHost *host, int fd )
     return ret ? 0 : -1;
 }
 
-inline size_t Read( DzHost *host, int fd, void *buf, size_t count )
+inline size_t Read( DzHost* host, int fd, void* buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;
-    DzAsynIo *asynIo;
+    DzAsynIo* asynIo;
     DWORD err;
     BOOL result;
 
@@ -427,11 +427,11 @@ endproc:
     return bytes;
 }
 
-inline size_t Write( DzHost *host, int fd, const void *buf, size_t count )
+inline size_t Write( DzHost* host, int fd, const void* buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;
-    DzAsynIo *asynIo;
+    DzAsynIo* asynIo;
     DWORD err;
     BOOL result;
 
@@ -492,7 +492,7 @@ endproc:
     return bytes;
 }
 
-inline size_t Seek( DzHost *host, int fd, size_t offset, int whence )
+inline size_t Seek( DzHost* host, int fd, size_t offset, int whence )
 {
     size_t ret;
 
@@ -517,22 +517,24 @@ inline size_t FileSize( int fd )
     return ret;
 }
 
-// DzIoMgrRoutine:
+// IoMgrRoutine:
 // the IO mgr thread uses the host's origin thread's stack
 // manager all kernel objects that may cause real block
-inline void IoMgrRoutine( DzHost *host )
+inline void IoMgrRoutine( DzHost* host )
 {
     ULONG_PTR key;
     DWORD bytes;
-    OVERLAPPED *overlapped;
-    DzAsynIo *asynIo;
+    OVERLAPPED* overlapped;
+    DzAsynIo* asynIo;
     DWORD timeout;
-    static int DEBUGcallTime = 0;
 
-    while( !host->isExiting || host->threadCount > 1 ){
+    while( host->threadCount ){
         while( NotifyMinTimers( host, (int*)&timeout ) ){
             host->currPriority = CP_FIRST;
             Schedule( host );
+            if( !host->threadCount ){
+                return;
+            }
         }
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeout );
         if( overlapped != NULL ){

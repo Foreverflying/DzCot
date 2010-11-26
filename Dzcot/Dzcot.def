@@ -4,7 +4,7 @@ EXPORTS
     DzInitHost              @1
     DzStartHost             @2
     DzStartCot              @3
-    DzStartCotInstantly     @4
+    DzStartCotInstant       @4
     DzGetCotCount           @5
     DzGetMaxCotCount        @6
     DzInitCotPool           @7
@@ -30,7 +30,7 @@ EXPORTS
     DzSockStartup           @27
     DzSockCleanup           @28
     DzSocket                @29
-    DzShutDown              @30
+    DzShutdown              @30
     DzCloseSocket           @31
     DzBind                  @32
     DzListen                @33

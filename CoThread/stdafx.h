@@ -37,9 +37,9 @@ typedef unsigned char byte;
 
 inline int GetTickCount()
 {
-	struct timeval current;
-	gettimeofday(&current, NULL);
-	return current.tv_sec * 1000 + current.tv_usec/1000;
+    struct timeval current;
+    gettimeofday(&current, NULL);
+    return current.tv_sec * 1000 + current.tv_usec/1000;
 }
 
 #endif

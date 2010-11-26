@@ -17,9 +17,9 @@ CallDzcotRoutine PROC   ;CallDzcotRoutine
     jmp DzcotRoutine
 CallDzcotRoutine ENDP   ;CallDzcotRoutine
 
-; void DzSwitchFast( DzHost *host, DzThread *dzThread );
-; host$ = ecx
-; dzThread$ = edx
+; void DzSwitchFast( DzHost* host, DzThread* dzThread );
+; host$ = rcx
+; dzThread$ = rdx
 DzSwitchFast PROC   ; DzSwitchFast
     push rbp
     push rbx
@@ -34,7 +34,7 @@ DzSwitchFast PROC   ; DzSwitchFast
     push qword ptr [rax+8]
     push qword ptr [rax+16]
 
-    mov rsi, [rcx]      ;esi = host->currThread
+    mov rsi, [rcx]      ;rsi = host->currThread
     mov [rsi+8], rsp    ;host->currThread->sp = rsp
     mov [rcx], rdx      ;host->currThread = dzThread
     mov rsp, [rdx+8]    ;rsp = dzThread.sp

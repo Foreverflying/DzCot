@@ -10,15 +10,18 @@
 
 #include "../DzStructs.h"
 
-#define ASYNIO_SIGN_ERR_MASK     0xffff
-#define ASYNIO_SIGN_ISFILE       0x80000000
+#define ASYNIO_SIGN_ERR_MASK     0x7fff
+#define ASYNIO_SIGN_ISFILE       0x8000
 
 typedef struct _DzAsynIo
 {
-	union{
-	    DzQItr      qItr;
-	    size_t      sign;
-	};
+    union{
+        DzQItr      qItr;
+        struct{
+            short   sign;
+            short   ref;
+        };
+    };
     DzFastEvt       inEvt;
     DzFastEvt       outEvt;
 }DzAsynIo;

@@ -9,12 +9,12 @@
 #include "../DzCoreOs.h"
 #include "../DzCore.h"
 
-void InitAsynIo( DzAsynIo *asynIo )
+void InitAsynIo( DzAsynIo* asynIo )
 {
 
 }
 
-void InitDzThread( DzThread *dzThread, int sSize )
+void InitDzThread( DzThread* dzThread, int sSize )
 {
     dzThread->stack = NULL;
     dzThread->stackLimit = NULL;
@@ -69,7 +69,7 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 // schedule next thread
 void __stdcall DzcotRoutine( DzRoutine entry, void* context )
 {
-    DzHost *host = GetHost();
+    DzHost* host = GetHost();
     __try{
         while(1){
             //call the entry
@@ -90,7 +90,7 @@ void __stdcall DzcotRoutine( DzRoutine entry, void* context )
 /*
 void StackGrow()
 {
-    void **tib;
+    void** tib;
     char* stackLimit;
 
 #if defined( _X86_ )
@@ -123,7 +123,7 @@ int GuardMiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 // schedule next thread
 void __stdcall DzcotRoutine( DzRoutine entry, void* context )
 {
-    DzHost *host = GetHost();
+    DzHost* host = GetHost();
     __try{
         __try{
             while(1){

@@ -13,7 +13,7 @@
 typedef struct _DzAsynIo
 {
     union{
-        DzQItr      qItr;
+        DzLItr      lItr;
         int         fd;
     };
     int             ref;

@@ -15,6 +15,7 @@
 #define TRUE    1
 
 typedef int BOOL;
+typedef unsigned int uint;
 
 enum
 {
@@ -40,14 +41,14 @@ enum
 enum
 {
     SS_FIRST,
-    SS_64K = SS_FIRST,
-    SS_128K,
+    SS_4K = SS_FIRST,
+    SS_16K,
+    SS_64K,
     SS_256K,
-    SS_512K,
     SS_1M,
-    SS_2M,
     SS_4M,
-    SS_8M,
+    SS_16M,
+    SS_64M,
     STACK_SIZE_COUNT,       //should not use this
     SS_DEFAULT = STACK_SIZE_COUNT
 };
@@ -67,6 +68,6 @@ typedef struct _DzSynObj* DzHandle;
 #define __stdcall __attribute__((stdcall))
 #endif
 
-typedef int (__stdcall *DzRoutine)( void *context );
+typedef int (__stdcall *DzRoutine)( void* context );
 
 #endif // __DzType_h__

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "../Dzcot/Dzcot.h"
 
-#include "../Dzcot/DzQueue.h"
+#include "../Dzcot/DzList.h"
 #include "DlMalloc.h"
 #include "Global.h"
 
@@ -21,7 +21,7 @@ struct Conn
 {
     int         fd;
     int         index;
-    DzQueue     sendQueue;
+    DzSList     sendQueue;
 };
 
 struct Buff
@@ -33,7 +33,7 @@ struct Buff
 
 struct Msg
 {
-    DzQItr      qItr;
+    DzLItr      qItr;
     Buff*       buff;
 };
 
@@ -66,18 +66,18 @@ int __stdcall SendRoutine( void *context )
 {
     Conn *conn = (Conn*)context;
 
-    DzQItr *qItr = conn->sendQueue.head;
+    DzLItr *qItr = conn->sendQueue.head;
     while( qItr ){
         Msg *msg = MEMBER_BASE( qItr, Msg, qItr );
         int bytes = DzSend( conn->fd, msg->buff->buff, msg->buff->len, 0 );
         if( bytes < 0 ){
-            DelHeadQItr( &conn->sendQueue );
+            EraseListHead( &conn->sendQueue );
             ReleaseBuffRef( msg->buff );
             sendErrCount++;
             printf( "send error! count = %d\r\n", sendErrCount );
             break;
         }
-        DelHeadQItr( &conn->sendQueue );
+        EraseListHead( &conn->sendQueue );
         ReleaseBuffRef( msg->buff );
         Free( msg );
         qItr = conn->sendQueue.head;
@@ -115,7 +115,7 @@ int __stdcall TestMapServerRoutine( void *context )
                     //start send cot
                     DzStartCot( SendRoutine, connArr[i] );
                 }
-                AddQItrToTail( &connArr[i]->sendQueue, &msg->qItr );
+                AddLItrToTail( &connArr[i]->sendQueue, &msg->qItr );
             }
             ReleaseBuffRef( buff );
         }else{

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "../Dzcot/Dzcot.h"
 
-#include "../Dzcot/DzQueue.h"
+#include "../Dzcot/DzList.h"
 #include "Global.h"
 
 #include "DlMalloc.h"

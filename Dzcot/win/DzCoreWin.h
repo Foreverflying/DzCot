@@ -16,14 +16,14 @@
 extern "C"{
 #endif
 
-void InitAsynIo( DzAsynIo *asynIo );
-void InitDzThread( DzThread *dzThread, int sSize );
+void InitAsynIo( DzAsynIo* asynIo );
+void InitDzThread( DzThread* dzThread, int sSize );
 void __stdcall DzcotRoutine( DzRoutine entry, void* context );
 
 #ifdef SWITCH_COT_FLOAT_SAFE
 #define DzSwitch DzSwitchFloatSafe
 #else
-void __fastcall DzSwitchFast( DzHost *host, DzThread *dzThread );
+void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
 #define DzSwitch DzSwitchFast
 #endif
 
@@ -74,7 +74,7 @@ void CallDzcotRoutine();
 
 #endif
 
-inline void InitOsStruct( DzHost *host )
+inline void InitOsStruct( DzHost* host )
 {
     host->osStruct.iocp = CreateIoCompletionPort(
         INVALID_HANDLE_VALUE,
@@ -93,9 +93,9 @@ inline void InitOsStruct( DzHost *host )
     host->osStruct.reservedStack = NULL;
 }
 
-inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
+inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
 {
-    struct DzStackBottom *bottom;
+    struct DzStackBottom* bottom;
 
     bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
     bottom->entry = entry;
@@ -116,9 +116,9 @@ inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
 inline char* AllocStack( int sSize )
 {
     size_t size;
-    char *base;
-    DzQNode *node;
-    DzHost *host = GetHost();
+    char* base;
+    DzLNode* node;
+    DzHost* host = GetHost();
 
     while( 1 ){
         size = DZ_STACK_UNIT_SIZE << sSize;
@@ -135,27 +135,27 @@ inline char* AllocStack( int sSize )
         if( base < host->osStruct.originalStack ){
             node = AllocQNode( host );
             node->content = base;
-            node->qItr.next = host->osStruct.reservedStack;
-            host->osStruct.reservedStack = &node->qItr;
+            node->lItr.next = host->osStruct.reservedStack;
+            host->osStruct.reservedStack = &node->lItr;
         }else{
             return base + size;
         }
     }
 }
 
-inline void FreeStack( char *stack, int sSize )
+inline void FreeStack( char* stack, int sSize )
 {
     size_t size;
-    char *base;
+    char* base;
 
     size = DZ_STACK_UNIT_SIZE << sSize;
     base = stack - size;
     VirtualFree( base, 0, MEM_RELEASE );
 }
 
-inline char* CommitStack( char *stack, size_t size )
+inline char* CommitStack( char* stack, size_t size )
 {
-    void *tmp;
+    void* tmp;
     BOOL ret;
 
     tmp = VirtualAlloc(
@@ -176,7 +176,7 @@ inline char* CommitStack( char *stack, size_t size )
     return ret ? stack - size + PAGE_SIZE : NULL;
 }
 
-inline void DeCommitStack( char *stack, char *stackLimit )
+inline void DeCommitStack( char* stack, char* stackLimit )
 {
     size_t size;
 
@@ -184,9 +184,9 @@ inline void DeCommitStack( char *stack, char *stackLimit )
     VirtualFree( stackLimit, size, MEM_DECOMMIT );
 }
 
-inline void InitCotStack( DzHost *host, DzThread *dzThread )
+inline void InitCotStack( DzHost* host, DzThread* dzThread )
 {
-    struct DzStackBottom *bottom;
+    struct DzStackBottom* bottom;
 
     bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
     bottom->routineEntry = DzcotRoutineEntry;
@@ -199,14 +199,13 @@ inline void InitCotStack( DzHost *host, DzThread *dzThread )
     dzThread->sp = bottom;
 }
 
-inline DzThread* InitCot( DzHost *host, DzThread *dzThread, int sSize )
+inline DzThread* InitCot( DzHost* host, DzThread* dzThread, int sSize )
 {
     if( !dzThread->stack ){
         dzThread->stack = AllocStack( sSize );
         if( !dzThread->stack ){
             return NULL;
         }
-        host->poolCotCounts[ sSize ]++;
     }
     if( !dzThread->stackLimit ){
         dzThread->stackLimit = CommitStack( dzThread->stack, PAGE_SIZE * 3 );

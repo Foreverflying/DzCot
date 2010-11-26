@@ -9,7 +9,7 @@
 #define __DzStructs_h__
 
 #include "DzType.h"
-#include "DzStructsQueue.h"
+#include "DzStructsList.h"
 #include "DzStructsOs.h"
 
 #define MAX_DZ_HOST     8
@@ -61,7 +61,7 @@ typedef struct _DzFastEvt
 typedef struct _DzSynObj
 {
     union{
-        DzQItr          qItr;
+        DzLItr          lItr;
         DzTimerNode     timerNode;
         struct{
             short       type;
@@ -84,7 +84,7 @@ typedef struct _DzSynObj
             int         sSize;
         };
         struct{
-            DzDeque     waitQ[ COT_PRIORITY_COUNT ];
+            DzDList     waitQ[ COT_PRIORITY_COUNT ];
         };
     };
 }DzSynObj;
@@ -92,8 +92,8 @@ typedef struct _DzSynObj
 typedef struct _DzWaitNode
 {
     union{
-        DzQItr              qItr;
-        DzDqItr             dqItr;
+        DzLItr              lItr;
+        DzDLItr             dlItr;
     };
     struct _DzWaitHelper*   helper;
     DzSynObj*               synObj;
@@ -119,52 +119,46 @@ typedef struct _DzHost
     //push it to the head of CP_HIGH queue
     int             lowestPriority;
     int             currPriority;
-    DzQueue         taskQs[ COT_PRIORITY_COUNT ];
+    DzSList         taskLs[ COT_PRIORITY_COUNT ];
 
     //the host thread's original info
     DzThread        originThread;
 
     //DzDqNode struct pool
-    DzQItr          qNodePool;
-
-    //used for checking additional task after cot switching
-    int             taskCheckTag;
+    DzLItr          lNodePool;
 
     //DzThread struct pool
+    DzLItr          threadPools[ STACK_SIZE_COUNT ];
     int             poolDepth;
-    DzQItr          threadPools[ STACK_SIZE_COUNT ];
 
     //statistic for different stack size thread
     //poolCotCount only accumulate the thread reserved virtual address space
-    int             poolCotCounts[ STACK_SIZE_COUNT ];
     int             threadCount;
     int             maxThreadCount;
-
-    //used for timer
-    int             timerCount;
-    int             timerHeapSize;
-    DzTimerNode**   timerHeap;
 
     //Os struct
     DzOsStruct      osStruct;
 
-    //record malloc history
-    int             mallocCount;
-    DzQItr          mallocList;
+    //used for timer
+    DzTimerNode**   timerHeap;
+    int             timerCount;
+    int             timerHeapSize;
+
+    //record pool alloc history
+    DzLItr          poolGrowList;
+
+    char*           memPoolPos;
+    char*           memPoolEnd;
 
     //DzSynObj struct pool
-    DzQItr          synObjPool;
+    DzLItr          synObjPool;
 
     //DzAsynIo struct pool
-    DzQItr          asynIoPool;
+    DzLItr          asynIoPool;
 
     //default co thread value
     int             defaultPri;
     int             defaultSSize;
-
-    //host's status
-    BOOL            isExiting;
-    BOOL            isBlocking;
 }DzHost;
 
 #endif // __DzStructs_h__

@@ -13,14 +13,30 @@
 
 #define PAGE_SIZE                   4096
 #define DZ_STACK_UNIT_SIZE          65536
+#define MEMERY_POOL_GROW_SIZE       ( 16 * 1024 * 1024 )
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-inline void* BaseAlloc( size_t size )
+inline void* PageAlloc( size_t size )
 {
-    return malloc( size );
+    return VirtualAlloc( NULL, size, MEM_COMMIT, PAGE_READWRITE );
+}
+
+inline void* PageReserv( size_t size )
+{
+    return VirtualAlloc( NULL, size, MEM_RESERVE, PAGE_READWRITE );
+}
+
+inline void* PageCommit( void* p, size_t size )
+{
+    return VirtualAlloc( p, size, MEM_COMMIT, PAGE_READWRITE );
+}
+
+inline void PageFree( void* p, size_t size )
+{
+    VirtualFree( p, 0, MEM_RELEASE );
 }
 
 inline void InitTlsIndex()
@@ -50,7 +66,7 @@ inline DzHost* GetHost()
 #endif
 }
 
-inline void SetHost( DzHost *host )
+inline void SetHost( DzHost* host )
 {
 #ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
 #if defined( _X86_ )
