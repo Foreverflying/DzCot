@@ -105,20 +105,9 @@ typedef struct _DzWaitHelper
     int                     waitCount;
     struct _DzThread*       dzThread;
     DzWaitNode*             notifyNode;
-    DzFastEvt               timeOut;
+    DzFastEvt               timeout;
     DzWaitNode*             nodeArray;
 }DzWaitHelper;
-
-typedef struct _DzThread
-{
-    DzQItr          qItr;
-    void*           sp;
-    char*           stack;
-    char*           stackLimit;
-    DzSynObj*       finishEvent;
-    int             stackSize;
-    int             priority;
-}DzThread;
 
 typedef struct _DzHost
 {
@@ -170,7 +159,6 @@ typedef struct _DzHost
     DzQItr          asynIoPool;
 
     //default co thread value
-    void*           originExceptPtr;
     int             defaultPri;
     int             defaultSSize;
 

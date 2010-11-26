@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <commctrl.h>
 #include "../Dzcot/Dzcot.h"
 
 #include "../Dzcot/DzQueue.h"
@@ -94,7 +93,7 @@ int __stdcall TestMapServerRoutine( void *context )
     if( bytes < 0 ){
         sendErrCount++;
         printf( "send error! count = %d\r\n", sendErrCount );
-        DzShutdown( conn->fd, SD_BOTH );
+        DzShutdown( conn->fd, DZ_SD_RDWR );
         DzCloseSocket( conn->fd );
         return -1;
     }
@@ -126,7 +125,7 @@ int __stdcall TestMapServerRoutine( void *context )
             break;
         }
     }
-    DzShutdown( conn->fd, SD_BOTH );
+    DzShutdown( conn->fd, DZ_SD_RDWR );
     DzCloseSocket( conn->fd );
     return 1;
 }

@@ -10,15 +10,39 @@
 
 #include "DzType.h"
 #include "DzStructs.h"
+#include "DzBaseOs.h"
 #include "DzResourceMgr.h"
 #include "DzSchedule.h"
-#include "DzCoreOs.h"
 #include "DzIoOs.h"
 #include <assert.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
+
+inline DzThread* AllocDzThread( DzHost *host, int sSize )
+{
+    DzThread *dzThread;
+    DzQItr *head;
+
+    head = &host->threadPools[ sSize ];
+    if( !head->next ){
+        if( !AllocDzThreadPool( host, sSize, 0 ) ){
+            return NULL;
+        }
+    }
+
+    dzThread = MEMBER_BASE( head->next, DzThread, qItr );
+    PopQItr( head );
+    return InitCot( host, dzThread, sSize );
+}
+
+inline void FreeDzThread( DzHost *host, DzThread *dzThread )
+{
+    PushQItr( &host->threadPools[ dzThread->stackSize ], &dzThread->qItr );
+    //DeCommitStack( dzThread->stack, dzThread->stackLimit );
+    //dzThread->stackLimit = NULL;
+}
 
 // InitHost:
 // create struct needed
@@ -60,7 +84,6 @@ inline int InitHost(
     host->mallocCount = 0;
     host->synObjPool.next = NULL;
     host->asynIoPool.next = NULL;
-    host->originExceptPtr = GetExceptPtr();
     host->defaultPri = defaultPri == CP_DEFAULT ? host->lowestPriority : defaultPri;
     host->defaultSSize = defaultSSize;
     host->isExiting = FALSE;
@@ -156,7 +179,7 @@ inline int StartHost(
         ret = StartCot( host, firstEntry, context, priority, sSize );
         Schedule( host );
     }
-    IoMgrRoutine( host, TRUE );
+    IoMgrRoutine( host );
     return ret;
 }
 

@@ -1,6 +1,5 @@
 
 #include "stdafx.h"
-#include <commctrl.h>
 #include "../Dzcot/Dzcot.h"
 
 int __stdcall TestReadFile( void *context )
@@ -33,11 +32,11 @@ int __stdcall TestClient( void *context )
     sockaddr_in addr;
     addr.sin_family = AF_INET;
     //addr.sin_addr.S_addr = inet_addr( "127.0.0.1" );
-    addr.sin_addr.s_addr = htonl( MAKEIPADDRESS( 192, 168, 0, 1 ) );
+    addr.sin_addr.s_addr = htonl( MAKEIPADDRESS( 192, 168, 219, 134 ) );
     addr.sin_port = htons( 59999 );
     sockaddr_in temp;
     temp.sin_family = AF_INET;
-    temp.sin_port = htons( (u_short)globalCount + 5000 );
+    temp.sin_port = 0; //htons( (u_short)globalCount + 5000 );
     temp.sin_addr.s_addr = htonl( 0 );
     DzBind( fd, (sockaddr*)&temp, sizeof(sockaddr_in) );
     int ret = DzConnect( fd, (sockaddr*)&addr, sizeof(sockaddr_in) );
@@ -58,7 +57,7 @@ int __stdcall TestClient( void *context )
         //printf( "connect error code: %d\r\n", WSAGetLastError() );
         connErrCount++;
     }
-    DzShutdown( fd, SD_BOTH );
+    DzShutdown( fd, DZ_SD_RDWR );
     DzCloseSocket( fd );
     globalCount--;
     //printf( "globalCount: %d\r\n", globalCount );
@@ -101,7 +100,7 @@ int __stdcall TestServerRoutine( void *context )
     }else{
         recvErrCount++;
     }
-    DzShutdown( fd, SD_BOTH );
+    DzShutdown( fd, DZ_SD_RDWR );
     DzCloseSocket( fd );
     globalCount--;
     //printf( "globalCount: %d\r\n", globalCount );
@@ -130,7 +129,7 @@ int __stdcall TestServer( void *context )
     int fd = DzSocket( AF_INET, SOCK_STREAM, 0 );
     sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl( MAKEIPADDRESS( 192, 168, 0, 1 ) );
+    addr.sin_addr.s_addr = htonl( MAKEIPADDRESS( 0, 0, 0, 0 ) );
     addr.sin_port = htons( 59999 );
     DzBind( fd, (sockaddr*)&addr, sizeof(sockaddr_in) );
     if( DzListen( fd, count ) != 0 ){

@@ -37,7 +37,11 @@
 typedef long long int64;
 
 #ifndef __cplusplus
-#define inline __inline
+#define inline static __inline
 #endif
+
+//#define SWITCH_COT_FLOAT_SAFE
+#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
+#define STORE_HOST_IN_ARBITRARY_USER_POINTER
 
 #endif // __DzIncWin_h__

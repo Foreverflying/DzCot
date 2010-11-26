@@ -1,12 +1,14 @@
 #include "stdafx.h"
+
+//#define  TEST_LIBPQ
+#ifdef TEST_LIBPQ
+
 #include "../Dzcot/Dzcot.h"
 #include "TestLibpq.h"
 #include <libpq-fe.h>
 #include <iostream>
 using namespace std;
 
-//#define  TEST_LIBPQ
-#ifdef TEST_LIBPQ
 
 #pragma comment( lib, "libpqdll.lib" )
 
@@ -41,19 +43,19 @@ int __stdcall TestLibpq( void *context )
     cout << "cot start: \t" << (int)context << "\r\n";
 
     /*
-     * Èç¹ûÓÃ»§ÔÚÃüÁîÐÐÉÏÌá¹©ÁË²ÎÊý£¬
-     * ÄÇÃ´ÄÃËüµ±×÷ conninfo ×Ö´®£»·ñÔòÈ±Ê¡ÉèÖÃÊÇ dbname=template1
-     * ²¢ÇÒ¶ÔÆäËüÁ¬½ÓÊ¹ÓÃ»·¾³±äÁ¿»òÕßÈ±Ê¡Öµ¡£
+     * ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á¹©ï¿½Ë²ï¿½ï¿½ï¿½
+     * ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ conninfo ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È±Ê¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ dbname=template1
+     * ï¿½ï¿½ï¿½Ò¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È±Ê¡Öµï¿½ï¿½
      * 
      */
     conninfo = "user=BombBabyMgr password=asdf hostaddr=192.168.1.109 port=5432 dbname=template1";
     conninfo = "user=BombBabyMgr password=asdf hostaddr=192.168.1.109 port=5432 dbname=BombBaby";
 
-    /* ºÍÊý¾Ý¿â½¨Á¢Á´½Ó */
+    /* ï¿½ï¿½ï¿½ï¿½Ý¿â½¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
     conn = PQconnectdb(conninfo);
 
 	/*
-	* ¼ì²éÒ»ÏÂÓë·þÎñÆ÷µÄÁ¬½ÓÊÇ·ñ³É¹¦½¨Á¢
+	* ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½
 	*/
 	if (PQstatus(conn) != CONNECTION_OK)
 	{
@@ -63,9 +65,9 @@ int __stdcall TestLibpq( void *context )
 	}
 
     /*
-     * ÎÒÃÇÕâÀïµÄ²âÊÔ°¸ÀýÉæ¼°Ê¹ÓÃÓÎ±ê£¬ÕâÖÖÇé¿öÏÂÎÒÃÇ±ØÐëÔÚÒ»¸öÊÂÎñ¿éÀïÃæ¡£
-     * ÎÒÃÇ¿ÉÒÔÓÃÒ»¸ö¼òµ¥µÄ PQexec()£¬Ö´ÐÐ
-     * "select * from pg_database"£¬Íê³ÉÈ«²¿²Ù×÷£¬²»¹ýÄÇÑùµÄ»°¶ÔÒ»¸öÀý×Ó¾ÍÌ«¼òµ¥ÁË¡£
+     * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½Ô°ï¿½ï¿½ï¿½ï¿½æ¼°Ê¹ï¿½ï¿½ï¿½Î±ê£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ¡£
+     * ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½òµ¥µï¿½ PQexec()ï¿½ï¿½Ö´ï¿½ï¿½
+     * "select * from pg_database"ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ó¾ï¿½Ì«ï¿½ï¿½ï¿½Ë¡ï¿½
      */
 	res = PQexec(conn, "BEGIN");
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
@@ -77,12 +79,12 @@ int __stdcall TestLibpq( void *context )
     }
 
 	/*
-	 * Èç¹û²»ÔÙÐèÒª PGresult ÁË£¬ÎÒÃÇÓ¦¸Ã PQclear£¬ÒÔ±ÜÃâÄÚ´æÐ¹Â©
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òª PGresult ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ PQclearï¿½ï¿½ï¿½Ô±ï¿½ï¿½ï¿½ï¿½Ú´ï¿½Ð¹Â©
 	 */
 	 PQclear(res);
 
 	/*
-	 * ´Ó´æ´¢Êý¾Ý¿âÐÅÏ¢µÄÏµÍ³±í pg_database ÖÐ×¥È¡Êý¾ÝÐÐ
+	 * ï¿½Ó´æ´¢ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ÏµÍ³ï¿½ï¿½ pg_database ï¿½ï¿½×¥È¡ï¿½ï¿½ï¿½ï¿½ï¿½
 	 */
     res = PQexec(conn, "DECLARE myportal CURSOR FOR select * from pg_database");
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
@@ -103,13 +105,13 @@ int __stdcall TestLibpq( void *context )
         exit_nicely(conn);
     }
 
-    /* Ê×ÏÈ£¬´òÓ¡ÊôÐÔÃû */
+    /* ï¿½ï¿½ï¿½È£ï¿½ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
     nFields = PQnfields(res);
     for (i = 0; i < nFields; i++)
         printf("%-15s\r\n", PQfname(res, i));
     printf("\r\n");
 
-    /* È»ºó£¬´òÓ¡Êý¾ÝÐÐ */
+    /* È»ï¿½ó£¬´ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½ï¿½ */
     for (i = 0; i < PQntuples(res); i++)
     {
         for (j = 0; j < nFields; j++)
@@ -120,15 +122,15 @@ int __stdcall TestLibpq( void *context )
     PQclear(res);
 
 
-	/* ¹Ø±ÕÈë¿Ú£¬ÎÒÃÇ²»ÓÃ¹ØÐÄ´íÎó¼ì²é... */
+	/* ï¿½Ø±ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½Ç²ï¿½ï¿½Ã¹ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½... */
         res = PQexec(conn, "CLOSE myportal");
         PQclear(res);
 
-	/* Ìá½»ÊÂÎñ */
+	/* ï¿½á½»ï¿½ï¿½ï¿½ï¿½ */
         res = PQexec(conn, "END");
         PQclear(res);
 
-	/* ¹Ø±ÕÓëÊý¾Ý¿âµÄÁ¬½Ó²¢ÇÒÇåÀí */
+	/* ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
         PQfinish(conn);
 
         cout << "cot end: \t" << (int)context << "\r\n";

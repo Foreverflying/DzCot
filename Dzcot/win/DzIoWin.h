@@ -11,8 +11,9 @@
 #include "../DzConstant.h"
 #include "../DzStructs.h"
 #include "../DzStructsOs.h"
-#include "../DzCoreOs.h"
+#include "../DzBaseOs.h"
 #include "../DzResourceMgr.h"
+#include "../DzCoreOs.h"
 #include "../DzSynObj.h"
 #include "../../DzcotData/DzcotData.h"
 #include <MSWSock.h>
@@ -26,9 +27,17 @@ BOOL SockCleanup();
 
 inline DzAsynIo* CreateAsynIo( DzHost *host )
 {
+    DzQItr *head;
     DzAsynIo *asynIo;
 
-    asynIo = AllocAsynIo( host );
+    head = &host->asynIoPool;
+    if( !head->next ){
+        if( !AllocAsynIoPool( host, 0 ) ){
+            return NULL;
+        }
+    }
+    asynIo = MEMBER_BASE( head->next, DzAsynIo, qItr );
+    PopQItr( head );
     asynIo->ref = 1;
     return asynIo;
 }
@@ -43,7 +52,7 @@ inline void CloseAsynIo( DzHost *host, DzAsynIo *asynIo )
 {
     asynIo->ref--;
     if( asynIo->ref == 0 ){
-        FreeAsynIo( host, asynIo );
+        PushQItr( &host->asynIoPool, &asynIo->qItr );
     }
 }
 
@@ -87,7 +96,6 @@ inline int Connect( DzHost *host, int fd, struct sockaddr *addr, int addrLen )
 
     asynIo = CreateAsynIo( host );
     asynIo->fd = fd;
-    asynIo->callback = NULL;
     InitFastEvt( &asynIo->fastEvt );
     ZeroMemory( &asynIo->overlapped, sizeof( asynIo->overlapped ) );
     ZeroMemory( &temp, sizeof( struct sockaddr ) );
@@ -137,7 +145,6 @@ inline int Accept( DzHost *host, int fd, struct sockaddr *addr, int *addrLen )
     }
     asynIo = CreateAsynIo( host );
     asynIo->fd = fd;
-    asynIo->callback = NULL;
     InitFastEvt( &asynIo->fastEvt );
     ZeroMemory( &asynIo->overlapped, sizeof( asynIo->overlapped ) );
     if( !_AcceptEx( (SOCKET)fd, s, buff, 0, 32, 32, &bytes, &asynIo->overlapped ) ){
@@ -178,7 +185,7 @@ endproc:
     return (int)s;
 }
 
-inline int Send( DzHost *host, int fd, void *msg, int len, int flag )
+inline int Send( DzHost *host, int fd, const void *buf, int len, int flag )
 {
     DWORD bytes;
     DzAsynIo *asynIo;
@@ -187,15 +194,12 @@ inline int Send( DzHost *host, int fd, void *msg, int len, int flag )
     DWORD tmpFlag;
     BOOL result;
 
-    //printf("/---------------send begin\t%d\r\n", fd );
-
     asynIo = CreateAsynIo( host );
     asynIo->fd = fd;
-    asynIo->callback = NULL;
     InitFastEvt( &asynIo->fastEvt );
     ZeroMemory( &asynIo->overlapped, sizeof( asynIo->overlapped ) );
     tmpBuf.len = (ULONG)len;
-    tmpBuf.buf = (char*)msg;
+    tmpBuf.buf = (char*)buf;
     if( WSASend( (SOCKET)fd, &tmpBuf, 1, &bytes, flag, &asynIo->overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
@@ -220,7 +224,6 @@ inline int Send( DzHost *host, int fd, void *msg, int len, int flag )
         asynIo->fd = -1;
         return bytes;
     }
-    //printf("\\---------------send end\t%d\r\n", fd );
 endproc:
     CloseAsynIo( host, asynIo );
     return bytes;
@@ -231,15 +234,12 @@ inline int Recv( DzHost *host, int fd, void *buf, int len, int flag )
     DWORD bytes;
     DzAsynIo *asynIo;
     WSABUF tmpBuf;
-    DWORD tmpFlag;
+    DWORD tmpFlag; 
     DWORD err;
     BOOL result;
 
-    //printf("/---------------recv begin\t%d\r\n", fd );
-
     asynIo = CreateAsynIo( host );
     asynIo->fd = fd;
-    asynIo->callback = NULL;
     InitFastEvt( &asynIo->fastEvt );
     ZeroMemory( &asynIo->overlapped, sizeof( asynIo->overlapped ) );
     tmpBuf.len = (ULONG)len;
@@ -251,7 +251,6 @@ inline int Recv( DzHost *host, int fd, void *buf, int len, int flag )
             bytes = -1;
             goto endproc;
         }
-        //printf( "Bingo, switched!\t%d\r\n", fd );
         CloneAsynIo( asynIo );
         WaitFastEvt( host, &asynIo->fastEvt, -1 );
         result = WSAGetOverlappedResult(
@@ -270,7 +269,6 @@ inline int Recv( DzHost *host, int fd, void *buf, int len, int flag )
         asynIo->fd = -1;
         return bytes;
     }
-    //printf("\\---------------recv end\t%d\r\n", fd );
 endproc:
     CloseAsynIo( host, asynIo );
     return bytes;
@@ -319,7 +317,7 @@ inline int GetFd( DzHost *host, HANDLE file, int flags )
     return (int)file;
 }
 
-inline int OpenA( DzHost *host, char *fileName, int flags )
+inline int OpenA( DzHost *host, const char *fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -338,7 +336,7 @@ inline int OpenA( DzHost *host, char *fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline int OpenW( DzHost *host, wchar_t *fileName, int flags )
+inline int OpenW( DzHost *host, const wchar_t *fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -365,7 +363,7 @@ inline int Close( DzHost *host, int fd )
     return ret ? 0 : -1;
 }
 
-inline size_t Read( DzHost *host, int fd, void *buff, size_t count )
+inline size_t Read( DzHost *host, int fd, void *buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;
@@ -373,10 +371,9 @@ inline size_t Read( DzHost *host, int fd, void *buff, size_t count )
     DWORD err;
     BOOL result;
 
-    asynIo = AllocAsynIo( host );
     isFile = GetFileType( (HANDLE)fd ) == FILE_TYPE_DISK;
+    asynIo = CreateAsynIo( host );
     asynIo->fd = fd;
-    asynIo->callback = NULL;
     InitFastEvt( &asynIo->fastEvt );
     ZeroMemory( &asynIo->overlapped, sizeof( asynIo->overlapped ) );
     if( isFile ){
@@ -388,7 +385,7 @@ inline size_t Read( DzHost *host, int fd, void *buff, size_t count )
             FILE_CURRENT
             );
     }
-    if( !ReadFile( (HANDLE)fd, buff, (DWORD)count, &bytes, &asynIo->overlapped ) ){
+    if( !ReadFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo->overlapped ) ){
         err = GetLastError();
         if( err == ERROR_HANDLE_EOF ){
             bytes = 0;
@@ -430,7 +427,7 @@ endproc:
     return bytes;
 }
 
-inline size_t Write( DzHost *host, int fd, void *buff, size_t count )
+inline size_t Write( DzHost *host, int fd, const void *buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;
@@ -441,7 +438,6 @@ inline size_t Write( DzHost *host, int fd, void *buff, size_t count )
     isFile = GetFileType( (HANDLE)fd ) == FILE_TYPE_DISK;
     asynIo = CreateAsynIo( host );
     asynIo->fd = fd;
-    asynIo->callback = NULL;
     InitFastEvt( &asynIo->fastEvt );
     ZeroMemory( &asynIo->overlapped, sizeof( asynIo->overlapped ) );
     if( isFile ){
@@ -453,7 +449,7 @@ inline size_t Write( DzHost *host, int fd, void *buff, size_t count )
             FILE_CURRENT
             );
     }
-    if( !WriteFile( (HANDLE)fd, buff, (DWORD)count, &bytes, &asynIo->overlapped )  ){
+    if( !WriteFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo->overlapped )  ){
         err = GetLastError();
         if( err == ERROR_HANDLE_EOF ){
             bytes = 0;
@@ -524,31 +520,26 @@ inline size_t FileSize( int fd )
 // DzIoMgrRoutine:
 // the IO mgr thread uses the host's origin thread's stack
 // manager all kernel objects that may cause real block
-inline void IoMgrRoutine( DzHost *host, BOOL block )
+inline void IoMgrRoutine( DzHost *host )
 {
     ULONG_PTR key;
     DWORD bytes;
     OVERLAPPED *overlapped;
     DzAsynIo *asynIo;
-    DWORD timeOut;
+    DWORD timeout;
     static int DEBUGcallTime = 0;
 
     while( !host->isExiting || host->threadCount > 1 ){
-        while( NotifyMinTimers( host, (int*)&timeOut ) ){
+        while( NotifyMinTimers( host, (int*)&timeout ) ){
             host->currPriority = CP_FIRST;
             Schedule( host );
         }
-        GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeOut );
-        host->currPriority = CP_FIRST;
+        GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeout );
         if( overlapped != NULL ){
             do{
                 asynIo = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
                 if( asynIo->fd != -1 ){
-                    if( asynIo->callback ){
-                        asynIo->callback( asynIo->context );
-                    }else{
-                        NotifyFastEvt( host, &asynIo->fastEvt, 0 );
-                    }
+                    NotifyFastEvt( host, &asynIo->fastEvt, 0 );
                 }
                 CloseAsynIo( host, asynIo );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
@@ -556,6 +547,7 @@ inline void IoMgrRoutine( DzHost *host, BOOL block )
         }else if( GetLastError() == WAIT_TIMEOUT ){
             NotifyMinTimers( host, NULL );
         }
+        host->currPriority = CP_FIRST;
         Schedule( host );
     }
 }

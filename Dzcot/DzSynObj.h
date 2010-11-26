@@ -10,21 +10,42 @@
 
 #include <malloc.h>
 #include "DzStructs.h"
+#include "DzResourceMgr.h"
 #include "DzTimer.h"
 #include "DzSchedule.h"
-#include "DzResourceMgr.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-int StartCot(
+inline int StartCot(
     DzHost*     host,
     DzRoutine   entry,
     void        *context,
     int         priority,
     int         sSize
     );
+
+inline DzSynObj* AllocSynObj( DzHost *host )
+{
+    DzQItr *head;
+    DzSynObj *obj;
+
+    head = &host->synObjPool;
+    if( !head->next ){
+        if( !AllocSynObjPool( host, 0 ) ){
+            return NULL;
+        }
+    }
+    obj = MEMBER_BASE( head->next, DzSynObj, qItr );
+    PopQItr( head );
+    return obj;
+}
+
+inline void FreeSynObj( DzHost *host, DzSynObj *obj )
+{
+    PushQItr( &host->synObjPool, &obj->qItr );
+}
 
 inline BOOL IsNotified( DzSynObj *obj )
 {
@@ -55,8 +76,8 @@ inline void ClearWait( DzHost *host, DzWaitHelper *helper )
     for( i=0; i < helper->waitCount; i++ ){
         DequeueDqItr( &helper->nodeArray[i].dqItr );
     }
-    if( IsTimeNodeInHeap( &helper->timeOut.timerNode ) ){
-        RemoveTimer( host, &helper->timeOut.timerNode );
+    if( IsTimeNodeInHeap( &helper->timeout.timerNode ) ){
+        RemoveTimer( host, &helper->timeout.timerNode );
     }
 }
 
@@ -312,13 +333,13 @@ inline void CloseSynObj( DzHost *host, DzSynObj *obj )
     }
 }
 
-inline void InitTimeOut( DzFastEvt *timeOut, int milSec, DzWaitHelper *helper )
+inline void InitTimeOut( DzFastEvt *timeout, int milSec, DzWaitHelper *helper )
 {
-    timeOut->type = TYPE_TIMEOUT;
-    timeOut->timerNode.repeat = 1;
-    timeOut->timerNode.timestamp = MilUnixTime() + milSec;
-    timeOut->helper = helper;
-    timeOut->timerNode.index = -1;
+    timeout->type = TYPE_TIMEOUT;
+    timeout->timerNode.repeat = 1;
+    timeout->timerNode.timestamp = MilUnixTime() + milSec;
+    timeout->helper = helper;
+    timeout->timerNode.index = -1;
 }
 
 inline void InitFastEvt( DzFastEvt *fastEvt )
@@ -342,19 +363,19 @@ inline void NotifyFastEvt( DzHost *host, DzFastEvt *fastEvt, int status )
     fastEvt->status = status;
 }
 
-inline int WaitFastEvt( DzHost *host, DzFastEvt *obj, int timeOut )
+inline int WaitFastEvt( DzHost *host, DzFastEvt *obj, int timeout )
 {
     if( obj->notified ){
         obj->notified = FALSE;
         return 0;
     }
-    if( timeOut == 0 ){
+    if( timeout == 0 ){
         return -1;
     }
     obj->dzThread = host->currThread;
-    if( timeOut > 0 ){
+    if( timeout > 0 ){
         obj->timerNode.repeat = 1;
-        obj->timerNode.timestamp = MilUnixTime() + timeOut;
+        obj->timerNode.timestamp = MilUnixTime() + timeout;
         AddTimer( host, &obj->timerNode );
     }
     Schedule( host );
@@ -369,7 +390,7 @@ inline void DelayCurrThread( DzHost *host, int milSec )
     WaitFastEvt( host, &evt, milSec );
 }
 
-inline int WaitSynObj( DzHost *host, DzSynObj *obj, int timeOut )
+inline int WaitSynObj( DzHost *host, DzSynObj *obj, int timeout )
 {
     DzWaitHelper helper;
     DzWaitNode waitNode;
@@ -378,7 +399,7 @@ inline int WaitSynObj( DzHost *host, DzSynObj *obj, int timeOut )
         WaitNotified( obj );
         return 0;
     }
-    if( timeOut == 0 ){
+    if( timeout == 0 ){
         return -1;
     }
     helper.nowCount = 0;
@@ -386,18 +407,18 @@ inline int WaitSynObj( DzHost *host, DzSynObj *obj, int timeOut )
     helper.waitCount = 1;
     helper.nodeArray[0].helper = &helper;
     helper.dzThread = host->currThread;
-    if( timeOut > 0 ){
-        InitTimeOut( &helper.timeOut, timeOut, &helper );
-        AddTimer( host, &helper.timeOut.timerNode );
+    if( timeout > 0 ){
+        InitTimeOut( &helper.timeout, timeout, &helper );
+        AddTimer( host, &helper.timeout.timerNode );
     }else{
-        helper.timeOut.timerNode.index = -1;
+        helper.timeout.timerNode.index = -1;
     }
     AppendToWaitQ( &obj->waitQ[ host->currThread->priority ], &helper.nodeArray[0] );
     Schedule( host );
     return 0;
 }
 
-inline int WaitMultiSynObj( DzHost *host, int count, DzSynObj **obj, BOOL waitAll, int timeOut )
+inline int WaitMultiSynObj( DzHost *host, int count, DzSynObj **obj, BOOL waitAll, int timeout )
 {
     DzWaitHelper helper;
     int nowCount;
@@ -424,7 +445,7 @@ inline int WaitMultiSynObj( DzHost *host, int count, DzSynObj **obj, BOOL waitAl
             }
         }
     }
-    if( timeOut == 0 ){
+    if( timeout == 0 ){
         return -1;
     }
     helper.waitCount = count;
@@ -434,11 +455,11 @@ inline int WaitMultiSynObj( DzHost *host, int count, DzSynObj **obj, BOOL waitAl
         helper.nodeArray[i].helper = &helper;
         helper.nodeArray[i].synObj = obj[i];
     }
-    if( timeOut > 0 ){
-        InitTimeOut( &helper.timeOut, timeOut, &helper );
-        AddTimer( host, &helper.timeOut.timerNode );
+    if( timeout > 0 ){
+        InitTimeOut( &helper.timeout, timeout, &helper );
+        AddTimer( host, &helper.timeout.timerNode );
     }else{
-        helper.timeOut.timerNode.index = -1;
+        helper.timeout.timerNode.index = -1;
     }
     helper.nowCount = nowCount;
     for( i=0; i<count; i++ ){

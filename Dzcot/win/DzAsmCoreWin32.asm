@@ -1,20 +1,20 @@
 ;********************************************************************
 ;    created:    2010/02/11 22:07
-;    file:       DzAsmCoreWin.asm
+;    file:       DzAsmCoreWin32.asm
 ;    author:     Foreverflying
 ;    purpose:    funciton used for switch cot on win32
 ;********************************************************************
 
 	.386
 
-;PUBLIC	@DzSwitch@8 PROC    ; DzSwitch
+;PUBLIC @DzSwitchFast@8 PROC    ; DzSwitchFast
 
 _TEXT   SEGMENT
 
-; void __fastcall DzSwitch( DzHost *host, DzThread *dzThread );
+; void __fastcall DzSwitchFast( DzHost *host, DzThread *dzThread );
 ; host$ = ecx
 ; dzThread$ = edx
-@DzSwitch@8 PROC    ; DzSwitch
+@DzSwitchFast@8 PROC    ; DzSwitchFast
     push ebp
     push ebx
     push esi
@@ -38,8 +38,8 @@ _TEXT   SEGMENT
     pop ebx
     pop ebp
 
-    ret 0
-@DzSwitch@8 ENDP    ; DzSwitch
+    ret
+@DzSwitchFast@8 ENDP    ; DzSwitchFast
 
 _TEXT   ENDS
 END

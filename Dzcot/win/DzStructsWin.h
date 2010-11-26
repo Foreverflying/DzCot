@@ -10,11 +10,25 @@
 
 #include "../DzStructsQueue.h"
 
-typedef struct _DzOsAppend
+struct _DzSynObj;
+
+typedef struct _DzOsStruct
 {
     HANDLE          iocp;
+    void*           originExceptPtr;
     char*           originalStack;
     DzQItr*         reservedStack;
 }DzOsStruct;
+
+typedef struct _DzThread
+{
+    DzQItr              qItr;
+    void*               sp;
+    char*               stack;
+    char*               stackLimit;
+    struct _DzSynObj*   finishEvent;
+    int                 stackSize;
+    int                 priority;
+}DzThread;
 
 #endif // __DzStructsWin_h__

@@ -1,5 +1,5 @@
 /********************************************************************
-    created:    2010/11/17 3:19
+    created:    2010/02/11 22:05
     file:       DzStructsIoLnx.h
     author:     Foreverflying
     purpose:    
@@ -10,23 +10,17 @@
 
 #include "../DzStructs.h"
 
+#define ASYNIO_SIGN_ERR_MASK     0xffff
+#define ASYNIO_SIGN_ISFILE       0x80000000
+
 typedef struct _DzAsynIo
 {
-    union{
-        DzQItr              qItr;
-        DzRoutine           callback;
-    };
-    struct epoll_event      epollEvt;
-    int             fd;
-    int             ref;
-    DzFastEvt       fastEvt;
-    OVERLAPPED      overlapped;
+	union{
+	    DzQItr      qItr;
+	    size_t      sign;
+	};
+    DzFastEvt       inEvt;
+    DzFastEvt       outEvt;
 }DzAsynIo;
-
-inline void InitAsynIo( DzAsynIo *asynIo )
-{
-    asynIo->epollEvt.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLET;
-    asynIo->epollEvt.data = asynIo;
-}
 
 #endif // __DzStructsIoLnx_h__

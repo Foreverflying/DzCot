@@ -1,5 +1,8 @@
 
 #include "stdafx.h"
+
+#ifdef _WIN32
+
 #include <MSWSock.h>
 #include <commctrl.h>
 
@@ -206,3 +209,5 @@ int __stdcall TestFastConnect( void *context )
     SockCleanup();
     return 1;
 }
+
+#endif

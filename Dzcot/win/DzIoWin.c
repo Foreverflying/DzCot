@@ -5,8 +5,9 @@
     purpose:    
 *********************************************************************/
 
-#include "DzIncWin.h"
-#include "DzIoWin.h"
+#include "../DzIncOs.h"
+#include "../DzIoOs.h"
+#include "../DzCore.h"
 
 inline void GetWinSockFunc( SOCKET tmpSock, GUID *guid, void *funcAddr )
 {
@@ -37,7 +38,7 @@ BOOL SockStartup()
     InterlockedIncrement( &sockInitCount );
     if( !isSocketStarted ){
         while( InterlockedExchange( &sockInitLock, 1 ) == 1 );
-        if( !isSocketStarted ){
+        if( !*(volatile BOOL*)&isSocketStarted ){
             wVer = MAKEWORD( 2, 2 );
             ret = WSAStartup( wVer, &data ) == 0;
             if( ret ){

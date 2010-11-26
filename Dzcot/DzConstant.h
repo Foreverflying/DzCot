@@ -15,4 +15,8 @@
 #define DZ_O_TRUNC      0x20
 #define DZ_O_APPEND     0x40
 
+#define DZ_SD_RD        0
+#define DZ_SD_WR        1
+#define DZ_SD_RDWR      2
+
 #endif // __DzConstant_h__

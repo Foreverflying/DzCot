@@ -8,25 +8,24 @@
 #ifndef __DzCoreWin_h__
 #define __DzCoreWin_h__
 
-#include "../DzStructs.h"
+#include "../DzBaseOs.h"
+#include "../DzResourceMgr.h"
 #include "../../DzcotData/DzcotData.h"
-
-#define PAGE_SIZE                   4096
-#define DZ_STACK_UNIT_SIZE          65536
-
-#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
-#define STORE_HOST_IN_ARBITRARY_USER_POINTER
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-char* AllocStack( int sSize );
-void FreeStack( char *stack, int sSize );
-char* CommitStack( char *stack, size_t size );
-void DeCommitStack( char *stack, char *stackLimit );
+void InitAsynIo( DzAsynIo *asynIo );
+void InitDzThread( DzThread *dzThread, int sSize );
 void __stdcall DzcotRoutine( DzRoutine entry, void* context );
-void __fastcall DzSwitch( DzHost *host, DzThread *dzThread );
+
+#ifdef SWITCH_COT_FLOAT_SAFE
+#define DzSwitch DzSwitchFloatSafe
+#else
+void __fastcall DzSwitchFast( DzHost *host, DzThread *dzThread );
+#define DzSwitch DzSwitchFast
+#endif
 
 #if defined( _X86_ )
 
@@ -85,66 +84,13 @@ inline void InitOsStruct( DzHost *host )
         );
 
 #if defined( _X86_ )
+    host->osStruct.originExceptPtr = (void*)__readfsdword( 0 );
     host->osStruct.originalStack = (char*)__readfsdword( 4 );
 #elif defined( _M_AMD64 )
+    host->osStruct.originExceptPtr = NULL;
     host->osStruct.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
 #endif
     host->osStruct.reservedStack = NULL;
-}
-
-inline void DzInitCot( DzHost *host, DzThread *dzThread )
-{
-    struct DzStackBottom *bottom;
-
-    bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
-    bottom->routineEntry = DzcotRoutineEntry;
-#ifdef _X86_
-    bottom->exceptPtr = host->originExceptPtr;
-#endif
-    bottom->stackPtr = dzThread->stack;
-    bottom->stackLimit = dzThread->stackLimit;
-
-    dzThread->sp = bottom;
-
-    /*
-    __asm{
-        mov ecx, dzThread
-
-        //eax = host
-        mov eax, host
-
-        //temp change esp
-        mov edx, esp
-        mov esp, [ecx] DzThread.stack
-
-        //push host
-        mov [esp-12], eax
-
-        //keep the space for context, entry
-        //keep the host's space
-        //and keep two parameter space for __stdcall SwitchToCot
-        sub esp, 20
-
-        //push the next eip
-        push call_p
-
-        //the ScheduleThread caller's ebp, ignored
-        //ebx, esi, edi, ignored
-        sub esp, 16
-
-        //store cot info to stack, dzThread->esp = esp
-        push [eax] DzHost.originExceptPtr
-        push [ecx] DzThread.stack
-        push [ecx] DzThread.stackLimit
-        mov [ecx] DzThread.esp, esp
-
-        //restore the esp
-        mov esp, edx
-    }
-    return;
-call_p:
-    __asm{ call DzcotRoutine }
-    */
 }
 
 inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
@@ -167,53 +113,110 @@ inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
     */
 }
 
-inline void* GetExceptPtr()
+inline char* AllocStack( int sSize )
 {
-#if defined( _X86_ )
-    return (void*)__readfsdword( 0 );
-#elif defined( _M_AMD64 )
-    return NULL;
-#endif
-}
+    size_t size;
+    char *base;
+    DzQNode *node;
+    DzHost *host = GetHost();
 
-inline void InitTlsIndex()
-{
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#else
-    if( tlsIndex == TLS_OUT_OF_INDEXES ){
-        while( InterlockedExchange( &tlsLock, 1 ) == 1 );
-        if( tlsIndex == TLS_OUT_OF_INDEXES ){
-            tlsIndex = TlsAlloc();
+    while( 1 ){
+        size = DZ_STACK_UNIT_SIZE << sSize;
+        base = (char*)VirtualAlloc(
+            NULL,
+            size,
+            MEM_RESERVE,
+            PAGE_READWRITE
+            );
+
+        if( !base ){
+            return NULL;
         }
-        InterlockedExchange( &tlsLock, 0 );
+        if( base < host->osStruct.originalStack ){
+            node = AllocQNode( host );
+            node->content = base;
+            node->qItr.next = host->osStruct.reservedStack;
+            host->osStruct.reservedStack = &node->qItr;
+        }else{
+            return base + size;
+        }
     }
-#endif
 }
 
-inline DzHost* GetHost()
+inline void FreeStack( char *stack, int sSize )
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#if defined( _X86_ )
-    return (DzHost*)__readfsdword( 20 );
-#elif defined( _M_AMD64 )
-    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
-#endif
-#else
-    return (DzHost*)TlsGetValue( tlsIndex );
-#endif
+    size_t size;
+    char *base;
+
+    size = DZ_STACK_UNIT_SIZE << sSize;
+    base = stack - size;
+    VirtualFree( base, 0, MEM_RELEASE );
 }
 
-inline void SetHost( DzHost *host )
+inline char* CommitStack( char *stack, size_t size )
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#if defined( _X86_ )
-    __writefsdword( 20, (DWORD)host );
-#elif defined( _M_AMD64 )
-    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
+    void *tmp;
+    BOOL ret;
+
+    tmp = VirtualAlloc(
+        stack - size,
+        size,
+        MEM_COMMIT,
+        PAGE_READWRITE
+        );
+    if( !tmp ){
+        return NULL;
+    }
+    ret = VirtualProtect(
+        stack - size,
+        PAGE_SIZE,
+        PAGE_READWRITE | PAGE_GUARD,
+        (LPDWORD)&tmp
+        );
+    return ret ? stack - size + PAGE_SIZE : NULL;
+}
+
+inline void DeCommitStack( char *stack, char *stackLimit )
+{
+    size_t size;
+
+    size = stack - stackLimit;
+    VirtualFree( stackLimit, size, MEM_DECOMMIT );
+}
+
+inline void InitCotStack( DzHost *host, DzThread *dzThread )
+{
+    struct DzStackBottom *bottom;
+
+    bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
+    bottom->routineEntry = DzcotRoutineEntry;
+#ifdef _X86_
+    bottom->exceptPtr = host->osStruct.originExceptPtr;
 #endif
-#else
-    TlsSetValue( tlsIndex, host );
-#endif
+    bottom->stackPtr = dzThread->stack;
+    bottom->stackLimit = dzThread->stackLimit;
+
+    dzThread->sp = bottom;
+}
+
+inline DzThread* InitCot( DzHost *host, DzThread *dzThread, int sSize )
+{
+    if( !dzThread->stack ){
+        dzThread->stack = AllocStack( sSize );
+        if( !dzThread->stack ){
+            return NULL;
+        }
+        host->poolCotCounts[ sSize ]++;
+    }
+    if( !dzThread->stackLimit ){
+        dzThread->stackLimit = CommitStack( dzThread->stack, PAGE_SIZE * 3 );
+        if( !dzThread->stackLimit )
+        {
+            return NULL;
+        }
+        InitCotStack( host, dzThread );
+    }
+    return dzThread;
 }
 
 #ifdef __cplusplus

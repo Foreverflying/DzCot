@@ -232,7 +232,6 @@ BOOL DzCloseTimer( DzHandle timer )
     return TRUE;
 }
 
-
 DzHandle DzCreateCallbackTimer( DzRoutine callback, int priority, int sSize )
 {
     DzHost *host = GetHost();
@@ -267,25 +266,25 @@ BOOL DzCloseCallbackTimer( DzHandle timer )
     return TRUE;
 }
 
-int DzWaitSynObj( DzHandle obj, int timeOut )
+int DzWaitSynObj( DzHandle obj, int timeout )
 {
     DzHost *host = GetHost();
     assert( host );
     assert( obj );
 
-    return WaitSynObj( host, obj, timeOut );
+    return WaitSynObj( host, obj, timeout );
 }
 
-int DzWaitMultiSynObj( int count, DzHandle *obj, BOOL waitAll, int timeOut )
+int DzWaitMultiSynObj( int count, DzHandle *obj, BOOL waitAll, int timeout )
 {
     DzHost *host = GetHost();
     assert( host );
     assert( obj );
 
-    return WaitMultiSynObj( host, count, obj, waitAll, timeOut );
+    return WaitMultiSynObj( host, count, obj, waitAll, timeout );
 }
 
-int DzOpenFileA( char *fileName, int flags )
+int DzOpenFileA( const char *fileName, int flags )
 {
     DzHost *host = GetHost();
     assert( host );
@@ -293,7 +292,7 @@ int DzOpenFileA( char *fileName, int flags )
     return OpenA( host, fileName, flags );
 }
 
-int DzOpenFileW( wchar_t *fileName, int flags )
+int DzOpenFileW( const wchar_t *fileName, int flags )
 {
     DzHost *host = GetHost();
     assert( host );
@@ -309,15 +308,15 @@ int DzCloseFd( int fd )
     return Close( host, fd );
 }
 
-size_t DzReadFile( int fd, void *buff, size_t count )
+size_t DzReadFile( int fd, void *buf, size_t count )
 {
     DzHost *host = GetHost();
     assert( host );
 
-    return Read( host, fd, buff, count );
+    return Read( host, fd, buf, count );
 }
 
-size_t DzWriteFile( int fd, void *buff, size_t count )
+size_t DzWriteFile( int fd, const void *buff, size_t count )
 {
     DzHost *host = GetHost();
     assert( host );
@@ -405,13 +404,13 @@ int DzAccept( int fd, struct sockaddr *addr, int *addrLen )
     return Accept( host, fd, addr, addrLen );
 }
 
-int DzSend( int fd, void *msg, int len, int flag )
+int DzSend( int fd, const void *buf, int len, int flag )
 {
     DzHost *host = GetHost();
     assert( host );
     assert( isSocketStarted );
 
-    return Send( host, fd, msg, len, flag );
+    return Send( host, fd, buf, len, flag );
 }
 
 int DzRecv( int fd, void *buf, int len, int flag )

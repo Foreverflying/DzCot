@@ -1,5 +1,5 @@
 /********************************************************************
-    created:    2010/11/16 15:36
+    created:    2010/02/11 22:06
     file:       DzStructsLnx.h
     author:     Foreverflying
     purpose:    
@@ -10,13 +10,24 @@
 
 #include "../DzStructsQueue.h"
 
-typedef struct _DzIoMgr
-{
-    int     epollFd;
-}DzIoMgr;
+struct _DzSynObj;
+struct _DzAsynIo;
 
-typedef struct _DzOsAppend
+typedef struct _DzOsStruct
 {
-}DzOsAppend;
+    int                 epollFd;
+    int                 maxFd;
+    struct _DzAsynIo**  fdTable;
+}DzOsStruct;
+
+typedef struct _DzThread
+{
+    DzQItr              qItr;
+    void*               sp;
+    char*               stack;
+    struct _DzSynObj*   finishEvent;
+    int                 stackSize;
+    int                 priority;
+}DzThread;
 
 #endif // __DzStructsLnx_h__

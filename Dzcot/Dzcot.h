@@ -77,14 +77,14 @@ DZCOT_API int DzChangePriority( int priority );
 
 DZCOT_API int DzWaitSynObj(
     DzHandle    obj,
-    int         timeOut         __DZ_DFT_ARG( -1 )
+    int         timeout         __DZ_DFT_ARG( -1 )
     );
 
 DZCOT_API int DzWaitMultiSynObj(
     int         count,
     DzHandle*   obj,
     BOOL        waitAll,
-    int         timeOut         __DZ_DFT_ARG( -1 )
+    int         timeout         __DZ_DFT_ARG( -1 )
     );
 
 DZCOT_API DzHandle DzCreateEvt( BOOL notified, BOOL autoReset );
@@ -105,13 +105,19 @@ DZCOT_API BOOL DzStartCallbackTimer( DzHandle timer, int milSec, int repeat, voi
 DZCOT_API BOOL DzStopCallbackTimer( DzHandle timer );
 DZCOT_API BOOL DzCloseCallbackTimer( DzHandle timer );
 
-DZCOT_API int DzOpenFileA( char *fileName, int flags );
-DZCOT_API int DzOpenFileW( wchar_t *fileName, int flags );
+DZCOT_API int DzOpenFileA( const char *fileName, int flags );
+DZCOT_API int DzOpenFileW( const wchar_t *fileName, int flags );
 DZCOT_API int DzCloseFd( int fd );
-DZCOT_API size_t DzReadFile( int fd, void *buff, size_t count );
-DZCOT_API size_t DzWriteFile( int fd, void *buff, size_t count );
+DZCOT_API size_t DzReadFile( int fd, void *buf, size_t count );
+DZCOT_API size_t DzWriteFile( int fd, const void *buf, size_t count );
 DZCOT_API size_t DzSeekFile( int fd, size_t offset, int whence );
 DZCOT_API size_t DzGetFileSize( int fd );
+
+#ifdef UNICODE
+#define DzOpenFile DzOpenFileW
+#else
+#define DzOpenFile DzOpenFileA
+#endif
 
 DZCOT_API BOOL DzSockStartup();
 DZCOT_API BOOL DzSockCleanup();
@@ -122,7 +128,7 @@ DZCOT_API int DzBind( int fd, struct sockaddr *addr, int addrLen );
 DZCOT_API int DzListen( int fd, int backlog );
 DZCOT_API int DzConnect( int fd, struct sockaddr *addr, int addrLen );
 DZCOT_API int DzAccept( int fd, struct sockaddr *addr, int *addrLen );
-DZCOT_API int DzSend( int fd, void *msg, int len, int flag );
+DZCOT_API int DzSend( int fd, const void *buf, int len, int flag );
 DZCOT_API int DzRecv( int fd, void *buf, int len, int flag );
 
 DZCOT_API DzParamNode* DzAllocParamNode();

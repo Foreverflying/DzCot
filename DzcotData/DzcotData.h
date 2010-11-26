@@ -8,15 +8,7 @@
 #ifndef __DzcotData_h__
 #define __DzcotData_h__
 
-typedef __int64 int64;
-
-#include <WinSock2.h>
-#include <windows.h>
-#include <MSWSock.h>
-#include "../Dzcot/DzType.h"
-#include "../Dzcot/DzStructs.h"
-
-#if defined(WIN32)
+#if defined(_WIN32)
 #   ifdef DZCOTDATA_EXPORTS
 #       define DZCOTDATA_API __declspec(dllexport)
 #   else
@@ -30,6 +22,9 @@ extern "C"{
 #endif
 
 #ifdef _WIN32
+#include <WinSock2.h>
+#include <windows.h>
+#include <MSWSock.h>
 
 extern DZCOTDATA_API DWORD tlsIndex;
 extern DZCOTDATA_API LONG tlsLock;
@@ -41,9 +36,11 @@ extern DZCOTDATA_API LPFN_CONNECTEX _ConnectEx;
 extern DZCOTDATA_API LPFN_GETACCEPTEXSOCKADDRS _GetAcceptExSockAddrs;
 
 #elif defined __linux__
+#include <pthread.h>
 
-extern int tlsIndex;
+extern pthread_key_t tlsIndex;
 extern int tlsLock;
+extern int isSocketStarted;
 
 #endif
 

@@ -13,7 +13,11 @@
 #define INIT_TIME_HEAP_SIZE     512
 #define MIN_TIME_INTERVAL       5
 
-void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode );
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+inline void NotifyTimerNode( DzHost *host, DzTimerNode *timerNode );
 
 inline int64 MilUnixTime()
 {
@@ -159,7 +163,7 @@ inline DzTimerNode* GetMinTimerNode( DzHost *host )
     return host->timerHeap[0];
 }
 
-inline BOOL NotifyMinTimers( DzHost *host, int *timeOut )
+inline BOOL NotifyMinTimers( DzHost *host, int *timeout )
 {
     DzTimerNode *timerNode;
     int64 currTime;
@@ -185,10 +189,14 @@ inline BOOL NotifyMinTimers( DzHost *host, int *timeOut )
     if( ret ){
         return TRUE;
     }
-    if( timeOut ){
-        *timeOut = host->timerCount > 0 ? (int)( GetMinTimerNode( host )->timestamp - currTime ) : INFINITE;
+    if( timeout ){
+        *timeout = host->timerCount > 0 ? (int)( GetMinTimerNode( host )->timestamp - currTime ) : -1;
     }
     return FALSE;
 }
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 #endif // __DzTimer_h__

@@ -14,18 +14,11 @@ typedef struct _DzAsynIo
 {
     union{
         DzQItr      qItr;
-        DzRoutine   callback;
+        int         fd;
     };
-    void*           context;
-    int             fd;
     int             ref;
     DzFastEvt       fastEvt;
     OVERLAPPED      overlapped;
 }DzAsynIo;
-
-inline void InitAsynIo( DzAsynIo *asynIo )
-{
-
-}
 
 #endif // __DzStructsIoWin_h__

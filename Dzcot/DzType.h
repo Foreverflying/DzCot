@@ -63,8 +63,8 @@ typedef struct _DzParamNode
 struct _DzSynObj;
 typedef struct _DzSynObj* DzHandle;
 
-#ifndef _WIN32
-#define __stdcall
+#ifdef __linux__
+#define __stdcall __attribute__((stdcall))
 #endif
 
 typedef int (__stdcall *DzRoutine)( void *context );

@@ -533,9 +533,11 @@
     <ClCompile Include="DzResourceMgr.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzConstant.h" />
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
+    <ClInclude Include="win\DzBaseWin.h" />
     <ClInclude Include="win\DzCoreWin.h" />
     <CustomBuildStep Include="Dzcot.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>

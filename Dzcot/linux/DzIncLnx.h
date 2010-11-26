@@ -1,5 +1,5 @@
 /********************************************************************
-    created:    2010/11/17 3:21
+    created:    2010/02/11 22:02
     file:       DzIncLnx.h
     author:     Foreverflying
     purpose:    
@@ -10,15 +10,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/timeb.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
-#include <sys/timeb.h>
-#include <errno.h>
 
-typedef __int64 int64;
+typedef long long int64;
 
 #ifndef __cplusplus
-#define inline __inline
+#define inline static __inline
 #endif
 
 #endif // __DzIncLnx_h__

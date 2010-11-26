@@ -5,8 +5,8 @@
 ;    purpose:    funciton used for switch cot on win64
 ;********************************************************************
 
-;PUBLIC	DzSwitch PROC    ; DzSwitch
-EXTRN	DzcotRoutine:PROC
+;PUBLIC DzSwitchFast PROC    ; DzSwitchFast
+EXTRN   DzcotRoutine:PROC
 
 _TEXT   SEGMENT
 
@@ -17,10 +17,10 @@ CallDzcotRoutine PROC   ;CallDzcotRoutine
     jmp DzcotRoutine
 CallDzcotRoutine ENDP   ;CallDzcotRoutine
 
-; void DzSwitch( DzHost *host, DzThread *dzThread );
+; void DzSwitchFast( DzHost *host, DzThread *dzThread );
 ; host$ = ecx
 ; dzThread$ = edx
-DzSwitch PROC   ; DzSwitch
+DzSwitchFast PROC   ; DzSwitchFast
     push rbp
     push rbx
     push rsi
@@ -51,8 +51,8 @@ DzSwitch PROC   ; DzSwitch
     pop rbx
     pop rbp
 
-    ret 0
-DzSwitch ENDP   ; DzSwitch
+    ret
+DzSwitchFast ENDP   ; DzSwitchFast
 
 _TEXT   ENDS
 END

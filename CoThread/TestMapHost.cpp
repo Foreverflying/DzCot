@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <commctrl.h>
 #include "../Dzcot/Dzcot.h"
 
 #include "../Dzcot/DzQueue.h"
@@ -41,7 +40,7 @@ int __stdcall SendRountine( void *context )
         if( bytes < 0 ){
             sendErrCount++;
             printf( "send error! count = %d\r\n", sendErrCount );
-            DzShutdown( conn->fd, SD_BOTH );
+            DzShutdown( conn->fd, DZ_SD_RDWR );
             DzCloseSocket( conn->fd );
             break;
         }
@@ -84,7 +83,7 @@ int __stdcall TestMapHost( void *context )
         }else{
             recvErrCount++;
             printf( "recv error! count = %d\r\n", recvErrCount );
-            DzShutdown( fd, SD_BOTH );
+            DzShutdown( fd, DZ_SD_RDWR );
             DzCloseSocket( fd );
             return -1;
         }
@@ -100,7 +99,7 @@ int __stdcall TestMapHost( void *context )
             if( bytes < 0 ){
                 recvErrCount++;
                 printf( "recv error! count = %d\r\n", recvErrCount );
-                DzShutdown( fd, SD_BOTH );
+                DzShutdown( fd, DZ_SD_RDWR );
                 DzCloseSocket( fd );
                 return -1;
             }else{
@@ -112,7 +111,7 @@ int __stdcall TestMapHost( void *context )
         //printf( "connect error code: %d\r\n", WSAGetLastError() );
         connErrCount++;
     }
-    DzShutdown( fd, SD_BOTH );
+    DzShutdown( fd, DZ_SD_RDWR );
     DzCloseSocket( fd );
 
     return 1;

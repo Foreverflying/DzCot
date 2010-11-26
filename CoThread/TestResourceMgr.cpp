@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "TestCotSynobj.h"
 #include "../Dzcot/Dzcot.h"
 

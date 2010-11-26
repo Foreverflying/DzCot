@@ -106,6 +106,12 @@
     <ClInclude Include="DzType.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="win\DzBaseWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzBaseOs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

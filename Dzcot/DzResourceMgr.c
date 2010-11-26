@@ -6,7 +6,12 @@
 *********************************************************************/
 
 #include "DzIncOs.h"
+#include "DzBaseOs.h"
 #include "DzResourceMgr.h"
+#include "DzIoOs.h"
+#include "DzSynObj.h"
+#include "DzCoreOs.h"
+#include "DzCore.h"
 
 void AddMallocRecord( DzHost *host, void *p )
 {
@@ -18,7 +23,7 @@ void AddMallocRecord( DzHost *host, void *p )
 
 void ReleaseAllMalloc( DzHost *host )
 {
-    void **p = (void**)malloc( sizeof(void*) * host->mallocCount );
+    void **p = (void**)BaseAlloc( sizeof(void*) * host->mallocCount );
     DzQItr *qItr = host->mallocList.next;
     void **tmp = p;
     while( qItr ){
@@ -42,7 +47,7 @@ BOOL AllocQueueNodePool( DzHost *host, int count )
     if( !count ){
         count = PAGE_SIZE / sizeof( int );
     }
-    p = (DzQNode*)malloc( count * sizeof( DzQNode ) );
+    p = (DzQNode*)BaseAlloc( count * sizeof( DzQNode ) );
     if( !p ){
         return FALSE;
     }
@@ -74,7 +79,7 @@ BOOL AllocAsynIoPool( DzHost *host, int count )
     if( !count ){
         count = PAGE_SIZE / sizeof( int );
     }
-    p = (DzAsynIo*)malloc( count * sizeof( DzAsynIo ) );
+    p = (DzAsynIo*)BaseAlloc( count * sizeof( DzAsynIo ) );
     if( !p ){
         return FALSE;
     }
@@ -107,7 +112,7 @@ BOOL AllocSynObjPool( DzHost *host, int count )
     if( !count ){
         count = PAGE_SIZE / sizeof( int );
     }
-    p = (DzSynObj*)malloc( count * sizeof( DzSynObj ) );
+    p = (DzSynObj*)BaseAlloc( count * sizeof( DzSynObj ) );
     if( !p ){
         return FALSE;
     }
@@ -144,7 +149,7 @@ BOOL AllocDzThreadPool( DzHost *host, int sSize, int count )
     if( !count ){
         count = PAGE_SIZE / sizeof( int );
     }
-    p = (DzThread*)malloc( count * sizeof( DzThread ) );
+    p = (DzThread*)BaseAlloc( count * sizeof( DzThread ) );
     if( !p ){
         return FALSE;
     }
@@ -153,15 +158,9 @@ BOOL AllocDzThreadPool( DzHost *host, int sSize, int count )
     host->threadPools[ sSize ].next = &p->qItr;
     end = p + count - 1;
     end->qItr.next = NULL;
-    end->stack = NULL;
-    end->stackLimit = NULL;
-    end->stackSize = sSize;
-    end->finishEvent = NULL;
+    InitDzThread( end, sSize );
     while( p != end ){
-        p->stack = NULL;
-        p->stackLimit = NULL;
-        p->stackSize = sSize;
-        p->finishEvent = NULL;
+        InitDzThread( p, sSize );
         qItr = &p->qItr;
         qItr->next = &(++p)->qItr;
     }

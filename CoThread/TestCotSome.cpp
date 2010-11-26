@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "../Dzcot/Dzcot.h"
 
 void GenerateException()
@@ -7,10 +7,36 @@ void GenerateException()
     *p = 0;
 }
 
+int __stdcall TestPrintf( void *context )
+{
+	int ret = 1;
+	DzSleep(1000);
+    printf( "wo qu, I can print in COT!! number: %d", ret );
+	//printf( "%d\n", ret );
+    DzStartCot( TestPrintf, 0 );
+    return 0;
+}
+
 int __stdcall TestMiniDump( void *context )
 {
     GenerateException();
     return 0;
+}
+
+int __stdcall TestSehException( void *context )
+{
+    int b = 10;
+
+#ifdef _WIN32
+    int a = ( (int)context ) > 100 ? 0 : 1;
+    __try{
+        b = 10 /a;
+    }__except(EXCEPTION_EXECUTE_HANDLER){
+        printf( "SEH exception catched, thread:\t %d\r\n", (int)context );
+    }
+#endif
+
+    return b;
 }
 
 int __stdcall TestException( void *context )
@@ -18,11 +44,12 @@ int __stdcall TestException( void *context )
     int b = 10;
     int a = ( (int)context ) > 100 ? 0 : 1;
 
-    __try{
+    try{
         b = 10 /a;
-    }__except(EXCEPTION_EXECUTE_HANDLER){
-        printf( "exception catched, thread:\t %d\r\n", (int)context );
+    }catch( int e ){
+        printf( "c++ exception catched, thread:\t %d\r\n", (int)e );
     }
+
     return b;
 }
 

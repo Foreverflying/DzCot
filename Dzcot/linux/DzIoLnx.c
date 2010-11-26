@@ -1,12 +1,13 @@
 /********************************************************************
-    created:    2010/11/17 3:20
+    created:    2010/02/11 22:12
     file:       DzIoLnx.c
     author:     Foreverflying
     purpose:    
 *********************************************************************/
 
-#include "DzIncLnx.h"
-#include "DzIoLnx.h"
+#include "../DzIncOs.h"
+#include "../DzIoOs.h"
+#include "../DzCore.h"
 
 BOOL SockStartup()
 {

@@ -1,5 +1,5 @@
 /********************************************************************
-    created:    2010/11/17 3:21
+    created:    2010/02/11 21:50
     file:       DzCoreLnx.h
     author:     Foreverflying
     purpose:    
@@ -8,32 +8,33 @@
 #ifndef __DzCoreLnx_h__
 #define __DzCoreLnx_h__
 
-#include "../DzStructs.h"
+#include "../DzBaseOs.h"
+#include "../DzResourceMgr.h"
 #include "../../DzcotData/DzcotData.h"
+#include <sys/resource.h>
+#include <sys/mman.h>
 
-#define PAGE_SIZE                   4096
-#define DZ_STACK_UNIT_SIZE          65536
-
-#define STORE_HOST_IN_SPECIFIC_POINTER
+#define __fastcall __attribute__((fastcall))
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-char* AllocStack( int sSize );
-void FreeStack( char *stack, int sSize );
-char* CommitStack( char *stack, size_t size );
-void DeCommitStack( char *stack, char *stackLimit );
+void InitAsynIo( DzAsynIo *asynIo );
+void InitDzThread( DzThread *dzThread, int sSize );
 void __stdcall DzcotRoutine( DzRoutine entry, void* context );
-void __fastcall DzSwitch( DzHost *host, DzThread *dzThread );
 
-#if defined( _X86_ )
+#ifdef SWITCH_COT_FLOAT_SAFE
+#define DzSwitch DzSwitchFloatSafe
+#else
+void __fastcall DzSwitchFast( DzHost *host, DzThread *dzThread );
+#define DzSwitch DzSwitchFast
+#endif
+
+#if defined( __i386 )
 
 struct DzStackBottom
 {
-    void*       stackLimit;
-    void*       stackPtr;
-    void*       exceptPtr;
     void*       unusedEdi;
     void*       unusedEsi;
     void*       unusedEbx;
@@ -46,12 +47,10 @@ struct DzStackBottom
 
 #define DzcotRoutineEntry DzcotRoutine
 
-#elif defined( _M_AMD64 )
+#elif defined( __amd64 )
 
 struct DzStackBottom
 {
-    void*       stackLimit;
-    void*       stackPtr;
     void*       unusedR15;
     void*       unusedR14;
     void*       unusedR13;
@@ -74,69 +73,14 @@ void CallDzcotRoutine();
 
 #endif
 
-inline void InitOsAppend( DzHost *host )
+inline void InitOsStruct( DzHost *host )
 {
-#if defined( _X86_ )
-    host->osAppend.originalStack = (char*)__readfsdword( 4 );
-#elif defined( _M_AMD64 )
-    host->osAppend.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
-#endif
-    host->osAppend.reservedStack = NULL;
-}
+    struct rlimit fdLimit;
 
-inline void DzInitCot( DzHost *host, DzThread *dzThread )
-{
-    struct DzStackBottom *bottom;
-
-    bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
-    bottom->routineEntry = DzcotRoutineEntry;
-#ifdef _X86_
-    bottom->exceptPtr = host->originExceptPtr;
-#endif
-    bottom->stackPtr = dzThread->stack;
-    bottom->stackLimit = dzThread->stackLimit;
-
-    dzThread->sp = bottom;
-
-    /*
-    __asm{
-        mov ecx, dzThread
-
-        //eax = host
-        mov eax, host
-
-        //temp change esp
-        mov edx, esp
-        mov esp, [ecx] DzThread.stack
-
-        //push host
-        mov [esp-12], eax
-
-        //keep the space for context, entry
-        //keep the host's space
-        //and keep two parameter space for __stdcall SwitchToCot
-        sub esp, 20
-
-        //push the next eip
-        push call_p
-
-        //the ScheduleThread caller's ebp, ignored
-        //ebx, esi, edi, ignored
-        sub esp, 16
-
-        //store cot info to stack, dzThread->esp = esp
-        push [eax] DzHost.originExceptPtr
-        push [ecx] DzThread.stack
-        push [ecx] DzThread.stackLimit
-        mov [ecx] DzThread.esp, esp
-
-        //restore the esp
-        mov esp, edx
-    }
-    return;
-call_p:
-    __asm{ call DzcotRoutine }
-    */
+    getrlimit( RLIMIT_NOFILE, &fdLimit );
+	host->osStruct.maxFd = fdLimit.rlim_cur;
+	host->osStruct.fdTable = BaseAlloc( sizeof(int) * host->osStruct.maxFd );
+    host->osStruct.epollFd = epoll_create( host->osStruct.maxFd );
 }
 
 inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
@@ -159,53 +103,57 @@ inline void SetThreadEntry( DzThread *dzThread, DzRoutine entry, void *context )
     */
 }
 
-inline void* GetExceptPtr()
+inline char* AllocStack( int sSize )
 {
-#if defined( _X86_ )
-    return (void*)__readfsdword( 0 );
-#elif defined( _M_AMD64 )
-    return NULL;
-#endif
-}
+    size_t size;
+    char *base;
 
-inline void InitTlsIndex()
-{
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#else
-    if( tlsIndex == TLS_OUT_OF_INDEXES ){
-        while( InterlockedExchange( &tlsLock, 1 ) == 1 );
-        if( tlsIndex == TLS_OUT_OF_INDEXES ){
-            tlsIndex = TlsAlloc();
-        }
-        InterlockedExchange( &tlsLock, 0 );
+    size = DZ_STACK_UNIT_SIZE << sSize;
+    base = (char*)mmap(
+        NULL,
+        size,
+        PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0
+        );
+
+    if( base == MAP_FAILED ){
+        return NULL;
     }
-#endif
+    return base + size;
 }
 
-inline DzHost* GetHost()
+inline void FreeStack( char *stack, int sSize )
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#if defined( _X86_ )
-    return (DzHost*)__readfsdword( 20 );
-#elif defined( _M_AMD64 )
-    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
-#endif
-#else
-    return (DzHost*)TlsGetValue( tlsIndex );
-#endif
+    size_t size;
+    char *base;
+
+    size = DZ_STACK_UNIT_SIZE << sSize;
+    base = stack - size;
+    munmap( base, size );
 }
 
-inline void SetHost( DzHost *host )
+inline void InitCotStack( DzHost *host, DzThread *dzThread )
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#if defined( _X86_ )
-    __writefsdword( 20, (DWORD)host );
-#elif defined( _M_AMD64 )
-    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
-#endif
-#else
-    TlsSetValue( tlsIndex, host );
-#endif
+    struct DzStackBottom *bottom;
+
+    bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
+    bottom->routineEntry = DzcotRoutineEntry;
+    dzThread->sp = bottom;
+}
+
+inline DzThread* InitCot( DzHost *host, DzThread *dzThread, int sSize )
+{
+    if( !dzThread->stack ){
+        dzThread->stack = AllocStack( sSize );
+        if( !dzThread->stack ){
+            return NULL;
+        }
+        host->poolCotCounts[ sSize ]++;
+        InitCotStack( host, dzThread );
+    }
+    return dzThread;
 }
 
 #ifdef __cplusplus

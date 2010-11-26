@@ -20,7 +20,8 @@ LPFN_GETACCEPTEXSOCKADDRS _GetAcceptExSockAddrs = NULL;
 
 #elif defined __linux__
 
-int tlsIndex = -1;
+pthread_key_t tlsIndex = (pthread_key_t)-1;
 int tlsLock = 0;
+int isSocketStarted = 1;
 
 #endif

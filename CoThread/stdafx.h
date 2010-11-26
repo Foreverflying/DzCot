@@ -1,6 +1,6 @@
-// stdafx.h : ±ê×¼ÏµÍ³°üº¬ÎÄ¼þµÄ°üº¬ÎÄ¼þ£¬
-// »òÊÇ¾­³£Ê¹ÓÃµ«²»³£¸ü¸ÄµÄ
-// ÌØ¶¨ÓÚÏîÄ¿µÄ°üº¬ÎÄ¼þ
+// stdafx.h : ï¿½ï¿½×¼ÏµÍ³ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Ä°ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½Ê¹ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½
+// ï¿½Ø¶ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½Ä°ï¿½ï¿½Ä¼ï¿½
 //
 
 #pragma once
@@ -9,12 +9,41 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+
+#ifdef _WIN32
+
 #include <tchar.h>
 #include <WinSock2.h>
 #pragma comment(lib, "Ws2_32.lib")
 #include <Windows.h>
-#include <sys/types.h>
+#include <conio.h>
+#include <commctrl.h>
+
+#else
+
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <arpa/inet.h>
+
+#define __stdcall __attribute__((stdcall))
+#define _TCHAR char
+#define _tmain main
+#define _ttoi atoi
+#define MAKEIPADDRESS( a1, a2, a3, a4 ) ( (a1 << 24) | (a2 << 16) | (a3 << 8) | a4 )
+
+typedef long long __int64;
+typedef unsigned char byte;
+
+inline int GetTickCount()
+{
+	struct timeval current;
+	gettimeofday(&current, NULL);
+	return current.tv_sec * 1000 + current.tv_usec/1000;
+}
+
+#endif
 
 
 
-// TODO: ÔÚ´Ë´¦ÒýÓÃ³ÌÐòÐèÒªµÄÆäËûÍ·ÎÄ¼þ
+// TODO: ï¿½Ú´Ë´ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½Ä¼ï¿½

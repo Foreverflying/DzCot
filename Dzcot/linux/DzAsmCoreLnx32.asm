@@ -1,39 +1,34 @@
-;DzAsmCoreWin.asm: funciton used for switch cot
-	.386
+#********************************************************************
+#    created:    2010/02/11 22:07
+#    file:       DzAsmCoreLnx32.asm
+#    author:     Foreverflying
+#    purpose:    funciton used for switch cot on linux 32
+#********************************************************************
 
-;PUBLIC	@DzSwitch@8 PROC    ; DzSwitch
 
-_TEXT   SEGMENT
+#PUBLIC @DzSwitch@8 PROC    ; DzSwitch
 
-; void __fastcall DzSwitch( DzHost *host, DzThread *dzThread );
-; host$ = ecx
-; dzThread$ = edx
-@DzSwitch@8 PROC    ; DzSwitch
-    push ebp
-    push ebx
-    push esi
-    push edi
+        .text
 
-    push dword ptr fs:[0]
-    push dword ptr fs:[4]
-    push dword ptr fs:[8]
+.globl DzSwitchFast
+        .type  DzSwitchFast, @function
+# void __fastcall DzSwitch( DzHost *host, DzThread *dzThread );
+# host$ = ecx
+# dzThread$ = edx
+DzSwitchFast:
+        pushl   %ebp
+        pushl   %ebx
+        pushl   %esi
+        pushl   %edi
 
-    mov esi, [ecx]      ;esi = host->currThread
-    mov [esi+4], esp    ;host->currThread->esp = esp
-    mov [ecx], edx      ;host->currThread = dzThread
-    mov esp, [edx+4]    ;esp = dzThread.esp
+        movl    (%ecx), %esi
+        movl    %esp, 4(%esi)
+        movl    %edx, (%ecx)
+        movl    4(%edx), %esp
 
-    pop dword ptr fs:[8]
-    pop dword ptr fs:[4]
-    pop dword ptr fs:[0]
+        popl    %edi
+        popl    %esi
+        popl    %ebx
+        popl    %ebp
 
-    pop edi
-    pop esi
-    pop ebx
-    pop ebp
-
-    ret 0
-@DzSwitch@8 ENDP    ; DzSwitch
-
-_TEXT   ENDS
-END
+        ret

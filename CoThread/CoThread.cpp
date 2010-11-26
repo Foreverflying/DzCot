@@ -1,9 +1,7 @@
-// CoThread.cpp : ¶¨Òå¿ØÖÆÌ¨Ó¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+// CoThread.cpp : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¨Ó¦ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµã¡£
 //
 
 #include "stdafx.h"
-#include <conio.h>
-#include <commctrl.h>
 #include "../Dzcot/Dzcot.h"
 #include "TestCotSome.h"
 #include "TestCotSynobj.h"
@@ -65,17 +63,16 @@ int _tmain(int argc, _TCHAR* argv[])
     //MainTest( TestException, (void*)0 );
     //MainTest( TestServer, (void*)SOMAXCONN );
     //MainTest( TestServer, (void*)12000 );
-    //MainTest( TestMultiClient, (void*)3000 );
+    MainTest( TestMultiClient, (void*)800 );
     //MainTest( TestClient, (void*)0 );
     //MainTest( TestReadFile, (void*)0 );
-    MainTest( StartTestSynobj, (void*)10 );
+    //MainTest( StartTestSynobj, (void*)10 );
     //MainTest( StartTestSwitch, (void*)10000 );
     //MainTest( StartTestLibpq, (void*)150 );
     //MainTest( TestLibpq, "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=template1" );
     //TestFastConnect( (void*)1000 );
     //TestLibpq( "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=OgameX" );
     printf( "finish, yes!!!!!\r\n" );
-    _getch();
 	return 0;
 }
 

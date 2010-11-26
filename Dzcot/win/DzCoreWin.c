@@ -5,9 +5,22 @@
     purpose:    
 *********************************************************************/
 
-#include "DzIncWin.h"
-#include "DzCoreWin.h"
+#include "../DzIncOs.h"
+#include "../DzCoreOs.h"
 #include "../DzCore.h"
+
+void InitAsynIo( DzAsynIo *asynIo )
+{
+
+}
+
+void InitDzThread( DzThread *dzThread, int sSize )
+{
+    dzThread->stack = NULL;
+    dzThread->stackLimit = NULL;
+    dzThread->stackSize = sSize;
+    dzThread->finishEvent = NULL;
+}
 
 #ifdef GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
@@ -49,78 +62,6 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 }
 
 #endif // GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
-
-
-char* AllocStack( int sSize )
-{
-    size_t size;
-    char *base;
-    DzQNode *node;
-    DzHost *host = GetHost();
-
-    while( 1 ){
-        size = DZ_STACK_UNIT_SIZE << sSize;
-        base = (char*)VirtualAlloc(
-            NULL,
-            size,
-            MEM_RESERVE,
-            PAGE_READWRITE
-            );
-
-        if( !base ){
-            return NULL;
-        }
-        if( base < host->osStruct.originalStack ){
-            node = AllocQNode( host );
-            node->content = base;
-            node->qItr.next = host->osStruct.reservedStack;
-            host->osStruct.reservedStack = &node->qItr;
-        }else{
-            return base + size;
-        }
-    }
-}
-
-void FreeStack( char *stack, int sSize )
-{
-    size_t size;
-    char *base;
-
-    size = DZ_STACK_UNIT_SIZE << sSize;
-    base = stack - size;
-    VirtualFree( base, 0, MEM_RELEASE );
-}
-
-char* CommitStack( char *stack, size_t size )
-{
-    void *tmp;
-    BOOL ret;
-
-    tmp = VirtualAlloc(
-        stack - size,
-        size,
-        MEM_COMMIT,
-        PAGE_READWRITE
-        );
-    if( !tmp ){
-        return NULL;
-    }
-    ret = VirtualProtect(
-        stack - size,
-        PAGE_SIZE,
-        PAGE_READWRITE | PAGE_GUARD,
-        (LPDWORD)&tmp
-        );
-    return ret ? stack - size + PAGE_SIZE : NULL;
-}
-
-void DeCommitStack( char *stack, char *stackLimit )
-{
-    size_t size;
-
-    size = stack - stackLimit;
-    VirtualFree( stackLimit, size, MEM_DECOMMIT );
-}
 
 // DzcotRoutine:
 // the real entry the co thread starts, it call the user entry

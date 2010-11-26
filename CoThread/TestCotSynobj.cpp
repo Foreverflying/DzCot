@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "TestCotSynobj.h"
 #include "../Dzcot/Dzcot.h"
 
@@ -264,17 +264,17 @@ int __stdcall StartTestSynobj( void *context )
 
     InitSynObj();
     ret = TestSynObj1();
-    printf( "%d", ret );
+    printf( "TestSynObj1 result: %d\r\n", ret );
     ReleaseSynObj();
 
     InitSynObj();
     ret = TestSynObj2();
-    printf( "%d", ret );
+    printf( "TestSynObj2 result: %d\r\n", ret );
     ReleaseSynObj();
 
 	InitSynObj();
 	ret = TestSynObj3();
-	printf( "%d", ret );
+	printf( "TestSynObj3 result: %d\r\n", ret );
 	ReleaseSynObj();
 
     return DS_OK;

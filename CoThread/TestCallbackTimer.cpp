@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "TestCallbackTimer.h"
 #include "../Dzcot/Dzcot.h"
 #include <sys/timeb.h>
