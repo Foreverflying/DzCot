@@ -22,38 +22,41 @@ void ReleaseMemoryPool( DzHost* host );
 BOOL AllocQueueNodePool( DzHost* host );
 BOOL AllocAsynIoPool( DzHost* host );
 BOOL AllocSynObjPool( DzHost* host );
-BOOL AllocDzThreadPool( DzHost* host, int sSize );
+BOOL AllocDzThreadPool( DzHost* host );
 
-inline void* AllocChunk( DzHost* host, size_t size )
+inline void* AllocChunk( DzHost* host, int size )
 {
+    char* p = host->memPoolPos;
+
     host->memPoolPos += size;
     if( host->memPoolPos > host->memPoolEnd ){
         if( !MemeryPoolGrow( host ) ){
             return NULL;
         }
+        p = host->memPoolPos;
+        host->memPoolPos += size;
     }
-    return PageCommit( host->memPoolPos, size );
+    return PageCommit( p, size );
 }
 
 inline DzLNode* AllocQNode( DzHost* host )
 {
     DzLNode* node;
-    DzLItr* head;
 
-    head = &host->lNodePool;
-    if( !head->next ){
+    if( !host->lNodePool ){
         if( !AllocQueueNodePool( host ) ){
             return NULL;
         }
     }
-    node = MEMBER_BASE( head->next, DzLNode, lItr );
-    PopSList( head );
+    node = MEMBER_BASE( host->lNodePool, DzLNode, lItr );
+    host->lNodePool = host->lNodePool->next;
     return node;
 }
 
 inline void FreeQNode( DzHost* host, DzLNode* node )
 {
-    PushSList( &host->lNodePool, &node->lItr );
+    node->lItr.next = host->lNodePool;
+    host->lNodePool = &node->lItr;
 }
 
 #ifdef __cplusplus

@@ -41,7 +41,8 @@ typedef long long int64;
 #endif
 
 //#define SWITCH_COT_FLOAT_SAFE
-#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
+#define CHECK_COT_STACE_OVERFLOW
+//#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
 
 #endif // __DzIncWin_h__

@@ -11,11 +11,7 @@
 #include "../DzStructs.h"
 #include "../../DzcotData/DzcotData.h"
 #include <pthread.h>
-
-//#define STORE_HOST_IN_SPECIFIC_POINTER
-
-#define PAGE_SIZE                   4096
-#define DZ_STACK_UNIT_SIZE          65536
+#include <sys/mman.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -28,7 +24,7 @@ inline void* PageAlloc( size_t size )
 
 inline void* PageReserv( size_t size )
 {
-    return mmap( NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
+    return PageAlloc( size );
 }
 
 inline void* PageCommit( void* p, size_t size )
@@ -38,7 +34,7 @@ inline void* PageCommit( void* p, size_t size )
 
 inline void PageFree( void* p, size_t size )
 {
-    munmap( base, size );
+    munmap( p - size, size );
 }
 
 #ifdef CONFIG_SMP

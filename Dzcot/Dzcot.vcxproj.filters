@@ -41,6 +41,12 @@
     <ClCompile Include="DzResourceMgr.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="DzTimer.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dlmalloc.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DzConstant.h">
@@ -110,6 +116,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DzList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dlmalloc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dlconfig.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzFastNewDel.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

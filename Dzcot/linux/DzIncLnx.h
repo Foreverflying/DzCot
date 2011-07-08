@@ -21,4 +21,10 @@ typedef long long int64;
 #define inline static __inline
 #endif
 
+#define __fastcall __attribute__((fastcall))
+
+//#define STORE_HOST_IN_SPECIFIC_POINTER
+
+#define EPOLL_EVT_LIST_SIZE     4096
+
 #endif // __DzIncLnx_h__

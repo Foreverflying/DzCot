@@ -36,16 +36,10 @@
     <ClCompile Include="TestLibpq.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="malloc.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="TestMapHost.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TestMapServer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DlMalloc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Global.cpp">
@@ -55,6 +49,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TestResourceMgr.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -80,13 +77,7 @@
     <ClInclude Include="TestLibpq.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="malloc.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="TestMap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DlMalloc.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Global.h">
@@ -96,6 +87,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="TestResourceMgr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

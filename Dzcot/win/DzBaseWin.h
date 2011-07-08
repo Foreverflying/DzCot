@@ -11,10 +11,6 @@
 #include "../DzStructs.h"
 #include "../../DzcotData/DzcotData.h"
 
-#define PAGE_SIZE                   4096
-#define DZ_STACK_UNIT_SIZE          65536
-#define MEMERY_POOL_GROW_SIZE       ( 16 * 1024 * 1024 )
-
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -87,6 +83,46 @@ inline void* GetExceptPtr()
     return NULL;
 #endif
 }
+
+#ifdef SWITCH_COT_FLOAT_SAFE
+void __fastcall DzSwitchFloatSafe( DzHost* host, DzThread* dzThread );
+#define DzSwitch DzSwitchFloatSafe
+#else
+void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
+#define DzSwitch DzSwitchFast
+#endif
+
+
+#ifdef CHECK_COT_STACE_OVERFLOW
+
+inline void CheckCotStackOverflow( int sSize )
+{
+    int size;
+    char* stack;
+    char* stackLimit;
+    char* tmp;
+
+    size = DZ_STACK_UNIT_SIZE << ( sSize * DZ_STACK_SIZE_STEP );
+#if defined( _X86_ )
+    stack = (char*)__readfsdword( 4 );
+    stackLimit = (char*)__readfsdword( 8 );
+#elif defined( _M_AMD64 )
+    stack = *(char**)( __readgsqword( 0x30 ) + 8 );
+    stackLimit = *(char**)( __readgsqword( 0x30 ) + 16 );
+#endif
+
+    if( stack - stackLimit > size || stack - (char*)&tmp > size ){
+        //generate an exception
+        tmp = NULL;
+        *tmp = 0;
+    }
+}
+
+#else
+
+#define CheckCotStackOverflow( dzThread )
+
+#endif // CHECK_COT_STACE_OVERFLOW
 
 #ifdef __cplusplus
 };

@@ -16,7 +16,7 @@ void Free( void *buff )
     return dlfree( buff );
 }
 
-int __stdcall TraceMalloc( void *context )
+void __stdcall TraceMalloc( void *context )
 {
     int traceCount = 0;
     while( 1 ){
@@ -24,5 +24,4 @@ int __stdcall TraceMalloc( void *context )
         printf( "mallocCount : %d, traceCount: %d\r\n", mallocCount, traceCount );
         DzSleep( 3000 );
     }
-    return 0;
 }

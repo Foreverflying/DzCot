@@ -1,2 +1,2 @@
-int __stdcall TestCallbackTimer( void *context );
-int __stdcall StartTestCallbackTimer( void *context );
+void __stdcall TestCallbackTimer( void *context );
+void __stdcall StartTestCallbackTimer( void *context );

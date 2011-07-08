@@ -28,7 +28,7 @@ struct Conn
 
 static volatile BOOL working = TRUE;
 
-int __stdcall SendRountine( void *context )
+void __stdcall SendRountine( void *context )
 {
     Conn *conn = (Conn*)context;
 
@@ -48,10 +48,9 @@ int __stdcall SendRountine( void *context )
         //printf( "TickRecv:\t%d,  TotalSend:\t%d,  TotalRecv:\t%d\r\n", conn->recvCount, conn->sendTotal, conn->recvTotal );
         conn->recvCount = 0;
     }
-    return 0;
 }
 
-int __stdcall TestMapHost( void *context )
+void __stdcall TestMapHost( void *context )
 {
     int index = -1;
     byte buff[PACKAGE_LEN];
@@ -85,7 +84,7 @@ int __stdcall TestMapHost( void *context )
             printf( "recv error! count = %d\r\n", recvErrCount );
             DzShutdown( fd, DZ_SD_RDWR );
             DzCloseSocket( fd );
-            return -1;
+            return;
         }
 
         DzSleep( 3000 + rand() % 300 );
@@ -101,7 +100,7 @@ int __stdcall TestMapHost( void *context )
                 printf( "recv error! count = %d\r\n", recvErrCount );
                 DzShutdown( fd, DZ_SD_RDWR );
                 DzCloseSocket( fd );
-                return -1;
+                return;
             }else{
                 conn.recvCount++;
                 conn.recvTotal++;
@@ -113,16 +112,13 @@ int __stdcall TestMapHost( void *context )
     }
     DzShutdown( fd, DZ_SD_RDWR );
     DzCloseSocket( fd );
-
-    return 1;
 }
 
-int __stdcall TestMultiMapHost( void *context )
+void __stdcall TestMultiMapHost( void *context )
 {
     int count = (int)context;
     //DzInitCotPool( count > 40000 ? 40000 : count, 0 );
     for( int i=0; i<count; i++ ){
         DzStartCot( TestMapHost, 0 );
     }
-    return 0;
 }

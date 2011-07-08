@@ -1,1 +1,1 @@
-int __stdcall StartTestResourceMgr( void *context );
+void __stdcall StartTestResourceMgr( void *context );

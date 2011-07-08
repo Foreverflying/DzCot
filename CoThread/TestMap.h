@@ -1,5 +1,5 @@
 
-int __stdcall TestMapHost( void *context );
-int __stdcall TestMultiMapHost( void *context );
-int __stdcall TestMapServerRoutine( void *context );
-int __stdcall TestMapServer( void *context );
+void __stdcall TestMapHost( void *context );
+void __stdcall TestMultiMapHost( void *context );
+void __stdcall TestMapServerRoutine( void *context );
+void __stdcall TestMapServer( void *context );

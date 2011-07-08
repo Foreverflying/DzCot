@@ -10,25 +10,25 @@
 
 #include "../DzBaseOs.h"
 #include "../DzResourceMgr.h"
+#include "../DzSynObj.h"
 #include "../../DzcotData/DzcotData.h"
 #include <sys/resource.h>
-#include <sys/mman.h>
-
-#define __fastcall __attribute__((fastcall))
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-void InitAsynIo( DzAsynIo* asynIo );
-void InitDzThread( DzThread* dzThread, int sSize );
+inline void InitDzThread( DzThread* dzThread )
+{
+}
 
-#ifdef SWITCH_COT_FLOAT_SAFE
-#define DzSwitch DzSwitchFloatSafe
-#else
-void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
-#define DzSwitch DzSwitchFast
-#endif
+inline void InitAsynIo( DzAsynIo* asynIo )
+{
+    InitFastEvt( &asynIo->inEvt );
+    InitFastEvt( &asynIo->outEvt );
+    asynIo->inEvt.dzThread = NULL;
+    asynIo->outEvt.dzThread = NULL;
+}
 
 #if defined( __i386 )
 
@@ -45,8 +45,8 @@ struct DzStackBottom
 };
 
 void __stdcall DzcotRoutine(
-    DzRoutine entry,
-    void* context
+    DzRoutine   entry,
+    void*       context
     );
 
 #elif defined( __amd64 )
@@ -66,14 +66,14 @@ struct DzStackBottom
 };
 
 void DzcotRoutine(
-    void* unused1,
-    void* unused2,
-    void* unused3,
-    void* unused4,
-    void* unused5,
-    void* unused6,
-    DzRoutine entry,
-    void* context
+    void*       unused1,
+    void*       unused2,
+    void*       unused3,
+    void*       unused4,
+    void*       unused5,
+    void*       unused6,
+    DzRoutine   entry,
+    void*       context
     );
 
 #endif
@@ -84,8 +84,14 @@ inline void InitOsStruct( DzHost* host )
 
     getrlimit( RLIMIT_NOFILE, &fdLimit );
     host->osStruct.maxFd = fdLimit.rlim_cur;
-    host->osStruct.fdTable = BaseAlloc( sizeof(int) * host->osStruct.maxFd );
+    host->osStruct.fdTable = PageAlloc( sizeof(int) * host->osStruct.maxFd );
     host->osStruct.epollFd = epoll_create( host->osStruct.maxFd );
+}
+
+inline void DeleteOsStruct( DzHost* host )
+{
+    PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFd );
+    close( host->osStruct.epollFd );
 }
 
 inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
@@ -108,12 +114,10 @@ inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
     */
 }
 
-inline char* AllocStack( int sSize )
+inline char* AllocStack( int size )
 {
-    size_t size;
     char* base;
 
-    size = DZ_STACK_UNIT_SIZE << sSize;
     base = (char*)mmap(
         NULL,
         size,
@@ -129,14 +133,9 @@ inline char* AllocStack( int sSize )
     return base + size;
 }
 
-inline void FreeStack( char* stack, int sSize )
+inline void FreeStack( char* stack, int size )
 {
-    size_t size;
-    char* base;
-
-    size = DZ_STACK_UNIT_SIZE << sSize;
-    base = stack - size;
-    munmap( base, size );
+    munmap( stack - size, size );
 }
 
 inline void InitCotStack( DzHost* host, DzThread* dzThread )
@@ -150,15 +149,30 @@ inline void InitCotStack( DzHost* host, DzThread* dzThread )
 
 inline DzThread* InitCot( DzHost* host, DzThread* dzThread, int sSize )
 {
-    if( !dzThread->stack ){
-        dzThread->stack = AllocStack( sSize );
+    int size;
+    
+    size = DZ_STACK_UNIT_SIZE << ( sSize * DZ_STACK_SIZE_STEP );
+    if( sSize <= DZ_MAX_PERSIST_STACK_SIZE ){
+        dzThread->stack = (char*)AllocChunk( host, size );
         if( !dzThread->stack ){
             return NULL;
         }
-        host->poolCotCounts[ sSize ]++;
-        InitCotStack( host, dzThread );
+        dzThread->stack += size;
+    }else{
+        dzThread->stack = AllocStack( size );
+        if( !dzThread->stack ){
+            return NULL;
+        }
     }
+    dzThread->sSize = sSize;
+    dzThread->lastErr = 0;
+    InitCotStack( host, dzThread );
     return dzThread;
+}
+
+inline void FreeCotStack( DzThread* dzThread )
+{
+	FreeStack( dzThread->stack, DZ_STACK_UNIT_SIZE << ( dzThread->sSize * DZ_STACK_SIZE_STEP ) );
 }
 
 #ifdef __cplusplus

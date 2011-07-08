@@ -19,7 +19,6 @@ typedef unsigned int uint;
 
 enum
 {
-    DS_NONE,
     DS_OK,
     DS_TIMEOUT,
     DS_INVALID_ARG,
@@ -61,6 +60,24 @@ typedef struct _DzParamNode
     void*           content;
 }DzParamNode;
 
+#ifdef _WIN32
+
+typedef struct _DzBuf
+{
+    unsigned long   len;
+    char*           buf;
+}DzBuf;
+
+#elif defined __linux__
+
+typedef struct _DzBuf
+{
+    void*           buf;
+    size_t          len;
+}DzBuf;
+
+#endif
+
 struct _DzSynObj;
 typedef struct _DzSynObj* DzHandle;
 
@@ -68,6 +85,6 @@ typedef struct _DzSynObj* DzHandle;
 #define __stdcall __attribute__((stdcall))
 #endif
 
-typedef int (__stdcall *DzRoutine)( void* context );
+typedef void (__stdcall *DzRoutine)( void* context );
 
 #endif // __DzType_h__

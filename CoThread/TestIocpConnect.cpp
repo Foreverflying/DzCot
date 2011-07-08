@@ -70,7 +70,7 @@ BOOL SockCleanup()
     return FALSE;
 }
 
-int __stdcall TestFastConnect( void *context )
+void __stdcall TestFastConnect( void *context )
 {
     struct FastAsynConn 
     {
@@ -207,7 +207,6 @@ int __stdcall TestFastConnect( void *context )
 
     CloseHandle( iocp );
     SockCleanup();
-    return 1;
 }
 
 #endif

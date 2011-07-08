@@ -1,16 +1,16 @@
 
 LIBRARY Dzcot
 EXPORTS
-    DzInitHost              @1
-    DzStartHost             @2
-    DzStartCot              @3
-    DzStartCotInstant       @4
-    DzGetCotCount           @5
-    DzGetMaxCotCount        @6
-    DzInitCotPool           @7
-    DzSleep                 @8
-    DzWaitSynObj            @9
-    DzWaitMultiSynObj       @10
+    DzRunHost               @1
+    DzStartCot              @2
+    DzStartCotInstant       @3
+    DzGetCotCount           @4
+    DzGetMaxCotCount        @5
+    DzGrowCotPoolDepth      @6
+    DzWaitSynObj            @7
+    DzWaitMultiSynObj       @8
+    DzCreateMtx             @9
+    DzReleaseMtx            @10
     DzCreateEvt             @11
     DzSetEvt                @12
     DzResetEvt              @13
@@ -20,21 +20,41 @@ EXPORTS
     DzCloseSynObj           @17
     DzCreateTimer           @18
     DzCloseTimer            @19
-    DzOpenFileA             @20
-    DzOpenFileW             @21
-    DzCloseFd               @22
-    DzReadFile              @23
-    DzWriteFile             @24
-    DzSeekFile              @25
-    DzGetFileSize           @26
-    DzSockStartup           @27
-    DzSockCleanup           @28
-    DzSocket                @29
-    DzShutdown              @30
-    DzCloseSocket           @31
-    DzBind                  @32
-    DzListen                @33
-    DzConnect               @34
-    DzAccept                @35
-    DzSend                  @36
-    DzRecv                  @37
+    DzCreateCallbackTimer   @20
+    DzCloseCallbackTimer    @21
+    DzSleep                 @22
+    DzSleep0                @23
+    DzOpenFileA             @24
+    DzOpenFileW             @25
+    DzCloseFd               @26
+    DzReadFile              @27
+    DzWriteFile             @28
+    DzSeekFile              @29
+    DzGetFileSize           @30
+    DzSockStartup           @31
+    DzSockCleanup           @32
+    DzSocket                @33
+    DzShutdown              @34
+    DzCloseSocket           @35
+    DzBind                  @36
+    DzListen                @37
+    DzConnect               @38
+    DzAccept                @39
+    DzSendEx                @40
+    DzRecvEx                @41
+    DzSendToEx              @42
+    DzRecvFromEx            @43
+    DzSend                  @44
+    DzRecv                  @45
+    DzSendTo                @46
+    DzRecvFrom              @47
+    DzAllocParamNode        @48
+    DzFreeParamNode         @49
+    DzMalloc                @50
+    DzCalloc                @51
+    DzReAlloc               @52
+    DzFree                  @53
+    DzSrand                 @54
+    DzRand                  @55
+    DzUnixTime              @56
+    DzMilUnixTime           @57

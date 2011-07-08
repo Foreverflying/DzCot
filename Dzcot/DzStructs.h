@@ -12,8 +12,6 @@
 #include "DzStructsList.h"
 #include "DzStructsOs.h"
 
-#define MAX_DZ_HOST     8
-
 struct _DzHost;
 struct _DzThread;
 struct _DzWaitNode;
@@ -101,12 +99,11 @@ typedef struct _DzWaitNode
 
 typedef struct _DzWaitHelper
 {
-    int                     nowCount;
     int                     waitCount;
+    int                     checkIdx;
     struct _DzThread*       dzThread;
-    DzWaitNode*             notifyNode;
-    DzFastEvt               timeout;
     DzWaitNode*             nodeArray;
+    DzFastEvt               timeout;
 }DzWaitHelper;
 
 typedef struct _DzHost
@@ -124,12 +121,10 @@ typedef struct _DzHost
     //the host thread's original info
     DzThread        originThread;
 
-    //DzDqNode struct pool
-    DzLItr          lNodePool;
-
     //DzThread struct pool
-    DzLItr          threadPools[ STACK_SIZE_COUNT ];
-    int             poolDepth;
+    DzLItr*         threadPool;
+    DzLItr*         cotPools[ STACK_SIZE_COUNT ];
+    int             cotPoolDepth[ STACK_SIZE_COUNT ];
 
     //statistic for different stack size thread
     //poolCotCount only accumulate the thread reserved virtual address space
@@ -144,17 +139,23 @@ typedef struct _DzHost
     int             timerCount;
     int             timerHeapSize;
 
+    //dlmalloc heap
+    void*           mallocSpace;
+
+    //DzSynObj struct pool
+    DzLItr*         synObjPool;
+
+    //DzAsynIo struct pool
+    DzLItr*         asynIoPool;
+
+    //DzDqNode struct pool
+    DzLItr*         lNodePool;
+
     //record pool alloc history
-    DzLItr          poolGrowList;
+    DzLItr*         poolGrowList;
 
     char*           memPoolPos;
     char*           memPoolEnd;
-
-    //DzSynObj struct pool
-    DzLItr          synObjPool;
-
-    //DzAsynIo struct pool
-    DzLItr          asynIoPool;
 
     //default co thread value
     int             defaultPri;

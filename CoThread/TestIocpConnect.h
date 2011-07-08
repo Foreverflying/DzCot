@@ -1,2 +1,2 @@
 
-int __stdcall TestFastConnect( void *context );
+void __stdcall TestFastConnect( void *context );

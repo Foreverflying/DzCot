@@ -16,7 +16,7 @@
 typedef struct _DzAsynIo
 {
     union{
-        DzQItr      qItr;
+        DzLItr      lItr;
         struct{
             short   sign;
             short   ref;

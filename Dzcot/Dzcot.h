@@ -53,12 +53,8 @@ DZCOT_API int DzGetCotCount();
 DZCOT_API int DzGetMaxCotCount(
     BOOL reset                  __DZ_DFT_ARG( FALSE )
     );
-DZCOT_API void DzInitCotPool(
-    uint        count,
-    uint        depth,
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
-    );
 DZCOT_API int DzChangePriority( int priority );
+DZCOT_API BOOL DzGrowCotPoolDepth( int sSize, int deta );
 
 DZCOT_API int DzWaitSynObj(
     DzHandle    obj,
@@ -70,26 +66,27 @@ DZCOT_API int DzWaitMultiSynObj(
     BOOL        waitAll,
     int         timeout         __DZ_DFT_ARG( -1 )
     );
-DZCOT_API DzHandle DzCreateMutex( BOOL owner );
-DZCOT_API BOOL DzReleaseMutex( DzHandle mtx );
-DZCOT_API DzHandle DzCreateEvt( BOOL notified, BOOL autoReset );
+DZCOT_API DzHandle DzCreateMtx( BOOL owner );
+DZCOT_API BOOL DzReleaseMtx( DzHandle mtx );
+DZCOT_API DzHandle DzCreateEvt( BOOL manualReset, BOOL notified );
 DZCOT_API BOOL DzSetEvt( DzHandle evt );
 DZCOT_API BOOL DzResetEvt( DzHandle evt );
-DZCOT_API DzHandle DzCreateSem( uint count );
-DZCOT_API uint DzReleaseSem( DzHandle sem, int count );
+DZCOT_API DzHandle DzCreateSem( int count );
+DZCOT_API int DzReleaseSem( DzHandle sem, int count );
 DZCOT_API DzHandle DzCloneSynObj( DzHandle obj );
 DZCOT_API BOOL DzCloseSynObj( DzHandle obj );
-DZCOT_API DzHandle DzCreateTimer( int milSec, int repeat );
+DZCOT_API DzHandle DzCreateTimer( uint milSec, uint repeat );
 DZCOT_API BOOL DzCloseTimer( DzHandle timer );
 DZCOT_API DzHandle DzCreateCallbackTimer(
+    uint        milSec,
+    uint        repeat,
     DzRoutine   callback,
+    void*       context,
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
-DZCOT_API BOOL DzStartCallbackTimer( DzHandle timer, int milSec, int repeat, void* context );
-DZCOT_API BOOL DzStopCallbackTimer( DzHandle timer );
 DZCOT_API BOOL DzCloseCallbackTimer( DzHandle timer );
-DZCOT_API int DzSleep( int milSec );
+DZCOT_API int DzSleep( uint milSec );
 DZCOT_API int DzSleep0();
 
 DZCOT_API int DzOpenFileA( const char* fileName, int flags );
@@ -115,11 +112,25 @@ DZCOT_API int DzBind( int fd, struct sockaddr* addr, int addrLen );
 DZCOT_API int DzListen( int fd, int backlog );
 DZCOT_API int DzConnect( int fd, struct sockaddr* addr, int addrLen );
 DZCOT_API int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
-DZCOT_API int DzSend( int fd, const void* buf, int len, int flag );
-DZCOT_API int DzRecv( int fd, void* buf, int len, int flag );
+DZCOT_API int DzSendEx( int fd, DzBuf* bufs, int bufCount, int flags );
+DZCOT_API int DzRecvEx( int fd, DzBuf* bufs, int bufCount, int flags );
+DZCOT_API int DzSendToEx( int fd, DzBuf* bufs, int bufCount, int flags, const struct sockaddr *to, int tolen );
+DZCOT_API int DzRecvFromEx( int fd, DzBuf* bufs, int bufCount, int flags, struct sockaddr *from, int *fromlen );
+DZCOT_API int DzSend( int fd, const void* buf, int len, int flags );
+DZCOT_API int DzRecv( int fd, void* buf, int len, int flags );
+DZCOT_API int DzSendTo( int fd, const char *buf, int len, int flags, const struct sockaddr *to, int tolen );
+DZCOT_API int DzRecvFrom( int fd, char *buf, int len, int flags, struct sockaddr *from, int *fromlen );
 
 DZCOT_API DzParamNode* DzAllocParamNode();
 DZCOT_API void DzFreeParamNode( DzParamNode* node );
+
+DZCOT_API void* DzMalloc( size_t size );
+DZCOT_API void* DzCalloc( size_t num, size_t size );
+DZCOT_API void* DzReAlloc( void* mem, size_t size );
+DZCOT_API void DzFree( void* p );
+
+DZCOT_API void DzSrand( uint seed );
+DZCOT_API int DzRand();
 
 DZCOT_API unsigned long long DzUnixTime();
 DZCOT_API unsigned long long DzMilUnixTime();

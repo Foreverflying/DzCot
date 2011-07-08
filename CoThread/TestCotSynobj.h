@@ -1,2 +1,2 @@
 
-int __stdcall StartTestSynobj( void *context );
+void __stdcall StartTestSynobj( void *context );

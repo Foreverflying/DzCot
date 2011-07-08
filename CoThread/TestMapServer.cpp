@@ -2,7 +2,6 @@
 #include "../Dzcot/Dzcot.h"
 
 #include "../Dzcot/DzList.h"
-#include "DlMalloc.h"
 #include "Global.h"
 
 #define PACKAGE_LEN     32
@@ -50,19 +49,19 @@ void ReleaseBuffRef( Buff *buff )
 {
     buff->ref--;
     if( buff->ref == 0 ){
-        Free( buff );
+        DzFree( buff );
     }
 }
 
 Buff* CreateBuff()
 {
-    Buff *ret = (Buff*)Malloc( sizeof( Buff ) );
+    Buff *ret = (Buff*)DzMalloc( sizeof( Buff ) );
     ret->len = 0;
     ret->ref = 1;
     return ret;
 }
 
-int __stdcall SendRoutine( void *context )
+void __stdcall SendRoutine( void *context )
 {
     Conn *conn = (Conn*)context;
 
@@ -79,13 +78,12 @@ int __stdcall SendRoutine( void *context )
         }
         EraseListHead( &conn->sendQueue );
         ReleaseBuffRef( msg->buff );
-        Free( msg );
+        DzFree( msg );
         qItr = conn->sendQueue.head;
     }
-    return 0;
 }
 
-int __stdcall TestMapServerRoutine( void *context )
+void __stdcall TestMapServerRoutine( void *context )
 {
     Conn *conn = (Conn*)context;
 
@@ -95,7 +93,7 @@ int __stdcall TestMapServerRoutine( void *context )
         printf( "send error! count = %d\r\n", sendErrCount );
         DzShutdown( conn->fd, DZ_SD_RDWR );
         DzCloseSocket( conn->fd );
-        return -1;
+        return;
     }
 
     //char tmpbuf[PACKAGE_LEN];
@@ -108,7 +106,7 @@ int __stdcall TestMapServerRoutine( void *context )
         if( bytes > 0 ){
             buff->len = bytes;
             for( int i=0; i<hostCount; i++ ){
-                Msg *msg = (Msg*)Malloc( sizeof( Msg ) );
+                Msg *msg = (Msg*)DzMalloc( sizeof( Msg ) );
                 msg->buff = buff;
                 AddBuffRef( buff );
                 if( connArr[i]->sendQueue.head == NULL ){
@@ -127,13 +125,11 @@ int __stdcall TestMapServerRoutine( void *context )
     }
     DzShutdown( conn->fd, DZ_SD_RDWR );
     DzCloseSocket( conn->fd );
-    return 1;
 }
 
-int __stdcall TestMapServer( void *context )
+void __stdcall TestMapServer( void *context )
 {
-    DzStartCot( TraceMalloc, NULL );
-    connArr = (Conn**)Malloc( sizeof( Conn** ) * MAX_HOST_COUNT );
+    connArr = (Conn**)DzMalloc( sizeof( Conn** ) * MAX_HOST_COUNT );
     for( int i=0; i<MAX_HOST_COUNT; i++ ){
         connArr[i] = NULL;
     }
@@ -151,14 +147,14 @@ int __stdcall TestMapServer( void *context )
     DzBind( fd, (sockaddr*)&addr, sizeof(sockaddr_in) );
     if( DzListen( fd, count ) != 0 ){
         lisErrCount++;
-        return 0;
+        return;
     }
     printf( "Server Start...\r\n");
     while(1){
         int addrLen;
         int newFd = DzAccept( fd, (sockaddr*)&addr, &addrLen );
         if( newFd != -1 ){
-            Conn *conn = (Conn*)Malloc( sizeof( Conn ) );
+            Conn *conn = (Conn*)DzMalloc( sizeof( Conn ) );
             conn->fd = newFd;
             conn->index = hostCount;
             connArr[ conn->index ] = conn;
@@ -171,5 +167,4 @@ int __stdcall TestMapServer( void *context )
             printf( "accept error! count = %d\r\n", acptErrCount );
         }
     }
-    return 1;
 }

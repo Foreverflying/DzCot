@@ -86,17 +86,6 @@ inline void EraseListHead( DzSList* list )
     }
 }
 
-inline void PushSList( DzLItr* head, DzLItr* lItr )
-{
-    lItr->next = head->next;
-    head->next = lItr;
-}
-
-inline void PopSList( DzLItr* head )
-{
-    head->next = head->next->next;
-}
-
 #ifdef __cplusplus
 };
 #endif

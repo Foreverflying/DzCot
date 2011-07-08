@@ -26,8 +26,8 @@ typedef struct _DzThread
     void*               sp;
     char*               stack;
     char*               stackLimit;
-    struct _DzSynObj*   finishEvent;
-    int                 stackSize;
+    int                 sSize;
+    int                 lastErr;
     int                 priority;
 }DzThread;
 

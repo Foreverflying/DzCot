@@ -8,7 +8,7 @@
 #ifndef __DzStructsLnx_h__
 #define __DzStructsLnx_h__
 
-#include "../DzStructsQueue.h"
+#include "../DzStructsList.h"
 
 struct _DzSynObj;
 struct _DzAsynIo;
@@ -22,12 +22,11 @@ typedef struct _DzOsStruct
 
 typedef struct _DzThread
 {
-    DzQItr              qItr;
+    DzLItr              lItr;
     void*               sp;
     char*               stack;
-    struct _DzSynObj*   finishEvent;
-    int                 stackSize;
-    int                 priority;
+    int                 sSize;
+    int                 lastErr;
 }DzThread;
 
 #endif // __DzStructsLnx_h__

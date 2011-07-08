@@ -1,18 +1,20 @@
-// CoThread.cpp : �������̨Ӧ�ó������ڵ㡣
+// CoThread.cpp
 //
 
 #include "stdafx.h"
+#include <conio.h>
 #include "../Dzcot/Dzcot.h"
-#include "TestCotSome.h"
-#include "TestCotSynobj.h"
-#include "TestDzcotIo.h"
-#include "TestIocpConnect.h"
-#include "TestLibpq.h"
-#include "TestMap.h"
-#include "TestCallbackTimer.h"
-#include "TestResourceMgr.h"
+#include "../Dzcot/DzFastNewDel.h"
 #include "Global.h"
-
+#include "TestCotSynobj.h"
+#include "TestSocket.h"
+// #include "TestCotSome.h"
+// #include "TestDzcotIo.h"
+// #include "TestIocpConnect.h"
+// #include "TestLibpq.h"
+// #include "TestMap.h"
+// #include "TestCallbackTimer.h"
+// #include "TestResourceMgr.h"
 //#pragma comment( lib, "Dzcot.lib" )
 
 void MainTest( DzRoutine firstEntry, void *context )
@@ -50,6 +52,9 @@ int _tmain(int argc, _TCHAR* argv[])
     gIp = gIp ? gIp : htonl( MAKEIPADDRESS( 127, 0, 0, 1 ) );
     gPort = gPort ? gPort : htons( 59999 );
 
+    //MainTest( StartTestSynobj, (void*)10 );
+    MainTest( StartTestSocket, NULL );
+
     //StartTestStackAlloc( (void*)2 );
     //MainTest( StartTestStackAlloc, (void*)20 );
     //MainTest( StartTestResourceMgr, (void*)100000 );
@@ -65,12 +70,12 @@ int _tmain(int argc, _TCHAR* argv[])
     //MainTest( TestMultiClient, (void*)800 );
     //MainTest( TestClient, (void*)0 );
     //MainTest( TestReadFile, (void*)0 );
-    MainTest( StartTestSynobj, (void*)10 );
     //MainTest( StartTestSwitch, (void*)10000 );
     //MainTest( StartTestLibpq, (void*)150 );
     //MainTest( TestLibpq, "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=template1" );
     //TestFastConnect( (void*)1000 );
     //TestLibpq( "user=user password=postgreUser hostaddr=192.168.0.64 port=5432 dbname=OgameX" );
     printf( "finish, yes!!!!!\r\n" );
+    _getch();
     return 0;
 }

@@ -27,7 +27,8 @@ BOOL MemeryPoolGrow( DzHost* host )
     node = AllocQNode( host );
     node->content = pool;
     node->context1 = (void*)MEMERY_POOL_GROW_SIZE;
-    PushSList( &host->poolGrowList, &node->lItr );
+    node->lItr.next = host->poolGrowList;
+    host->poolGrowList = &node->lItr;
     return TRUE;
 }
 
@@ -38,15 +39,18 @@ void ReleaseMemoryPool( DzHost* host )
     int* len;
     int count = 0;
     int poolGrowCount = 0;
-    DzLItr* lItr = host->poolGrowList.next;
+    DzLItr* lItr = host->poolGrowList;
 
     while( lItr ){
         poolGrowCount++;
         lItr = lItr->next;
     }
+    if( !poolGrowCount ){
+        return;
+    }
     p = (void**)alloca( sizeof(void*) * poolGrowCount );
     len = (int*)alloca( sizeof(int) * poolGrowCount );
-    lItr = host->poolGrowList.next;
+    lItr = host->poolGrowList;
     while( lItr ){
         node = MEMBER_BASE( lItr, DzLNode, lItr );
         *(p + count) = node->content;
@@ -56,7 +60,6 @@ void ReleaseMemoryPool( DzHost* host )
     for( count = 0; count < poolGrowCount; count++ ){
         PageFree( p[ count ], len[ count ] );
     }
-    host->poolGrowList.next = NULL;
 }
 
 BOOL AllocQueueNodePool( DzHost* host )
@@ -66,13 +69,13 @@ BOOL AllocQueueNodePool( DzHost* host )
     DzLNode* tmp;
     DzLItr* lItr;
 
-    p = (DzLNode*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzLNode ) );
+    p = (DzLNode*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzLNode ) );
     if( !p ){
         return FALSE;
     }
 
-    host->lNodePool.next = &p->lItr;
-    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    host->lNodePool = &p->lItr;
+    end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
     tmp = p;
     while( tmp != end ){
@@ -88,19 +91,13 @@ BOOL AllocAsynIoPool( DzHost* host )
     DzAsynIo* end;
     DzLItr* lItr;
 
-    if( !host->lNodePool.next ){
-        if( !AllocQueueNodePool( host ) ){
-            return FALSE;
-        }
-    }
-
-    p = (DzAsynIo*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzAsynIo ) );
+    p = (DzAsynIo*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzAsynIo ) );
     if( !p ){
         return FALSE;
     }
 
-    host->asynIoPool.next = &p->lItr;
-    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    host->asynIoPool = &p->lItr;
+    end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
     InitAsynIo( end );
     while( p != end ){
@@ -117,19 +114,13 @@ BOOL AllocSynObjPool( DzHost* host )
     DzSynObj* end;
     DzLItr* lItr;
 
-    if( !host->lNodePool.next ){
-        if( !AllocQueueNodePool( host ) ){
-            return FALSE;
-        }
-    }
-
-    p = (DzSynObj*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzSynObj ) );
+    p = (DzSynObj*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzSynObj ) );
     if( !p ){
         return FALSE;
     }
 
-    host->synObjPool.next = &p->lItr;
-    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    host->synObjPool = &p->lItr;
+    end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
     InitDList( &end->waitQ[ CP_HIGH ] );
     InitDList( &end->waitQ[ CP_NORMAL ] );
@@ -144,29 +135,23 @@ BOOL AllocSynObjPool( DzHost* host )
     return TRUE;
 }
 
-BOOL AllocDzThreadPool( DzHost* host, int sSize )
+BOOL AllocDzThreadPool( DzHost* host )
 {
     DzThread* p;
     DzThread* end;
     DzLItr* lItr;
 
-    if( !host->lNodePool.next ){
-        if( !AllocQueueNodePool( host ) ){
-            return FALSE;
-        }
-    }
-
-    p = (DzThread*)AllocChunk( host, PAGE_SIZE / sizeof( int ) * sizeof( DzThread ) );
+    p = (DzThread*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzThread ) );
     if( !p ){
         return FALSE;
     }
 
-    host->threadPools[ sSize ].next = &p->lItr;
-    end = p + PAGE_SIZE / sizeof( int ) - 1;
+    host->threadPool = &p->lItr;
+    end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
-    InitDzThread( end, sSize );
+    InitDzThread( end );
     while( p != end ){
-        InitDzThread( p, sSize );
+        InitDzThread( p );
         lItr = &p->lItr;
         lItr->next = &(++p)->lItr;
     }

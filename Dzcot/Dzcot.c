@@ -54,14 +54,13 @@ int DzStartCot(
     assert( host );
     assert( entry );
     assert(
-        priority >= CP_FIRST &&
-        priority <= COT_PRIORITY_COUNT
+        priority == CP_DEFAULT ||
+        ( priority >= CP_FIRST && priority <= host->lowestPriority )
         );
     assert(
         sSize >= SS_FIRST &&
         sSize <= STACK_SIZE_COUNT
         );
-    assert( host->threadCount > 0 );
 
     return StartCot( host, entry, context, priority, sSize );
 }
@@ -86,7 +85,6 @@ int DzStartCotInstant(
         sSize >= SS_FIRST &&
         sSize <= STACK_SIZE_COUNT
         );
-    assert( host->threadCount > 0 );
 
     return StartCotInstant( host, entry, context, priority, sSize );
 }
@@ -107,18 +105,6 @@ int DzGetMaxCotCount( BOOL reset )
     return GetMaxCotCount( host, reset );
 }
 
-void DzInitCotPool( uint count, uint depth, int sSize )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert(
-        sSize >= SS_FIRST &&
-        sSize <= STACK_SIZE_COUNT
-        );
-
-    InitCotPool( host, count, depth, sSize );
-}
-
 int DzChangePriority( int priority )
 {
     DzHost* host = GetHost();
@@ -126,6 +112,17 @@ int DzChangePriority( int priority )
     assert( priority > CP_FIRST && priority <= host->lowestPriority );
 
     return SetCurrCotPriority( host, priority );
+}
+
+BOOL DzGrowCotPoolDepth( int sSize, int deta )
+{
+    DzHost* host = GetHost();
+    assert(
+        sSize > DZ_MAX_PERSIST_STACK_SIZE &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return GrowCotPoolDepth( host, sSize, deta );
 }
 
 int DzWaitSynObj( DzHandle obj, int timeout )
@@ -142,39 +139,44 @@ int DzWaitMultiSynObj( int count, DzHandle* obj, BOOL waitAll, int timeout )
     DzHost* host = GetHost();
     assert( host );
     assert( obj );
+    assert( count > 0 );
 
     return WaitMultiSynObj( host, count, obj, waitAll, timeout );
 }
 
-DzHandle DzCreateMutex( BOOL owner )
+DzHandle DzCreateMtx( BOOL owner )
 {
     DzHost* host = GetHost();
     assert( host );
 
-    return CreateEvt( host, !owner, TRUE );
+    return CreateEvt( host, FALSE, !owner );
 }
 
-BOOL DzReleaseMutex( DzHandle mtx )
+BOOL DzReleaseMtx( DzHandle mtx )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( mtx );
+    assert( mtx->type == TYPE_EVT_AUTO );
 
     SetEvt( host, mtx );
     return TRUE;
 }
 
-DzHandle DzCreateEvt( BOOL notified, BOOL autoReset )
+DzHandle DzCreateEvt( BOOL manualReset, BOOL notified )
 {
     DzHost* host = GetHost();
     assert( host );
 
-    return CreateEvt( host, notified, autoReset );
+    return CreateEvt( host, manualReset, notified );
 }
 
 BOOL DzSetEvt( DzHandle evt )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( evt );
+    assert( evt->type == TYPE_EVT_AUTO || evt->type == TYPE_EVT_MANUAL );
 
     SetEvt( host, evt );
     return TRUE;
@@ -182,29 +184,41 @@ BOOL DzSetEvt( DzHandle evt )
 
 BOOL DzResetEvt( DzHandle evt )
 {
+    assert( GetHost() );
+    assert( evt );
+    assert( evt->type == TYPE_EVT_AUTO || evt->type == TYPE_EVT_MANUAL );
+
     ResetEvt( evt );
     return TRUE;
 }
 
-DzHandle DzCreateSem( uint count )
+DzHandle DzCreateSem( int count )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( count >= 0 );
 
     return CreateSem( host, count );
 }
 
-uint DzReleaseSem( DzHandle sem, int count )
+int DzReleaseSem( DzHandle sem, int count )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( sem );
+    assert( sem->type == TYPE_SEM );
     assert( count > 0 );
+    assert( sem->count + count > sem->count );
 
     return ReleaseSem( host, sem, count );
 }
 
 DzHandle DzCloneSynObj( DzHandle obj )
 {
+    assert( GetHost() );
+    assert( obj );
+    assert( obj->type != TYPE_CALLBACK_TIMER );
+
     return CloneSynObj( obj );
 }
 
@@ -212,70 +226,78 @@ BOOL DzCloseSynObj( DzHandle obj )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( obj );
+    assert( obj->type != TYPE_TIMER && obj->type != TYPE_CALLBACK_TIMER );
 
     CloseSynObj( host, obj );
     return TRUE;
 }
 
-DzHandle DzCreateTimer( int milSec, int repeat )
+DzHandle DzCreateTimer( uint milSec, uint repeat )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( milSec > 0 );
+    assert( (int)milSec > 0 );
+    assert( repeat < 65536 );
 
-    return CreateTimer( host, milSec, repeat );
+    return CreateTimer( host, (int)milSec, (unsigned short)repeat );
 }
 
 BOOL DzCloseTimer( DzHandle timer )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( timer );
+    assert( timer->type = TYPE_TIMER );
 
     CloseTimer( host, timer );
     return TRUE;
 }
 
-DzHandle DzCreateCallbackTimer( DzRoutine callback, int priority, int sSize )
+DzHandle DzCreateCallbackTimer(
+    uint            milSec,
+    uint            repeat,
+    DzRoutine       callback,
+    void*           context,
+    int             priority,
+    int             sSize
+    )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( (int)milSec > 0 );
+    assert( callback );
+    assert(
+        priority == CP_DEFAULT ||
+        ( priority >= CP_FIRST && priority <= host->lowestPriority )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+    assert( repeat < 65536 );
 
-    return CreateCallbackTimer( host, callback, priority, sSize );
-}
-
-BOOL DzStartCallbackTimer( DzHandle timer, int milSec, int repeat, void* context )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( repeat >= 0 && repeat < 65536 );
-
-    return StartCallbackTimer( host, timer, milSec, (unsigned short)repeat, context );
-}
-
-BOOL DzStopCallbackTimer( DzHandle timer )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return StopCallbackTimer( host, timer );
+    return CreateCallbackTimer( host, (int)milSec, (unsigned short)repeat, callback, context, priority, sSize );
 }
 
 BOOL DzCloseCallbackTimer( DzHandle timer )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( timer );
+    assert( timer->type = TYPE_CALLBACK_TIMER );
 
-    CloseCallbackTimer( host, timer );
+    CloseCallbackTimer( host, timer, TRUE );
     return TRUE;
 }
 
-int DzSleep( int milSec )
+int DzSleep( uint milSec )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( milSec > 0 );
+    assert( (int)milSec > 0 );
 
-    DelayCurrThread( host, milSec );
+    DelayCurrThread( host, (int)milSec );
     return DS_OK;
 }
 
@@ -320,12 +342,12 @@ size_t DzReadFile( int fd, void* buf, size_t count )
     return Read( host, fd, buf, count );
 }
 
-size_t DzWriteFile( int fd, const void* buff, size_t count )
+size_t DzWriteFile( int fd, const void* buf, size_t count )
 {
     DzHost* host = GetHost();
     assert( host );
 
-    return Write( host, fd, buff, count );
+    return Write( host, fd, buf, count );
 }
 
 size_t DzSeekFile( int fd, size_t offset, int whence )
@@ -338,7 +360,9 @@ size_t DzSeekFile( int fd, size_t offset, int whence )
 
 size_t DzGetFileSize( int fd )
 {
-    return FileSize( fd );
+    DzHost* host = GetHost();
+
+    return FileSize( host, fd );
 }
 
 BOOL DzSockStartup()
@@ -362,6 +386,7 @@ int DzSocket( int domain, int type, int protocol )
 
 int DzShutdown( int fd, int how )
 {
+    assert( GetHost() );
     assert( isSocketStarted );
 
     return Shutdown( fd, how );
@@ -378,6 +403,7 @@ int DzCloseSocket( int fd )
 
 int DzBind( int fd, struct sockaddr* addr, int addrLen )
 {
+    assert( GetHost() );
     assert( isSocketStarted );
 
     return Bind( fd, addr, addrLen );
@@ -385,6 +411,7 @@ int DzBind( int fd, struct sockaddr* addr, int addrLen )
 
 int DzListen( int fd, int backlog )
 {
+    assert( GetHost() );
     assert( isSocketStarted );
 
     return Listen( fd, backlog );
@@ -408,22 +435,76 @@ int DzAccept( int fd, struct sockaddr* addr, int* addrLen )
     return Accept( host, fd, addr, addrLen );
 }
 
-int DzSend( int fd, const void* buf, int len, int flag )
+int DzSendEx( int fd, DzBuf* bufs, int bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
     assert( isSocketStarted );
 
-    return Send( host, fd, buf, len, flag );
+    return SendEx( host, fd, bufs, bufCount, flags );
 }
 
-int DzRecv( int fd, void* buf, int len, int flag )
+int DzRecvEx( int fd, DzBuf* bufs, int bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
     assert( isSocketStarted );
 
-    return Recv( host, fd, buf, len, flag );
+    return RecvEx( host, fd, bufs, bufCount, flags );
+}
+
+int DzSendToEx( int fd, DzBuf* bufs, int bufCount, int flags, const struct sockaddr *to, int tolen )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+
+    return SendToEx( host, fd, bufs, bufCount, flags, to, tolen );
+}
+
+int DzRecvFromEx( int fd, DzBuf* bufs, int bufCount, int flags, struct sockaddr *from, int *fromlen )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+
+    return RecvFromEx( host, fd, bufs, bufCount, flags, from, fromlen );
+}
+
+int DzSend( int fd, const void* buf, int len, int flags )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+
+    return Send( host, fd, buf, len, flags );
+}
+
+int DzRecv( int fd, void* buf, int len, int flags )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+
+    return Recv( host, fd, buf, len, flags );
+}
+
+int DzSendTo( int fd, const char *buf, int len, int flags, const struct sockaddr *to, int tolen )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+
+    return SendTo( host, fd, buf, len, flags, to, tolen );
+}
+
+int DzRecvFrom( int fd, char *buf, int len, int flags, struct sockaddr *from, int *fromlen )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+
+    return RecvFrom( host, fd, buf, len, flags, from, fromlen );
 }
 
 DzParamNode* DzAllocParamNode()
@@ -438,8 +519,42 @@ void DzFreeParamNode( DzParamNode* node )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( node );
 
     FreeQNode( host, (DzLNode*)node );
+}
+
+void* DzMalloc( size_t size )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return Malloc( host, size );
+}
+
+void* DzCalloc( size_t num, size_t size )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return Calloc( host, num, size );
+}
+
+void* DzReAlloc( void* mem, size_t size )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return ReAlloc( host, mem, size );
+}
+
+void DzFree( void* mem )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( mem );
+
+    Free( host, mem );
 }
 
 unsigned long long DzUnixTime()

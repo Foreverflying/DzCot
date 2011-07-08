@@ -11,14 +11,15 @@
 #include "DzStructs.h"
 #include "DzBaseOs.h"
 
-#define TIME_HEAP_SIZE          ( 1024 * 128 )
+#define TIME_HEAP_SIZE          ( 1024 * 1024 )
 #define MIN_TIME_INTERVAL       5
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-inline void NotifyTimerNode( DzHost* host, DzTimerNode* timerNode );
+BOOL NotifyMinTimers( DzHost* host, int* timeout );
+void __stdcall CallbackTimerEntry( void* context );
 
 inline int64 MilUnixTime()
 {
@@ -155,38 +156,6 @@ inline void AdjustMinTimer( DzHost* host, DzTimerNode* timerNode )
 inline DzTimerNode* GetMinTimerNode( DzHost* host )
 {
     return host->timerHeap[0];
-}
-
-inline BOOL NotifyMinTimers( DzHost* host, int* timeout )
-{
-    DzTimerNode* timerNode;
-    int64 currTime;
-    int64 cmpTime;
-    BOOL ret = FALSE;
-
-    currTime = MilUnixTime();
-    cmpTime = currTime + MIN_TIME_INTERVAL;
-    while( host->timerCount > 0 && GetMinTimerNode( host )->timestamp <= cmpTime ){
-        ret = TRUE;
-        timerNode = GetMinTimerNode( host );
-        if( timerNode->repeat != 1 ){
-            if( timerNode->repeat ){
-                timerNode->repeat--;
-            }
-            timerNode->timestamp -= timerNode->interval;    //timerNode->interval is negative
-            AdjustMinTimer( host, timerNode );
-        }else{
-            RemoveMinTimer( host );
-        }
-        NotifyTimerNode( host, timerNode );
-    }
-    if( ret ){
-        return TRUE;
-    }
-    if( timeout ){
-        *timeout = host->timerCount > 0 ? (int)( GetMinTimerNode( host )->timestamp - currTime ) : -1;
-    }
-    return FALSE;
 }
 
 #ifdef __cplusplus

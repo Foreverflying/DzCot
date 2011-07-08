@@ -360,18 +360,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CoThread.cpp" />
-    <ClCompile Include="DlMalloc.cpp" />
     <ClCompile Include="Global.cpp" />
-    <ClCompile Include="malloc.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugLib|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugLib|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugLib|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugLib|x64'">Create</PrecompiledHeader>
@@ -391,11 +380,10 @@
     <ClCompile Include="TestMapHost.cpp" />
     <ClCompile Include="TestMapServer.cpp" />
     <ClCompile Include="TestResourceMgr.cpp" />
+    <ClCompile Include="TestSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DlMalloc.h" />
     <ClInclude Include="Global.h" />
-    <ClInclude Include="malloc.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestCallbackTimer.h" />
@@ -406,6 +394,7 @@
     <ClInclude Include="TestLibpq.h" />
     <ClInclude Include="TestMap.h" />
     <ClInclude Include="TestResourceMgr.h" />
+    <ClInclude Include="TestSocket.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

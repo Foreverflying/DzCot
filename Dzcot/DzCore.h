@@ -14,34 +14,79 @@
 #include "DzResourceMgr.h"
 #include "DzSchedule.h"
 #include "DzIoOs.h"
+#include "dlmalloc.h"
 #include <assert.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
+void __stdcall DelayFreeTheadRoutine( void* context );
+
+inline void ReleaseAllPoolStack( DzHost* host )
+{
+    DzLItr* lItr;
+    DzThread* dzThread;
+    int i;
+
+    for( i = DZ_MAX_PERSIST_STACK_SIZE + 1; i <= host->lowestPriority; i++ ){
+        lItr = host->cotPools[i];
+        while( lItr ){
+            dzThread = MEMBER_BASE( lItr, DzThread, lItr );
+            FreeCotStack( dzThread );
+            lItr = lItr->next;
+        }
+    }
+}
+
 inline DzThread* AllocDzThread( DzHost* host, int sSize )
 {
     DzThread* dzThread;
-    DzLItr* head;
 
-    head = &host->threadPools[ sSize ];
-    if( !head->next ){
-        if( !AllocDzThreadPool( host, sSize ) ){
+    if( host->cotPools[ sSize ] ){
+        dzThread = MEMBER_BASE( host->cotPools[ sSize ], DzThread, lItr );
+        host->cotPools[ sSize ] = host->cotPools[ sSize ]->next;
+        host->cotPoolDepth[ sSize ] ++;
+    }else{
+        if( !host->threadPool ){
+            if( !AllocDzThreadPool( host ) ){
+                return NULL;
+            }
+        }
+        dzThread = MEMBER_BASE( host->threadPool, DzThread, lItr );
+        if( InitCot( host, dzThread, sSize ) ){
+            host->threadPool = host->threadPool->next;
+        }else{
             return NULL;
         }
     }
-
-    dzThread = MEMBER_BASE( head->next, DzThread, lItr );
-    PopSList( head );
-    return InitCot( host, dzThread, sSize );
+    return dzThread;
 }
 
 inline void FreeDzThread( DzHost* host, DzThread* dzThread )
 {
-    PushSList( &host->threadPools[ dzThread->stackSize ], &dzThread->lItr );
-    //DeCommitStack( dzThread->stack, dzThread->stackLimit );
-    //dzThread->stackLimit = NULL;
+    DzThread* tmp;
+
+    if( host->cotPoolDepth[ dzThread->sSize ] > 0 ){
+        dzThread->lItr.next = host->cotPools[ dzThread->sSize ];
+        host->cotPools[ dzThread->sSize ] = &dzThread->lItr;
+        host->cotPoolDepth[ dzThread->sSize ] --;
+    }else{
+        //can not FreeCotStack( dzThread ) here!!
+        //the stack is still in use before switch
+        if( host->cotPools[ dzThread->sSize ] ){
+            //if the cotPool is not empty swap and free the head
+            tmp = MEMBER_BASE( host->cotPools[ dzThread->sSize ], DzThread, lItr );
+            dzThread->lItr.next = tmp->lItr.next;
+            host->cotPools[ dzThread->sSize ] = &dzThread->lItr;
+            FreeCotStack( tmp );
+            tmp->lItr.next = host->threadPool;
+            host->threadPool = &tmp->lItr;
+        }else{
+            //start a cot to free it later
+            StartCot( host, DelayFreeTheadRoutine, dzThread, host->lowestPriority, SS_FIRST );
+        }
+    }
 }
 
 // StartCot:
@@ -132,28 +177,35 @@ inline int RunHost(
 
     InitTlsIndex();
 
+    host.originThread.sSize = SS_DEFAULT;
     host.currThread = &host.originThread;
     host.lowestPriority = lowestPriority;
     host.currPriority = lowestPriority + 1;
-    for( i=0; i<=lowestPriority; i++ ){
+    for( i = 0; i <= lowestPriority; i++ ){
         InitSList( &host.taskLs[i] );
     }
     //host.originThread.priority = CP_FIRST;
-    host.lNodePool.next = NULL;
-    host.poolDepth = 0;
-    for( i=0; i<=STACK_SIZE_COUNT; i++ ){
-        host.threadPools[i].next = NULL;
+    host.threadPool = NULL;
+    for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
+        host.cotPools[i] = NULL;
+        host.cotPoolDepth[i] = DZ_MAX_COT_POOL_DEPTH;
+    }
+    for( ; i < STACK_SIZE_COUNT; i++ ){
+        host.cotPools[i] = NULL;
+        host.cotPoolDepth[i] = 0;
     }
     host.threadCount = 0;
     host.maxThreadCount = 0;
     host.timerCount = 0;
     host.timerHeapSize = 0;
     host.timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
-    host.poolGrowList.next = NULL;
+    host.mallocSpace = create_mspace( 0, 0 );
+    host.synObjPool = NULL;
+    host.asynIoPool = NULL;
+    host.lNodePool = NULL;
+    host.poolGrowList = NULL;
     host.memPoolPos = NULL;
     host.memPoolEnd = NULL;
-    host.synObjPool.next = NULL;
-    host.asynIoPool.next = NULL;
     host.defaultPri = defaultPri == CP_DEFAULT ? host.lowestPriority : defaultPri;
     host.defaultSSize = defaultSSize;
 
@@ -161,10 +213,16 @@ inline int RunHost(
     SetHost( &host );
 
     ret = StartCot( &host, firstEntry, context, priority, sSize );
-    Schedule( &host );
+    if( ret == DS_OK ){
+        Schedule( &host );
+    }
     IoMgrRoutine( &host );
+
+    ReleaseAllPoolStack( &host );
+    DeleteOsStruct( &host );
     PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     ReleaseMemoryPool( &host );
+    destroy_mspace( host.mallocSpace );
     return ret;
 }
 
@@ -178,6 +236,21 @@ inline int SetCurrCotPriority( DzHost* host, int priority )
         host->currPriority = priority;
     }
     return ret;
+}
+
+inline BOOL GrowCotPoolDepth( DzHost* host, int sSize, int deta )
+{
+    int count;
+
+    if( deta > DZ_MAX_COT_POOL_DEPTH || deta < - DZ_MAX_COT_POOL_DEPTH ){
+        return FALSE;
+    }
+    count = host->cotPoolDepth[ sSize ] + deta;
+    if( count > DZ_MAX_COT_POOL_DEPTH || count < - DZ_MAX_COT_POOL_DEPTH ){
+        return FALSE;
+    }
+    host->cotPoolDepth[ sSize ] = count;
+    return TRUE;
 }
 
 inline int GetCotCount( DzHost* host )
@@ -196,34 +269,24 @@ inline int GetMaxCotCount( DzHost* host, BOOL reset )
     return ret;
 }
 
-inline void InitCotPool( DzHost* host, uint count, uint depth, int sSize )
+inline void* Malloc( DzHost* host, size_t size )
 {
-    DzThread* head;
-    DzThread* thd;
-    DzLItr* lItr;
-    uint i;
+    return mspace_malloc( host->mallocSpace, size );
+}
 
-    if( sSize == SS_DEFAULT ){
-        sSize = host->defaultSSize;
-    }
+inline void* Calloc( DzHost* host, size_t num, size_t size )
+{
+    return mspace_calloc( host->mallocSpace, num, size );
+}
 
-    head = AllocDzThread( host, sSize );
-    lItr = &head->lItr;
-    for( i=1; i<count; i++ ){
-        thd = AllocDzThread( host, sSize );
-        if( !thd ){
-            break;
-        }
-        lItr->next = &thd->lItr;
-        lItr = lItr->next;
-    }
-    lItr->next = NULL;
-    lItr = &head->lItr;
-    while( lItr ){
-        head = MEMBER_BASE( lItr, DzThread, lItr );
-        lItr = lItr->next;
-        FreeDzThread( host, head );
-    }
+inline void* ReAlloc( DzHost* host, void* mem, size_t size )
+{
+    return mspace_realloc( host->mallocSpace, mem, size );
+}
+
+inline void Free( DzHost* host, void* mem )
+{
+    mspace_free( host->mallocSpace, mem );
 }
 
 #ifdef __cplusplus

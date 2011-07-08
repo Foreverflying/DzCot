@@ -511,7 +511,9 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dlmalloc.c" />
     <ClCompile Include="DzCore.c" />
+    <ClCompile Include="DzTimer.c" />
     <ClCompile Include="win\DzCoreWin.c" />
     <ClCompile Include="Dzcot.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>
@@ -533,10 +535,14 @@
     <ClCompile Include="DzResourceMgr.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dlconfig.h" />
+    <ClInclude Include="dlmalloc.h" />
+    <ClInclude Include="DzBase.h" />
     <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzConstant.h" />
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
+    <ClInclude Include="DzFastNewDel.h" />
     <ClInclude Include="win\DzBaseWin.h" />
     <ClInclude Include="win\DzCoreWin.h" />
     <CustomBuildStep Include="Dzcot.h">

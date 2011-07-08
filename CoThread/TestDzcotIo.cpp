@@ -3,7 +3,7 @@
 #include "../Dzcot/Dzcot.h"
 #include "Global.h"
 
-int __stdcall TestReadFile( void *context )
+void __stdcall TestReadFile( void *context )
 {
     int fd = DzOpenFileA( "d:\\temp\\emule.exe", DZ_O_RD );
     //off_t64 t = DzSeekFile( fd, 4000000, SEEK_END );
@@ -11,7 +11,6 @@ int __stdcall TestReadFile( void *context )
     int count = (int)DzReadFile( fd, buff, 10000000 );
     DzCloseFd( fd );
     printf( "count: %d\r\n", count );
-    return count;
 }
 
 static int globalCount = 0;
@@ -22,7 +21,7 @@ static int recvErrCount = 0;
 static int lisErrCount = 0;
 static int serveCount = 0;
 
-int __stdcall TestClient( void *context )
+void __stdcall TestClient( void *context )
 {
     if( globalCount == 0 ){
         printf( "start here:\t %d\r\n", GetTickCount() );
@@ -74,20 +73,17 @@ int __stdcall TestClient( void *context )
         sendErrCount = 0;
         recvErrCount = 0;
     }
-    return 1;
 }
 
-int __stdcall TestMultiClient( void *context )
+void __stdcall TestMultiClient( void *context )
 {
     int count = (int)context;
-    DzInitCotPool( count > 40000 ? 40000 : count, 0 );
     for( int i=0; i<count; i++ ){
         DzStartCot( TestClient, 0, CP_HIGH );
     }
-    return 0;
 }
 
-int __stdcall TestServerRoutine( void *context )
+void __stdcall TestServerRoutine( void *context )
 {
     char buff[16];
     int fd = (int)context;
@@ -121,10 +117,9 @@ int __stdcall TestServerRoutine( void *context )
         printf( "served  count:\t %d\r\n", serveCount );
         serveCount = 0;
     }
-    return 1;
 }
 
-int __stdcall TestServer( void *context )
+void __stdcall TestServer( void *context )
 {
     int count = (int)context;
     //DzInitCotPool( count > 40000 ? 40000 : count, 0 );
@@ -136,7 +131,7 @@ int __stdcall TestServer( void *context )
     DzBind( fd, (sockaddr*)&addr, sizeof(sockaddr_in) );
     if( DzListen( fd, count ) != 0 ){
         lisErrCount++;
-        return 0;
+        return;
     }
     while(1){
         int addrLen;
@@ -153,5 +148,4 @@ int __stdcall TestServer( void *context )
             acptErrCount++;
         }
     }
-    return 1;
 }

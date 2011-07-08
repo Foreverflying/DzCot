@@ -21,8 +21,6 @@
 #include <errno.h>
 #include <assert.h>
 
-#define EPOLL_EVT_LIST_SIZE     4096
-
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -32,17 +30,15 @@ BOOL SockCleanup();
 
 inline DzAsynIo* CreateAsynIo( DzHost* host )
 {
-    DzQItr* head;
     DzAsynIo* asynIo;
 
-    head = &host->asynIoPool;
-    if( !head->next ){
-        if( !AllocAsynIoPool( host, 0 ) ){
+    if( !host->asynIoPool ){
+        if( !AllocAsynIoPool( host ) ){
             return NULL;
         }
     }
-    asynIo = MEMBER_BASE( head->next, DzAsynIo, qItr );
-    PopQItr( head );
+    asynIo = MEMBER_BASE( host->asynIoPool, DzAsynIo, lItr );
+    host->asynIoPool = host->asynIoPool->next;
     asynIo->sign = 0;
     asynIo->ref = 1;
     return asynIo;
@@ -57,7 +53,8 @@ inline void CloseAsynIo( DzHost* host, DzAsynIo* asynIo )
 {
     asynIo->ref--;
     if( !asynIo->ref ){
-        PushQItr( &host->asynIoPool, &asynIo->qItr );
+    	asynIo->lItr.next = host->asynIoPool;
+    	host->asynIoPool = &asynIo->lItr;
     }
 }
 
@@ -359,7 +356,7 @@ inline size_t Seek( DzHost* host, int fd, size_t offset, int whence )
     return (size_t)lseek( fd, (off_t)offset, whence );
 }
 
-inline size_t FileSize( int fd )
+inline size_t FileSize( DzHost* host, int fd )
 {
     struct stat st;
 
@@ -380,15 +377,16 @@ inline void IoMgrRoutine( DzHost* host )
     DzAsynIo* asynIo;
     struct epoll_event evtList[ EPOLL_EVT_LIST_SIZE ];
 
-    while( !host->isExiting || host->threadCount > 1 ){
+    while( host->threadCount ){
         while( NotifyMinTimers( host, &timeout ) ){
             host->currPriority = CP_FIRST;
             Schedule( host );
+            if( !host->threadCount ){
+                return;
+            }
         }
         listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
-        if( listCount == 0 ){
-            NotifyMinTimers( host, NULL );
-        }else{
+        if( listCount != 0 ){
             for( i = 0; i < listCount; i++ ){
                 asynIo = (DzAsynIo*)evtList[i].data.ptr;
                 if( evtList[i].events & EPOLLERR ){
@@ -404,9 +402,9 @@ inline void IoMgrRoutine( DzHost* host )
                     }
                 }
             }
+            host->currPriority = CP_FIRST;
+            Schedule( host );
         }
-        host->currPriority = CP_FIRST;
-        Schedule( host );
     }
 }
 

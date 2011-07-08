@@ -13,68 +13,72 @@ DzHandle synTimer = NULL;
 int ret[ 64 ];
 int retCount = 0;
 
-int __stdcall Wait1Evt1_Sem2( void *context )
+void __stdcall Wait1Evt1_Sem2( void *context )
 {
     DzHandle obj[] = { synEvt1, synSem2 };
-    DzWaitMultiSynObj( 2, obj, TRUE );
-    ret[ retCount++ ] = 1;
-    return DS_OK;
+    int n = DzWaitMultiSynObj( 2, obj, TRUE );
+    ret[ retCount++ ] = 1 * 100 + n + 1;
 }
 
-int __stdcall Wait2Evt1_Evt2( void *context )
+void __stdcall Wait2Evt1_Evt2( void *context )
 {
     DzHandle obj[] = { synEvt1, synEvt2 };
-    DzWaitMultiSynObj( 2, obj, TRUE );
-    ret[ retCount++ ] = 2;
-    return DS_OK;
+    int n = DzWaitMultiSynObj( 2, obj, TRUE );
+    ret[ retCount++ ] = 2 * 100 + n + 1;
 }
 
-int __stdcall Wait3Evt1_Timer( void *context )
+void __stdcall Wait3Evt1_Timer( void *context )
 {
     DzHandle obj[] = { synEvt1, synTimer };
-    DzWaitMultiSynObj( 2, obj, FALSE );
-    ret[ retCount++ ] = 3;
-    return DS_OK;
+    int n = DzWaitMultiSynObj( 2, obj, FALSE );
+    ret[ retCount++ ] = 3 * 100 + n + 1;
 }
 
-int __stdcall Wait4Evt2_Sem1( void *context )
+void __stdcall Wait4Sem1_Evt2( void *context )
 {
-    DzHandle obj[] = { synEvt2, synSem1 };
-    DzWaitMultiSynObj( 2, obj, FALSE );
-    ret[ retCount++ ] = 4;
-    return DS_OK;
+    DzHandle obj[] = { synSem1, synEvt2 };
+    int n = DzWaitMultiSynObj( 2, obj, FALSE );
+    ret[ retCount++ ] = 4 * 100 + n + 1;
 }
 
-int __stdcall Wait5Sem2_Timer( void *context )
+void __stdcall Wait5Sem2_Timer( void *context )
 {
     DzHandle obj[] = { synSem2, synTimer };
-    DzWaitMultiSynObj( 2, obj, TRUE );
-    ret[ retCount++ ] = 5;
-    return DS_OK;
+    int n = DzWaitMultiSynObj( 2, obj, TRUE );
+    ret[ retCount++ ] = 5 * 100 + n + 1;
 }
 
-int __stdcall Wait6Evt1( void *context )
+void __stdcall Wait6Evt1( void *context )
 {
-    DzWaitSynObj( synEvt1 );
-    ret[ retCount++ ] = 6;
-    return DS_OK;
+    int n = DzWaitSynObj( synEvt1 );
+    ret[ retCount++ ] = 6 * 100 + n + 1;
 }
 
-int __stdcall Wait7Evt1_Sem1_Timer( void *context )
+void __stdcall Wait7Evt1_Sem1_Timer( void *context )
 {
     DzHandle obj[] = { synEvt1, synSem1, synTimer };
-    DzWaitMultiSynObj( 3, obj, TRUE );
-    ret[ retCount++ ] = 7;
-    return DS_OK;
+    int n = DzWaitMultiSynObj( 3, obj, TRUE );
+    ret[ retCount++ ] = 7 * 100 + n + 1;
 }
 
-int __stdcall Wait8Evt2( void *context )
+void __stdcall Wait8Evt2( void *context )
 {
-    DzWaitSynObj( synEvt2 );
-    ret[ retCount++ ] = 8;
-    return DS_OK;
+    int n = DzWaitSynObj( synEvt2 );
+    ret[ retCount++ ] = 8 * 100 + n + 1;
 }
 
+void __stdcall Wait9Sem2TimeOut( void *context )
+{
+    int n = DzWaitSynObj( synSem2, 2500 );
+    ret[ retCount++ ] = 9 * 100 + n + 1;
+}
+
+void __stdcall Wait10Sem1Sem2TimeOut( void *context )
+{
+    DzHandle obj[] = { synSem1, synSem2 };
+    int n = DzWaitMultiSynObj( 2, obj, TRUE, 2500 );
+    ret[ retCount++ ] = 10 * 100 + n + 1;
+}
 
 BOOL TestSynObj1()
 {
@@ -95,7 +99,7 @@ BOOL TestSynObj1()
     DzSetEvt( synEvt2 );
 
     DzSleep( 1000 );
-    int rightRet[] = { 6, 2, 2, 6 };
+    int rightRet[] = { 601, 201, 201, 601 };
     if( retCount != 4 ){
         return FALSE;
     }
@@ -114,7 +118,7 @@ BOOL TestSynObj2()
 
     DzStartCot( Wait7Evt1_Sem1_Timer );
     DzStartCot( Wait2Evt1_Evt2 );
-    DzStartCot( Wait4Evt2_Sem1 );
+    DzStartCot( Wait4Sem1_Evt2 );
     DzStartCot( Wait2Evt1_Evt2 );
     DzStartCot( Wait3Evt1_Timer );
     DzStartCot( Wait5Sem2_Timer );
@@ -136,7 +140,7 @@ BOOL TestSynObj2()
     DzReleaseSem( synSem2, 2 );
 
     DzSleep( 500 );
-    int rightRet[] = { 2, 3, 6, 4, 2, 7, 5, 5, 5, 7 };
+    int rightRet[] = { 201, 301, 601, 402, 201, 701, 501, 501, 501, 701 };
     if( retCount != 4 ){
         return FALSE;
     }
@@ -180,7 +184,7 @@ BOOL TestSynObj3()
 
     DzStartCot( Wait8Evt2 );
     DzStartCot( Wait2Evt1_Evt2, NULL, CP_HIGH );
-    DzStartCot( Wait4Evt2_Sem1 );
+    DzStartCot( Wait4Sem1_Evt2 );
     DzStartCot( Wait7Evt1_Sem1_Timer );
     DzStartCot( Wait3Evt1_Timer );
     DzStartCot( Wait5Sem2_Timer );
@@ -202,7 +206,7 @@ BOOL TestSynObj3()
     DzReleaseSem( synSem2, 2 );
 
     DzSleep0();
-    int rightRet[] = { 2, 3, 6, 8, 4, 5, 5, 7, 5, 7 };
+    int rightRet[] = { 201, 301, 601, 801, 401, 501, 501, 701, 501, 701 };
     if( retCount != 5 ){
         return FALSE;
     }
@@ -240,10 +244,85 @@ BOOL TestSynObj3()
     return TRUE;
 }
 
+BOOL TestSynObj4()
+{
+    retCount = 0;
+    int i = 0;
+
+    DzStartCot( Wait9Sem2TimeOut );
+    DzStartCot( Wait2Evt1_Evt2, NULL, CP_HIGH );
+    DzStartCot( Wait4Sem1_Evt2 );
+    DzStartCot( Wait7Evt1_Sem1_Timer );
+    DzStartCot( Wait3Evt1_Timer );
+    DzStartCot( Wait5Sem2_Timer );
+    DzStartCot( Wait5Sem2_Timer );
+    DzStartCot( Wait5Sem2_Timer );
+    DzStartCot( Wait7Evt1_Sem1_Timer );
+    DzStartCot( Wait6Evt1 );
+
+    DzSetEvt( synEvt1 );
+    DzSleep0();
+    DzSetEvt( synEvt2 );
+    DzSleep0();
+    DzResetEvt( synEvt1 );
+    DzSleep0();
+    DzReleaseSem( synSem1, 2 );
+    DzSleep0();
+    DzSetEvt( synEvt2 );
+    DzSleep( 3000 );
+    DzReleaseSem( synSem2, 2 );
+
+    DzSleep0();
+    int rightRet[] = { 201, 301, 601, 402, 900, 501, 501, 701, 701, 501, 901, 1000, 901, 1001, 1000 };
+    if( retCount != 7 ){
+        return FALSE;
+    }
+    for( ; i < retCount; i++ ){
+        if( ret[i] != rightRet[i] ){
+            return FALSE;
+        }
+    }
+
+    DzStartCot( Wait9Sem2TimeOut );
+    DzStartCot( Wait10Sem1Sem2TimeOut );
+    DzSleep( 1500 );
+    DzSetEvt( synEvt1 );
+    DzReleaseSem( synSem2, 2 );
+
+    DzStartCot( Wait9Sem2TimeOut );
+    DzStartCot( Wait10Sem1Sem2TimeOut );
+
+    DzSleep( 1500 );
+    if( retCount != 12 ){
+        return FALSE;
+    }
+    for( ; i < retCount; i++ ){
+        if( ret[i] != rightRet[i] ){
+            return FALSE;
+        }
+    }
+
+    DzReleaseSem( synSem2, 2 );
+    DzReleaseSem( synSem1, 1 );
+    DzStartCot( Wait10Sem1Sem2TimeOut );
+
+    DzSleep( 3000 );
+    if( retCount != 15 ){
+        return FALSE;
+    }
+    for( ; i < retCount; i++ ){
+        if( ret[i] != rightRet[i] ){
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 void InitSynObj()
 {
-    synEvt1 = DzCreateEvt( FALSE, FALSE );
-    synEvt2 = DzCreateEvt( TRUE, TRUE );
+    synEvt1 = DzCreateEvt( TRUE, FALSE );
+    synEvt2 = DzCreateEvt( FALSE, TRUE );
     synSem1 = DzCreateSem( 0 );
     synSem2 = DzCreateSem( 0 );
     synTimer = DzCreateTimer( 1000, 3 );
@@ -258,9 +337,11 @@ void ReleaseSynObj()
     DzCloseSynObj( synTimer );
 }
 
-int __stdcall StartTestSynobj( void *context )
+void __stdcall StartTestSynobj( void *context )
 {
     BOOL ret;
+
+    DzGrowCotPoolDepth( SS_64K, 2 );
 
     InitSynObj();
     ret = TestSynObj1();
@@ -277,95 +358,8 @@ int __stdcall StartTestSynobj( void *context )
     printf( "TestSynObj3 result: %d\r\n", ret );
     ReleaseSynObj();
 
-    return DS_OK;
+    InitSynObj();
+    ret = TestSynObj4();
+    printf( "TestSynObj4 result: %d\r\n", ret );
+    ReleaseSynObj();
 }
-
-/*
-DzHandle synObj1 = NULL;
-DzHandle synObj2 = NULL;
-DzHandle synObj3 = NULL;
-
-//#define TEST_SYN_EVT
-
-int __stdcall TestSynObj1( void *context );
-int __stdcall TestSysObj2( void *context );
-int __stdcall TestSysObj3( void *context );
-
-int __stdcall TestSynObj1( void *context )
-{
-    while(1){
-        printf( "%d\tTestSynObj1A: %d\r\n", currCount, (int)context );
-        currCount++;
-        //Sleep( 500 );
-        DzSleep( 1000 );
-        printf( "%d\tTestSynObj1B: %d\r\n", currCount, (int)context );
-        if( currCount - 15 == 0 ){
-#ifdef TEST_SYN_EVT
-            DzSetEvt( synObj1 );
-            DzResetEvt( synObj1 );
-#else
-            DzReleaseSem( synObj1, 3 );
-#endif
-            //StartCot( TestSysObj3, (void*)(10000 + (int)context), CP_INSTANT );
-        }
-        if( currCount - 25 == 0 ){
-            DzReleaseSem( synObj2, 3 );
-            //ResetDzEvt( synObj1 );
-            //StartCot( TestSysObj2, (void*)(10000 + (int)context), CP_INSTANT );
-        }
-        if( currCount -35 == 0 ){
-            DzSetEvt( synObj1 );
-            DzResetEvt( synObj1 );
-        }
-        if( currCount - 40 == 0 ){
-            DzReleaseSem( synObj2, 3 );
-            DzSetEvt( synObj1 );
-        }
-        if( currCount - 50 == 0 ){
-            DzReleaseSem( synObj2, 10 );
-            //SetDzEvt( synObj1 );
-        }
-    }
-    return DS_OK;
-}
-
-int __stdcall TestSysObj2( void *context )
-{
-    while(1){
-        DzWaitSynObj( synObj1, -1 );
-        DzHandle obj[] = { synObj1, synObj2, synObj3 };
-        //DzWaitMultiSynObj( 2, obj, TRUE, 20000 );
-        //DzWaitMultiSynObj( 3, obj, TRUE, 200000 );
-        printf( "%d\tTestSysObj2: %d\r\n", currCount, (int)context );
-        //Sleep( 500 );
-        //DzSleep( 0 );
-    }
-    return DS_OK;
-}
-
-int __stdcall TestSysObj3( void *context )
-{
-    printf( "%d\thello, i am a fool: %d\r\n", currCount, (int)context );
-    return DS_OK;
-}
-
-int __stdcall StartTestSynobj( void *context )
-{
-    int count = (int)context;
-#ifdef TEST_SYN_EVT
-    synObj1 = DzCreateEvt( FALSE, FALSE );
-    synObj2 = DzCreateSem( 10 );
-    synObj3 = DzCreateTimer( 50000, FALSE );
-#else
-    synObj1 = DzCreateSem( 5 );
-#endif
-    for( int i=0; i<count; i++ ){
-        DzStartCot( TestSysObj2, (void*)(i*2), CP_HIGH );
-    }
-    for( int i=0; i<1; i++ ){
-        DzStartCot( TestSynObj1, (void*)(i*2+1) );
-    }
-    return DS_OK;
-}
-
-*/

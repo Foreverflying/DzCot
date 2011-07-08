@@ -1,8 +1,8 @@
 
-int __stdcall TestMiniDump( void *context );
-int __stdcall TestPrintf( void *context );
-int __stdcall TestSehException( void *context );
-int __stdcall TestException( void *context );
-int __stdcall StartTestException( void *context );
-int __stdcall StartTestSwitch( void *context );
-int __stdcall StartTestStackAlloc( void *context );
+void __stdcall TestMiniDump( void *context );
+void __stdcall TestPrintf( void *context );
+void __stdcall TestSehException( void *context );
+void __stdcall TestException( void *context );
+void __stdcall StartTestException( void *context );
+void __stdcall StartTestSwitch( void *context );
+void __stdcall StartTestStackAlloc( void *context );

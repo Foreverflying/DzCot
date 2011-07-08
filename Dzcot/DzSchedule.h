@@ -8,8 +8,9 @@
 #ifndef __DzSchedule_h__
 #define __DzSchedule_h__
 
+#include "DzStructs.h"
 #include "DzList.h"
-#include "DzCoreOs.h"
+#include "DzBaseOs.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -43,6 +44,7 @@ inline void TemporaryPushThread( DzHost* host, DzThread* dzThread )
 
 inline void SwitchToCot( DzHost* host, DzThread* dzThread )
 {
+    CheckCotStackOverflow( host->currThread->sSize );
     DzSwitch( host, dzThread );
 }
 
