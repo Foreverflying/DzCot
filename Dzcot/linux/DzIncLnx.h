@@ -10,12 +10,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/timeb.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
-
-typedef long long int64;
 
 #ifndef __cplusplus
 #define inline static __inline
@@ -23,8 +21,15 @@ typedef long long int64;
 
 #define __fastcall __attribute__((fastcall))
 
-//#define STORE_HOST_IN_SPECIFIC_POINTER
+typedef long long int64;
 
+
+//global constants on linux
+
+//linux specific constants
 #define EPOLL_EVT_LIST_SIZE     4096
+
+//switchers
+//#define STORE_HOST_IN_SPECIFIC_POINTER
 
 #endif // __DzIncLnx_h__

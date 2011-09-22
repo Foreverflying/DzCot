@@ -20,7 +20,6 @@ extern "C"{
 BOOL MemeryPoolGrow( DzHost* host );
 void ReleaseMemoryPool( DzHost* host );
 BOOL AllocQueueNodePool( DzHost* host );
-BOOL AllocAsynIoPool( DzHost* host );
 BOOL AllocSynObjPool( DzHost* host );
 BOOL AllocDzThreadPool( DzHost* host );
 

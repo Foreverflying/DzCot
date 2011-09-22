@@ -9,6 +9,29 @@
 #include "../DzCoreOs.h"
 #include "../DzCore.h"
 
+BOOL AllocAsynIoPool( DzHost* host )
+{
+    DzAsynIo* p;
+    DzAsynIo* end;
+    DzLItr* lItr;
+
+    p = (DzAsynIo*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzAsynIo ) );
+    if( !p ){
+        return FALSE;
+    }
+
+    host->asynIoPool = &p->lItr;
+    end = p + OBJ_POOL_GROW_COUNT - 1;
+    end->lItr.next = NULL;
+    InitAsynIo( end );
+    while( p != end ){
+        InitAsynIo( p );
+        lItr = &p->lItr;
+        lItr->next = &(++p)->lItr;
+    }
+    return TRUE;
+}
+
 // DzcotRoutine:
 // the real entry the co thread starts, it call the user entry
 // after that, the thread is finished, so put itself to the thread pool

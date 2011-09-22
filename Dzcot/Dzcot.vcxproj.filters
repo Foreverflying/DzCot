@@ -49,9 +49,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DzConstant.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DzCore.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -79,9 +76,6 @@
     <ClInclude Include="DzSchedule.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DzSocketReplace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DzStructs.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -101,9 +95,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DzTimer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DzType.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="win\DzBaseWin.h">
@@ -127,7 +118,16 @@
     <ClInclude Include="dlconfig.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DzFastNewDel.h">
+    <ClInclude Include="DzPreDef.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc_DzSocketReplace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc_DzFastNewDel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc_DzSockUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -138,7 +138,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuildStep Include="Dzcot.h">
+    <CustomBuildStep Include="Inc_Dzcot.h">
       <Filter>头文件</Filter>
     </CustomBuildStep>
   </ItemGroup>

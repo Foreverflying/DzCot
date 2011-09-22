@@ -18,6 +18,8 @@
 extern "C"{
 #endif
 
+BOOL AllocAsynIoPool( DzHost* host );
+
 inline void InitDzThread( DzThread* dzThread )
 {
 }

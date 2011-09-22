@@ -85,29 +85,6 @@ BOOL AllocQueueNodePool( DzHost* host )
     return TRUE;
 }
 
-BOOL AllocAsynIoPool( DzHost* host )
-{
-    DzAsynIo* p;
-    DzAsynIo* end;
-    DzLItr* lItr;
-
-    p = (DzAsynIo*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzAsynIo ) );
-    if( !p ){
-        return FALSE;
-    }
-
-    host->asynIoPool = &p->lItr;
-    end = p + OBJ_POOL_GROW_COUNT - 1;
-    end->lItr.next = NULL;
-    InitAsynIo( end );
-    while( p != end ){
-        InitAsynIo( p );
-        lItr = &p->lItr;
-        lItr->next = &(++p)->lItr;
-    }
-    return TRUE;
-}
-
 BOOL AllocSynObjPool( DzHost* host )
 {
     DzSynObj* p;

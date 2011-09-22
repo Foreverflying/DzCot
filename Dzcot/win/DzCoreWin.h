@@ -23,10 +23,6 @@ inline void InitDzThread( DzThread* dzThread )
 {
 }
 
-inline void InitAsynIo( DzAsynIo* asynIo )
-{
-}
-
 #if defined( _X86_ )
 
 struct DzStackBottom

@@ -44,7 +44,7 @@ inline void TemporaryPushThread( DzHost* host, DzThread* dzThread )
 
 inline void SwitchToCot( DzHost* host, DzThread* dzThread )
 {
-    CheckCotStackOverflow( host->currThread->sSize );
+    __DbgCheckCotStackOverflow( host->currThread->sSize );
     DzSwitch( host, dzThread );
 }
 

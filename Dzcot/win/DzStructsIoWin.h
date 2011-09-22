@@ -12,13 +12,8 @@
 
 typedef struct _DzAsynIo
 {
-    union{
-        DzLItr      lItr;
-        int         fd;
-    };
-    int             ref;
-    DzFastEvt       fastEvt;
     OVERLAPPED      overlapped;
+    DzFastEvt       fastEvt;
 }DzAsynIo;
 
 #endif // __DzStructsIoWin_h__

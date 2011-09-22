@@ -11,9 +11,6 @@
 #include "DzStructs.h"
 #include "DzBaseOs.h"
 
-#define TIME_HEAP_SIZE          ( 1024 * 1024 )
-#define MIN_TIME_INTERVAL       5
-
 #ifdef __cplusplus
 extern "C"{
 #endif

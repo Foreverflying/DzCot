@@ -8,7 +8,7 @@
 #ifndef __DzStructs_h__
 #define __DzStructs_h__
 
-#include "DzType.h"
+#include "DzPreDef.h"
 #include "DzStructsList.h"
 #include "DzStructsOs.h"
 
@@ -144,9 +144,6 @@ typedef struct _DzHost
 
     //DzSynObj struct pool
     DzLItr*         synObjPool;
-
-    //DzAsynIo struct pool
-    DzLItr*         asynIoPool;
 
     //DzDqNode struct pool
     DzLItr*         lNodePool;

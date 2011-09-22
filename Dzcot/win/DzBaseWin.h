@@ -93,10 +93,12 @@ void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
 #endif
 
 
-#ifdef CHECK_COT_STACE_OVERFLOW
+#ifdef __DBG_CHECK_COT_STACK_OVERFLOW
 
-inline void CheckCotStackOverflow( int sSize )
+inline void __DbgCheckCotStackOverflow( int sSize )
 {
+    //TODO: find a better way to check
+
     int size;
     char* stack;
     char* stackLimit;
@@ -120,9 +122,9 @@ inline void CheckCotStackOverflow( int sSize )
 
 #else
 
-#define CheckCotStackOverflow( dzThread )
+#define __DbgCheckCotStackOverflow( dzThread )
 
-#endif // CHECK_COT_STACE_OVERFLOW
+#endif // __DBG_CHECK_COT_STACK_OVERFLOW
 
 #ifdef __cplusplus
 };

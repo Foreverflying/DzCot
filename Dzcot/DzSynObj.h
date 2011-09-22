@@ -88,7 +88,9 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
     DzWaitNode* head;
     int priority;
     int i;
-
+    BOOL ret;
+    
+    ret = FALSE;
     for( priority = CP_FIRST; priority <= host->lowestPriority; priority++ ){
         queue = &obj->waitQ[ priority ];
         dlItr = queue->entry.next;
@@ -100,8 +102,9 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
                 ClearWait( host, node->helper );
                 DispatchThread( host, node->helper->dzThread );
                 node->helper->checkIdx = (int)( node - node->helper->nodeArray );
+                ret = TRUE;
                 if( !IsNotified( obj ) ){
-                    return TRUE;
+                    return ret;
                 }
             }else{
                 head = node->helper->nodeArray;
@@ -121,14 +124,15 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
                     ClearWait( host, node->helper );
                     DispatchThread( host, node->helper->dzThread );
                     node->helper->checkIdx = 0;
+                    ret = TRUE;
                     if( !IsNotified( obj ) ){
-                        return TRUE;
+                        return ret;
                     }
                 }
             }
         }
     }
-    return FALSE;
+    return ret;
 }
 
 inline DzSynObj* CreateEvt( DzHost* host,  BOOL manualReset, BOOL notified )
@@ -151,7 +155,9 @@ inline void SetEvt( DzHost* host, DzSynObj* evt )
         return;
     }
     evt->notified = TRUE;
-    NotifyWaitQueue( host, evt );
+    if( NotifyWaitQueue( host, evt ) ){
+        host->currPriority = CP_FIRST;
+    }
 }
 
 inline void ResetEvt( DzSynObj* evt )
@@ -180,7 +186,9 @@ inline int ReleaseSem( DzHost* host, DzSynObj* sem, int count )
         return sem->count;
     }
     sem->count += count;
-    NotifyWaitQueue( host, sem );
+    if( NotifyWaitQueue( host, sem ) ){
+        host->currPriority = CP_FIRST;
+    }
     return sem->count;
 }
 
@@ -243,15 +251,13 @@ inline DzSynObj* CreateCallbackTimer(
     return obj;
 }
 
-inline void CloseCallbackTimer( DzHost* host, DzSynObj* timer, BOOL stop )
+inline void CloseCallbackTimer( DzHost* host, DzSynObj* timer )
 {
-    timer->ref--;
-    if( stop || timer->ref == 0 ){
-        if( IsTimeNodeInHeap( &timer->timerNode ) ){
-            RemoveTimer( host, &timer->timerNode );
-        }
-        timer->routine = NULL;
+    if( IsTimeNodeInHeap( &timer->timerNode ) ){
+        RemoveTimer( host, &timer->timerNode );
     }
+    timer->routine = NULL;
+    timer->ref--;
     if( timer->ref == 0 ){
         InitDList( &timer->waitQ[ CP_HIGH ] );
         InitDList( &timer->waitQ[ CP_NORMAL ] );
@@ -275,7 +281,7 @@ inline BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
         //when notifying Timer, DzTimerNode.notified should keep positive,
         timer->notified = - timer->notified;
         ret = NotifyWaitQueue( host, timer );
-        //well, if a timer can be notified more than one time, it is still in timer heap.
+        //well, if a timer can be notified more than once, it is still in timer heap.
         //so we set it to NOT notified, or else, we keep it notified.
         if( IsTimeNodeInHeap( timerNode ) ){
             timer->notified = - timer->notified;

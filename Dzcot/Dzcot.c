@@ -6,7 +6,6 @@
 *********************************************************************/
 
 #include "DzIncOs.h"
-#include "Dzcot.h"
 #include "DzSynObj.h"
 #include "DzCore.h"
 #include <assert.h>
@@ -117,10 +116,10 @@ int DzChangePriority( int priority )
 BOOL DzGrowCotPoolDepth( int sSize, int deta )
 {
     DzHost* host = GetHost();
-    assert(
-        sSize > DZ_MAX_PERSIST_STACK_SIZE &&
-        sSize <= STACK_SIZE_COUNT
-        );
+    assert( sSize > DZ_MAX_PERSIST_STACK_SIZE && sSize <= STACK_SIZE_COUNT );
+    assert( deta < DZ_MAX_COT_POOL_DEPTH && deta >= - DZ_MAX_COT_POOL_DEPTH );
+    assert( host->cotPoolDepth[ sSize ] + deta <= DZ_MAX_COT_POOL_DEPTH );
+    assert( host->cotPoolDepth[ sSize ] + deta >= DZ_MAX_COT_POOL_DEPTH );
 
     return GrowCotPoolDepth( host, sSize, deta );
 }
@@ -287,7 +286,7 @@ BOOL DzCloseCallbackTimer( DzHandle timer )
     assert( timer );
     assert( timer->type = TYPE_CALLBACK_TIMER );
 
-    CloseCallbackTimer( host, timer, TRUE );
+    CloseCallbackTimer( host, timer );
     return TRUE;
 }
 
@@ -440,6 +439,7 @@ int DzSendEx( int fd, DzBuf* bufs, int bufCount, int flags )
     DzHost* host = GetHost();
     assert( host );
     assert( isSocketStarted );
+    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
 
     return SendEx( host, fd, bufs, bufCount, flags );
 }
@@ -449,26 +449,9 @@ int DzRecvEx( int fd, DzBuf* bufs, int bufCount, int flags )
     DzHost* host = GetHost();
     assert( host );
     assert( isSocketStarted );
+    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
 
     return RecvEx( host, fd, bufs, bufCount, flags );
-}
-
-int DzSendToEx( int fd, DzBuf* bufs, int bufCount, int flags, const struct sockaddr *to, int tolen )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( isSocketStarted );
-
-    return SendToEx( host, fd, bufs, bufCount, flags, to, tolen );
-}
-
-int DzRecvFromEx( int fd, DzBuf* bufs, int bufCount, int flags, struct sockaddr *from, int *fromlen )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( isSocketStarted );
-
-    return RecvFromEx( host, fd, bufs, bufCount, flags, from, fromlen );
 }
 
 int DzSend( int fd, const void* buf, int len, int flags )
@@ -489,7 +472,48 @@ int DzRecv( int fd, void* buf, int len, int flags )
     return Recv( host, fd, buf, len, flags );
 }
 
-int DzSendTo( int fd, const char *buf, int len, int flags, const struct sockaddr *to, int tolen )
+int DzSendToEx(
+    int                     fd,
+    DzBuf*                  bufs,
+    int                     bufCount,
+    int                     flags,
+    const struct sockaddr*  to,
+    int                     tolen
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
+
+    return SendToEx( host, fd, bufs, bufCount, flags, to, tolen );
+}
+
+int DzRecvFromEx(
+    int                     fd,
+    DzBuf*                  bufs,
+    int                     bufCount,
+    int                     flags,
+    struct sockaddr*        from,
+    int*                    fromlen
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( isSocketStarted );
+    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
+
+    return RecvFromEx( host, fd, bufs, bufCount, flags, from, fromlen );
+}
+
+int DzSendTo(
+    int                     fd,
+    const char*             buf,
+    int                     len,
+    int                     flags,
+    const struct sockaddr*  to,
+    int                     tolen
+    )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -498,7 +522,14 @@ int DzSendTo( int fd, const char *buf, int len, int flags, const struct sockaddr
     return SendTo( host, fd, buf, len, flags, to, tolen );
 }
 
-int DzRecvFrom( int fd, char *buf, int len, int flags, struct sockaddr *from, int *fromlen )
+int DzRecvFrom(
+    int                     fd,
+    char*                   buf,
+    int                     len,
+    int                     flags,
+    struct sockaddr*        from,
+    int*                    fromlen
+    )
 {
     DzHost* host = GetHost();
     assert( host );

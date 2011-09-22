@@ -8,7 +8,6 @@
 #ifndef __DzCore_h__
 #define __DzCore_h__
 
-#include "DzType.h"
 #include "DzStructs.h"
 #include "DzBaseOs.h"
 #include "DzResourceMgr.h"
@@ -201,7 +200,6 @@ inline int RunHost(
     host.timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     host.mallocSpace = create_mspace( 0, 0 );
     host.synObjPool = NULL;
-    host.asynIoPool = NULL;
     host.lNodePool = NULL;
     host.poolGrowList = NULL;
     host.memPoolPos = NULL;
@@ -218,11 +216,13 @@ inline int RunHost(
     }
     IoMgrRoutine( &host );
 
-    ReleaseAllPoolStack( &host );
     DeleteOsStruct( &host );
+    ReleaseAllPoolStack( &host );
     PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     ReleaseMemoryPool( &host );
     destroy_mspace( host.mallocSpace );
+    SetHost( NULL );
+
     return ret;
 }
 
@@ -240,16 +240,7 @@ inline int SetCurrCotPriority( DzHost* host, int priority )
 
 inline BOOL GrowCotPoolDepth( DzHost* host, int sSize, int deta )
 {
-    int count;
-
-    if( deta > DZ_MAX_COT_POOL_DEPTH || deta < - DZ_MAX_COT_POOL_DEPTH ){
-        return FALSE;
-    }
-    count = host->cotPoolDepth[ sSize ] + deta;
-    if( count > DZ_MAX_COT_POOL_DEPTH || count < - DZ_MAX_COT_POOL_DEPTH ){
-        return FALSE;
-    }
-    host->cotPoolDepth[ sSize ] = count;
+    host->cotPoolDepth[ sSize ] += deta;
     return TRUE;
 }
 

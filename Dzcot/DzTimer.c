@@ -48,5 +48,10 @@ void __stdcall CallbackTimerEntry( void* context )
     if( timer->routine ){
         timer->routine( timer->context );
     }
-    CloseCallbackTimer( GetHost(), timer, FALSE );
+    timer->ref--;
+    if( timer->ref == 0 ){
+        InitDList( &timer->waitQ[ CP_HIGH ] );
+        InitDList( &timer->waitQ[ CP_NORMAL ] );
+        FreeSynObj( GetHost(), timer );
+    }
 }

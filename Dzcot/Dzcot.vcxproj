@@ -241,6 +241,7 @@
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <ModuleDefinitionFile>DzCot.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -265,6 +266,7 @@
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
       <ModuleDefinitionFile>DzCot.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -288,6 +290,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
       <ModuleDefinitionFile>DzCot.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -314,6 +317,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX64</TargetMachine>
       <ModuleDefinitionFile>DzCot.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">
@@ -431,8 +435,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
+    <Lib />
     <Lib>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugLib|x64'">
@@ -451,8 +456,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <Lib />
     <Lib>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|Win32'">
@@ -468,8 +474,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <Lib />
     <Lib>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|x64'">
@@ -488,8 +495,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <Lib />
     <Lib>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -539,13 +547,13 @@
     <ClInclude Include="dlmalloc.h" />
     <ClInclude Include="DzBase.h" />
     <ClInclude Include="DzBaseOs.h" />
-    <ClInclude Include="DzConstant.h" />
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
-    <ClInclude Include="DzFastNewDel.h" />
+    <ClInclude Include="Inc_DzFastNewDel.h" />
+    <ClInclude Include="Inc_DzSockUtils.h" />
     <ClInclude Include="win\DzBaseWin.h" />
     <ClInclude Include="win\DzCoreWin.h" />
-    <CustomBuildStep Include="Dzcot.h">
+    <CustomBuildStep Include="Inc_Dzcot.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|Win32'">true</ExcludedFromBuild>
@@ -558,7 +566,7 @@
     <ClInclude Include="DzList.h" />
     <ClInclude Include="DzResourceMgr.h" />
     <ClInclude Include="DzSchedule.h" />
-    <ClInclude Include="DzSocketReplace.h" />
+    <ClInclude Include="Inc_DzSocketReplace.h" />
     <ClInclude Include="DzStructs.h" />
     <ClInclude Include="DzStructsIoOs.h" />
     <ClInclude Include="win\DzStructsIoWin.h" />
@@ -567,7 +575,7 @@
     <ClInclude Include="win\DzStructsWin.h" />
     <ClInclude Include="DzSynObj.h" />
     <ClInclude Include="DzTimer.h" />
-    <ClInclude Include="DzType.h" />
+    <ClInclude Include="DzPreDef.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Dzcot.def" />

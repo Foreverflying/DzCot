@@ -42,10 +42,10 @@ EXPORTS
     DzAccept                @39
     DzSendEx                @40
     DzRecvEx                @41
-    DzSendToEx              @42
-    DzRecvFromEx            @43
-    DzSend                  @44
-    DzRecv                  @45
+    DzSend                  @42
+    DzRecv                  @43
+    DzSendToEx              @44
+    DzRecvFromEx            @45
     DzSendTo                @46
     DzRecvFrom              @47
     DzAllocParamNode        @48
@@ -54,7 +54,5 @@ EXPORTS
     DzCalloc                @51
     DzReAlloc               @52
     DzFree                  @53
-    DzSrand                 @54
-    DzRand                  @55
-    DzUnixTime              @56
-    DzMilUnixTime           @57
+    DzUnixTime              @54
+    DzMilUnixTime           @55
