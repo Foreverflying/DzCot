@@ -12,8 +12,8 @@ int _tmain(int argc, _TCHAR* argv[])
         //_T("--gtest_filter=*"),
         //_T("--gtest_filter=TestSynObj.*"),
         //_T("--gtest_filter=TestCallbackTimer.*"),
-        _T("--gtest_filter=TestSocket.*"),
-        //_T("--gtest_filter=TestSocket.SendRecvSend"),
+        //_T("--gtest_filter=TestSocket.*"),
+        _T("--gtest_filter=TestSocket.LargeBuffer"),
         _T("")
     };
     int ac = sizeof( av ) / sizeof(_TCHAR*);

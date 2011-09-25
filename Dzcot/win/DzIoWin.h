@@ -685,7 +685,9 @@ inline void IoMgrRoutine( DzHost* host )
                 return;
             }
         }
+        printf( "wo cao 1\r\n" );
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeout );
+        printf( "wo cao 2\r\n" );
         if( overlapped != NULL ){
             do{
                 asynIo = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
