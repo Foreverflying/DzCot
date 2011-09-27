@@ -677,17 +677,9 @@ inline void IoMgrRoutine( DzHost* host )
     DzAsynIo* asynIo;
     DWORD timeout;
 
+    timeout = (DWORD)NotifyMinTimers( host );
     while( host->threadCount ){
-        while( NotifyMinTimers( host, (int*)&timeout ) ){
-            host->currPriority = CP_FIRST;
-            Schedule( host );
-            if( !host->threadCount ){
-                return;
-            }
-        }
-        printf( "wo cao 1\r\n" );
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeout );
-        printf( "wo cao 2\r\n" );
         if( overlapped != NULL ){
             do{
                 asynIo = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
@@ -697,6 +689,7 @@ inline void IoMgrRoutine( DzHost* host )
             host->currPriority = CP_FIRST;
             Schedule( host );
         }
+        timeout = (DWORD)NotifyMinTimers( host );
     }
 }
 

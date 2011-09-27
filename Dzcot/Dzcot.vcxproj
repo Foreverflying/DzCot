@@ -519,7 +519,9 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dlmalloc.c" />
+    <ClCompile Include="dlmalloc.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</CompileAs>
+    </ClCompile>
     <ClCompile Include="DzCore.c" />
     <ClCompile Include="DzTimer.c" />
     <ClCompile Include="win\DzCoreWin.c" />
@@ -528,6 +530,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|x64'">true</ExcludedFromBuild>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</CompileAs>
     </ClCompile>
     <ClCompile Include="DzcotPython.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugLib|Win32'">true</ExcludedFromBuild>

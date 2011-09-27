@@ -575,7 +575,29 @@ mspace create_mspace_with_base(void* base, size_t capacity, int locked);
 */
 int mspace_track_large_chunks(mspace msp, int enable);
 
-#if !NO_MALLINFO
+#if !NO_MALLINFO 
+#ifndef HAVE_USR_INCLUDE_MALLOC_H
+#ifndef _MALLOC_H
+#ifndef MALLINFO_FIELD_TYPE
+#define MALLINFO_FIELD_TYPE size_t
+#endif /* MALLINFO_FIELD_TYPE */
+#ifndef STRUCT_MALLINFO_DECLARED
+#define STRUCT_MALLINFO_DECLARED 1
+struct mallinfo {
+    MALLINFO_FIELD_TYPE arena;    /* non-mmapped space allocated from system */
+    MALLINFO_FIELD_TYPE ordblks;  /* number of free chunks */
+    MALLINFO_FIELD_TYPE smblks;   /* always 0 */
+    MALLINFO_FIELD_TYPE hblks;    /* always 0 */
+    MALLINFO_FIELD_TYPE hblkhd;   /* space in mmapped regions */
+    MALLINFO_FIELD_TYPE usmblks;  /* maximum total allocated space */
+    MALLINFO_FIELD_TYPE fsmblks;  /* always 0 */
+    MALLINFO_FIELD_TYPE uordblks; /* total allocated space */
+    MALLINFO_FIELD_TYPE fordblks; /* total free space */
+    MALLINFO_FIELD_TYPE keepcost; /* releasable (via malloc_trim) space */
+};
+#endif /* STRUCT_MALLINFO_DECLARED */
+#endif  /* _MALLOC_H */
+#endif  /* HAVE_USR_INCLUDE_MALLOC_H */
 /*
   mspace_mallinfo behaves as mallinfo, but reports properties of
   the given space.

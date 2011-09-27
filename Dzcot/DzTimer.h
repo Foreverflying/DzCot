@@ -15,7 +15,7 @@
 extern "C"{
 #endif
 
-BOOL NotifyMinTimers( DzHost* host, int* timeout );
+int NotifyMinTimers( DzHost* host );
 void __stdcall CallbackTimerEntry( void* context );
 
 inline int64 MilUnixTime()
@@ -156,7 +156,7 @@ inline DzTimerNode* GetMinTimerNode( DzHost* host )
 }
 
 #ifdef __cplusplus
-extern "C"{
+};
 #endif
 
 #endif // __DzTimer_h__

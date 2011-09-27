@@ -8,15 +8,15 @@
 
 
 #define DZ_TEST_SOCKET_SVR
-//#define DZ_TEST_SOCKET_CLT
+#define DZ_TEST_SOCKET_CLT
 
-//#define DZ_SMALL_RECV_BUFF
-#define DZ_SMALL_SEND_BUFF
+#define DZ_SMALL_RECV_BUFF
+//#define DZ_SMALL_SEND_BUFF
 
 static unsigned long gIp = DZMAKEIPADDRESS( 192, 168, 1, 10 );
 //static unsigned long gIp = DZMAKEIPADDRESS( 127, 0, 0, 1 );
 static unsigned short gPort = 9999;
-static int gCltDelay = 500;
+static int gCltDelay = 1500;
 static int gSmallBuffSize = 64;
 
 struct TestStream
@@ -30,31 +30,43 @@ static DRandom* gRand = NULL;
 static char** gBufArr = NULL;
 static int gBuffArrCount = 0;
 static sockaddr* gAddr = NULL;
+static sockaddr* gHelloAddr = NULL;
 static int gAddrLen = 0;
 static int gCotCount = 0;
 static int gMaxCotCount = 0;
 static DzHandle gEndEvt = 0;
+static DzHandle gHelloEvt = 0;
 
 void InitParam()
 {
+    gTestCount++;
     sockaddr_in* addr = new sockaddr_in;
     addr->sin_family = AF_INET;
     addr->sin_addr.s_addr = hton32( gIp );
-    addr->sin_port = hton16( gPort + gTestCount );
-    gTestCount++;
-
+    addr->sin_port = hton16( gPort );
     gAddr = (sockaddr*)addr;
+
+    addr = new sockaddr_in;
+    addr->sin_family = AF_INET;
+    addr->sin_addr.s_addr = hton32( gIp );
+    addr->sin_port = hton16( gPort + 1 );
+    gHelloAddr = (sockaddr*)addr;
+
     gAddrLen = sizeof( sockaddr_in );
     gCotCount = 1;
     gMaxCotCount = 0;
     gEndEvt = DzCreateEvt( TRUE, FALSE );
+    gHelloEvt = DzCreateEvt( TRUE, FALSE );
 }
 
 void FreeParam()
 {
+    DzCloseSynObj( gHelloEvt );
     DzCloseSynObj( gEndEvt );
     delete gAddr;
     gAddr = NULL;
+    delete gHelloAddr;
+    gHelloAddr = NULL;
     gAddrLen = 0;
 }
 
@@ -71,7 +83,7 @@ void InitBuffArray( int seed, int count, int minBuffSize, int randRange )
         stream->idx = i;
         stream->len = len;
         char* p = gBufArr[i] + sizeof( TestStream );
-        char* end = gBufArr[i] + len;
+        char* end = p + len;
         int n = len / sizeof( unsigned long );
         for( int j = 0; j < n; j++ ){
             *(unsigned long*)p = gRand->rand();
@@ -80,7 +92,7 @@ void InitBuffArray( int seed, int count, int minBuffSize, int randRange )
         n = gRand->rand();
         int j = 0;
         while( p < end ){
-            *p = ((char*)&n)[j];
+            *p++ = ((char*)&n)[j];
         }
     }
     gBuffArrCount = count;
@@ -118,6 +130,65 @@ void CotStop()
     }
 }
 
+void __stdcall SayHello( void* context )
+{
+    int fd = DzSocket( gHelloAddr->sa_family, SOCK_STREAM, 0 );
+    if( fd == -1 ){
+        ADD_FAILURE();
+        return;
+    }
+    int ret = DzConnect( fd, gHelloAddr, gAddrLen );
+    if( ret != 0 ){
+        DzCloseSocket( fd );
+        ADD_FAILURE();
+        return;
+    }
+
+    char sendBuff[] = "hello";
+    char recvBuff[ 16 ];
+    DzSend( fd, sendBuff, sizeof( sendBuff ), 0 );
+    DzRecv( fd, recvBuff, sizeof( recvBuff ), 0 );
+
+    DzCloseSocket( fd );
+}
+
+void __stdcall WaitHello( void* context )
+{
+    int lisFd = DzSocket( gHelloAddr->sa_family, SOCK_STREAM, 0 );
+    if( lisFd == -1 ){
+        ADD_FAILURE();
+        return;
+    }
+    int ret = DzBind( lisFd, gHelloAddr, gAddrLen );
+    if( ret != 0 ){
+        DzCloseSocket( lisFd );
+        ADD_FAILURE();
+        return;
+    }
+    ret = DzListen( lisFd, SOMAXCONN );
+    if( ret != 0 ){
+        DzCloseSocket( lisFd );
+        ADD_FAILURE();
+        return;
+    }
+    int fd = DzAccept( lisFd, NULL, NULL );
+    if( fd < 0 ){
+        DzCloseSocket( lisFd );
+        DzCloseSocket( fd );
+        ADD_FAILURE();
+        return;
+    }
+
+    char sendBuff[] = "hello";
+    char recvBuff[ 16 ];
+    DzRecv( fd, recvBuff, sizeof( recvBuff ), 0 );
+    DzWaitSynObj( gHelloEvt );
+    DzSend( fd, sendBuff, sizeof( sendBuff ), 0 );
+
+    DzCloseSocket( fd );
+    DzCloseSocket( lisFd );
+}
+
 void WaitAllCotEnd( int expectMaxCot )
 {
     gCotCount--;
@@ -126,22 +197,118 @@ void WaitAllCotEnd( int expectMaxCot )
     }
     DzWaitSynObj( gEndEvt );
     EXPECT_EQ( expectMaxCot, gMaxCotCount );
+
+#ifdef DZ_TEST_SOCKET_SVR
+    DzSetEvt( gHelloEvt );
+#endif
+
+#ifdef DZ_TEST_SOCKET_CLT
+    SayHello( NULL );
+#endif
 }
 
-int TcpRecvOneStream( int fd )
+int TcpReadOneStream( int lisFd, BOOL waitEnd )
+{
+    TestStream ts;
+
+    int recvLen = 0;
+    do{
+        int tmp = DzReadFile( lisFd, (char*)&ts + recvLen, sizeof( TestStream ) - recvLen );
+        recvLen += tmp;
+    }while( recvLen < sizeof( TestStream ) );
+    char* cmp = gBufArr[ ts.idx ] + sizeof( TestStream );
+
+#ifdef DZ_SMALL_RECV_BUFF
+    int buffLen = gSmallBuffSize;
+    char* buff = new char[ buffLen ];
+#else
+    int buffLen = ts.len + 256;
+    char* buff = new char[ buffLen ];
+#endif
+
+    int tmp;
+    int recvTimeCount = 0;
+    recvLen = 0;
+    do{
+        __DbgTce5( "recv start %d\r\n", recvTimeCount++ );
+        tmp = DzReadFile( lisFd, buff, buffLen );
+        recvLen += tmp;
+        __DbgTce5( "recv : %d,\t total : %d\r\n", tmp, recvLen );
+        if( tmp > 0 ){
+            int ret = memcmp( buff, cmp, tmp );
+            if( ret ){
+                for( int i = 0; i < tmp; i++ ){
+                    if( buff[i] != cmp[i] ){
+                        ret = i;
+                        break;
+                    }
+                }
+            }
+            EXPECT_EQ( 0, ret );
+            cmp += tmp;
+        }
+    }while( tmp > 0 && ( waitEnd || recvLen < ts.len ) );
+
+    if( waitEnd ){
+        EXPECT_EQ( 0, tmp );
+    }
+    EXPECT_EQ( ts.len, recvLen );
+    delete[] buff;
+    return ts.idx;
+}
+
+void TcpWriteOneStream( int lisFd, int idx )
+{
+    char* buff = gBufArr[ idx ];
+    TestStream& ts = *(TestStream*)buff;
+    int buffLen = ts.len + sizeof( TestStream );
+
+#ifdef DZ_SMALL_SEND_BUFF
+    int emptyLen = gSmallBuffSize;
+    int tmp;
+    int sendTimeCount = 0;
+    int sendLen = 0;
+    do{
+        __DbgTce5( "send start %d\r\n", sendTimeCount++ );
+        tmp = DzWriteFile( lisFd, buff + sendLen, emptyLen );
+        sendLen += tmp;
+        __DbgTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
+        if( emptyLen < buffLen - sendLen ){
+            emptyLen = buffLen - sendLen;
+        }
+        DzSleep( 10 );
+    }while( tmp > 0 && sendLen < buffLen );
+#else
+    int emptyLen = buffLen;
+    int tmp;
+    int sendTimeCount = 0;
+    int sendLen = 0;
+    do{
+        __DbgTce5( "send start %d\r\n", sendTimeCount++ );
+        tmp = DzWriteFile( lisFd, buff + sendLen, emptyLen );
+        sendLen += tmp;
+        __DbgTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
+        emptyLen -= tmp;
+    }while( tmp > 0 && sendLen < buffLen );
+#endif
+    EXPECT_EQ( buffLen, sendLen );
+}
+
+int TcpRecvOneStream( int lisFd, BOOL waitEnd )
 {
     DzBuf buffs[ DZ_IOV_MAX ];
     TestStream ts;
 
     int recvLen = 0;
     do{
-        int tmp = DzRecv( fd, (char*)&ts + recvLen, sizeof( TestStream ) - recvLen, 0 );
+        int tmp = DzRecv( lisFd, (char*)&ts + recvLen, sizeof( TestStream ) - recvLen, 0 );
         recvLen += tmp;
     }while( recvLen < sizeof( TestStream ) );
+    char* cmp = gBufArr[ ts.idx ] + sizeof( TestStream );
 
 #ifdef DZ_SMALL_RECV_BUFF
     int tmp;
-    int buffLen = 16384;
+    int buffLen = gSmallBuffSize * 2;
     char* buff = new char[ buffLen ];
     buffs[0].buf = buff;
     buffs[0].len = gSmallBuffSize;
@@ -151,17 +318,26 @@ int TcpRecvOneStream( int fd )
     int i = 2;
     int recvTimeCount = 0;
     recvLen = 0;
-    char* cmp = gBufArr[ ts.idx ] + sizeof( TestStream );
     do{
-        printf( "recv start %d\r\n", recvTimeCount++ );
-        tmp = DzRecvEx( fd, buffs, i, 0 );
+        __DbgTce5( "recv start %d\r\n", recvTimeCount++ );
+        tmp = DzRecvEx( lisFd, buffs, i, 0 );
         recvLen += tmp;
-        printf( "recv : %d,\t total : %d\r\n", tmp, recvLen );
-        int ret = memcmp( buff, cmp, tmp );
-        EXPECT_EQ( 0, ret );
-        cmp += tmp;
-    }while( tmp > 0 && recvLen < ts.len );
-    delete[] buff;
+        __DbgTce5( "recv : %d,\t total : %d\r\n", tmp, recvLen );
+        if( tmp > 0 ){
+            int ret = memcmp( buff, cmp, tmp );
+            if( ret ){
+                for( int i = 0; i < tmp; i++ ){
+                    if( buff[i] != cmp[i] ){
+                        ret = i;
+                        break;
+                    }
+                }
+            }
+            EXPECT_EQ( 0, ret );
+            EXPECT_EQ( 0, ret );
+            cmp += tmp;
+        }
+    }while( tmp > 0 && ( waitEnd || recvLen < ts.len ) );
 #else
     int buffLen = ts.len + 256;
     char* buff = new char[ buffLen ];
@@ -188,21 +364,34 @@ int TcpRecvOneStream( int fd )
             nowPos += tmp;
         }
 
-        printf( "recv start %d\r\n", recvTimeCount++ );
-        tmp = DzRecvEx( fd, buffs, i, 0 );
+        __DbgTce5( "recv start %d\r\n", recvTimeCount++ );
+        tmp = DzRecvEx( lisFd, buffs, i, 0 );
         recvLen += tmp;
-        printf( "recv : %d,\t total : %d\r\n", tmp, recvLen );
-    }while( tmp > 0 && recvLen < ts.len );
-
-    EXPECT_EQ( ts.len, recvLen );
-    int ret = memcmp( buff, gBufArr[ ts.idx ] + sizeof( TestStream ) , recvLen );
-    EXPECT_EQ( 0, ret );
-    delete[] buff;
+        __DbgTce5( "recv : %d,\t total : %d\r\n", tmp, recvLen );
+        if( tmp > 0 ){
+            int ret = memcmp( buffs[0].buf, cmp, tmp );
+            if( ret ){
+                for( int i = 0; i < tmp; i++ ){
+                    if( buffs[0].buf[i] != cmp[i] ){
+                        ret = i;
+                        break;
+                    }
+                }
+            }
+            EXPECT_EQ( 0, ret );
+            cmp += tmp;
+        }
+    }while( tmp > 0 && ( waitEnd || recvLen < ts.len ) );
 #endif
+    if( waitEnd ){
+        EXPECT_EQ( 0, tmp );
+    }
+    EXPECT_EQ( ts.len, recvLen );
+    delete[] buff;
     return ts.idx;
 }
 
-void TcpSendOneStream( int fd, int idx )
+void TcpSendOneStream( int lisFd, int idx )
 {
     DzBuf buffs[ DZ_IOV_MAX ];
 
@@ -228,10 +417,10 @@ void TcpSendOneStream( int fd, int idx )
             nowPos += gSmallBuffSize;
         }
 
-        printf( "send start %d\r\n", sendTimeCount++ );
-        tmp = DzSendEx( fd, buffs, i, 0 );
+        __DbgTce5( "send start %d\r\n", sendTimeCount++ );
+        tmp = DzSendEx( lisFd, buffs, i, 0 );
         sendLen += tmp;
-        printf( "send : %d,\t total : %d\r\n", tmp, sendLen );
+        __DbgTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
         DzSleep( 10 );
     }while( tmp > 0 && sendLen < buffLen );
 #else
@@ -257,10 +446,10 @@ void TcpSendOneStream( int fd, int idx )
             nowPos += tmp;
         }
 
-        printf( "send start %d\r\n", sendTimeCount++ );
-        tmp = DzSendEx( fd, buffs, i, 0 );
+        __DbgTce5( "send start %d\r\n", sendTimeCount++ );
+        tmp = DzSendEx( lisFd, buffs, i, 0 );
         sendLen += tmp;
-        printf( "send : %d,\t total : %d\r\n", tmp, sendLen );
+        __DbgTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
     }while( tmp > 0 && sendLen < buffLen );
 #endif
     EXPECT_EQ( buffLen, sendLen );
@@ -268,6 +457,8 @@ void TcpSendOneStream( int fd, int idx )
 
 void TcpSvrMain( DzRoutine svrRoutine, int count )
 {
+    DzStartCot( WaitHello );
+
     int lisSock = DzSocket( gAddr->sa_family, SOCK_STREAM, 0 );
     if( lisSock == -1 ){
         ADD_FAILURE();
@@ -334,8 +525,7 @@ int TcpCltConnect()
 void SocketTestFrame(
     DzRoutine   svrTstEntry,
     DzRoutine   cltTstEntry,
-    int         testCount,
-    int         cltWait = 0
+    int         testCount
     )
 {
     int n = 0;
@@ -349,9 +539,6 @@ void SocketTestFrame(
 #ifdef DZ_TEST_SOCKET_CLT
     DzSleep( gCltDelay );
     CotStart( cltTstEntry, (void*)testCount );
-    if( cltWait ){
-        DzSleep( cltWait );
-    }
     n++;
 #endif
 
@@ -362,7 +549,7 @@ void SocketTestFrame(
 void __stdcall TcpSvrRecvRoutine( void* context )
 {
     int fd = (int)context;
-    TcpRecvOneStream( fd );
+    TcpRecvOneStream( fd, TRUE );
     DzCloseSocket( fd );
     CotStop();
 }
@@ -384,9 +571,9 @@ void __stdcall TcpCltSendRoutine( void* context )
 void __stdcall TcpSvrRsrsRoutine( void* context )
 {
     int fd = (int)context;
-    int idx = TcpRecvOneStream( fd );
-    TcpSendOneStream( fd, idx + 1 );
-    int idx1 = TcpRecvOneStream( fd );
+    int idx = TcpRecvOneStream( fd, FALSE );
+    TcpWriteOneStream( fd, idx + 1 );
+    int idx1 = TcpReadOneStream( fd, FALSE );
     EXPECT_EQ( idx + 2, idx1 );
     TcpSendOneStream( fd, idx1 + 1 );
     DzCloseSocket( fd );
@@ -403,10 +590,10 @@ void __stdcall TcpCltSrsrRoutine( void* context )
     }
     int idx = (int)context;
     TcpSendOneStream( fd, idx );
-    int idx1 = TcpRecvOneStream( fd );
+    int idx1 = TcpRecvOneStream( fd, FALSE );
     EXPECT_EQ( idx + 1, idx1 );
-    TcpSendOneStream( fd, idx1 + 1 );
-    int idx2 = TcpRecvOneStream( fd );
+    TcpWriteOneStream( fd, idx1 + 1 );
+    int idx2 = TcpReadOneStream( fd, TRUE );
     EXPECT_EQ( idx1 + 2, idx2 );
     DzCloseSocket( fd );
     CotStop();
@@ -444,7 +631,7 @@ void __stdcall TestLargeBuffer( void* context )
 {
     int cotCount = 1;
     InitBuffArray( 9672122, cotCount, 64 * 1024 * 1024, 0 );
-    SocketTestFrame( TcpSvrRecvMain, TcpCltSendMain, cotCount, 2500 );
+    SocketTestFrame( TcpSvrRecvMain, TcpCltSendMain, cotCount );
     DeleteBuffArray();
 }
 

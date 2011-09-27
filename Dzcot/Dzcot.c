@@ -10,6 +10,140 @@
 #include "DzCore.h"
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+int DzRunHost(
+    int         lowestPriority,
+    int         defaultPri,
+    int         defaultSSize,
+    DzRoutine   firstEntry,
+    void*       context,
+    int         priority,
+    int         sSize
+    );
+int DzStartCot(
+    DzRoutine   entry,
+    void*       context,
+    int         priority,
+    int         sSize
+    );
+int DzStartCotInstant(
+    DzRoutine   entry,
+    void*       context,
+    int         priority,
+    int         sSize
+    );
+int DzGetCotCount();
+int DzGetMaxCotCount(
+    BOOL reset
+    );
+int DzChangePriority( int priority );
+BOOL DzGrowCotPoolDepth( int sSize, int deta );
+
+int DzWaitSynObj(
+    DzHandle    obj,
+    int         timeout
+    );
+int DzWaitMultiSynObj(
+    int         count,
+    DzHandle*   obj,
+    BOOL        waitAll,
+    int         timeout
+    );
+DzHandle DzCreateMtx( BOOL owner );
+BOOL DzReleaseMtx( DzHandle mtx );
+DzHandle DzCreateEvt( BOOL manualReset, BOOL notified );
+BOOL DzSetEvt( DzHandle evt );
+BOOL DzResetEvt( DzHandle evt );
+DzHandle DzCreateSem( int count );
+int DzReleaseSem( DzHandle sem, int count );
+DzHandle DzCloneSynObj( DzHandle obj );
+BOOL DzCloseSynObj( DzHandle obj );
+DzHandle DzCreateTimer( uint milSec, uint repeat );
+BOOL DzCloseTimer( DzHandle timer );
+DzHandle DzCreateCallbackTimer(
+    uint        milSec,
+    uint        repeat,
+    DzRoutine   callback,
+    void*       context,
+    int         priority,
+    int         sSize
+    );
+BOOL DzCloseCallbackTimer( DzHandle timer );
+int DzSleep( uint milSec );
+int DzSleep0();
+
+int DzOpenFileA( const char* fileName, int flags );
+int DzOpenFileW( const wchar_t* fileName, int flags );
+int DzCloseFd( int fd );
+size_t DzReadFile( int fd, void* buf, size_t count );
+size_t DzWriteFile( int fd, const void* buf, size_t count );
+size_t DzSeekFile( int fd, size_t offset, int whence );
+size_t DzGetFileSize( int fd );
+BOOL DzSockStartup();
+BOOL DzSockCleanup();
+
+int DzSocket( int domain, int type, int protocol );
+int DzShutdown( int fd, int how );
+int DzCloseSocket( int fd );
+int DzBind( int fd, struct sockaddr* addr, int addrLen );
+int DzListen( int fd, int backlog );
+int DzConnect( int fd, struct sockaddr* addr, int addrLen );
+int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
+int DzSendEx( int fd, DzBuf* bufs, int bufCount, int flags );
+int DzRecvEx( int fd, DzBuf* bufs, int bufCount, int flags );
+int DzSend( int fd, const void* buf, int len, int flags );
+int DzRecv( int fd, void* buf, int len, int flags );
+int DzSendToEx(
+    int                     fd,
+    DzBuf*                  bufs,
+    int                     bufCount,
+    int                     flags,
+    const struct sockaddr*  to,
+    int                     tolen
+    );
+int DzRecvFromEx(
+    int                     fd,
+    DzBuf*                  bufs,
+    int                     bufCount,
+    int                     flags,
+    struct sockaddr*        from,
+    int*                    fromlen
+    );
+int DzSendTo(
+    int                     fd,
+    const char*             buf,
+    int                     len,
+    int                     flags,
+    const struct sockaddr*  to,
+    int                     tolen
+    );
+int DzRecvFrom(
+    int                     fd,
+    char*                   buf,
+    int                     len,
+    int                     flags,
+    struct sockaddr*        from,
+    int*                    fromlen
+    );
+
+DzParamNode* DzAllocParamNode();
+void DzFreeParamNode( DzParamNode* node );
+
+void* DzMalloc( size_t size );
+void* DzCalloc( size_t num, size_t size );
+void* DzReAlloc( void* mem, size_t size );
+void DzFree( void* p );
+
+unsigned long long DzUnixTime();
+unsigned long long DzMilUnixTime();
+
+#ifdef __cplusplus
+};
+#endif
+
 // StartHost:
 // create the Io mgr co thread, so the host can serve requests
 int DzRunHost(
