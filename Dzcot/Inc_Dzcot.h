@@ -8,6 +8,13 @@
 #ifndef __Inc_Dzcot_h__
 #define __Inc_Dzcot_h__
 
+#if defined( _WIN32 )
+#include <WinSock2.h>
+#elif defined( __linux__ )
+#include <sys/socket.h>
+#endif
+
+
 #undef FALSE
 #undef TRUE
 #undef NULL
@@ -17,7 +24,6 @@
 #define NULL    0
 
 typedef int BOOL;
-typedef unsigned int uint;
 
 enum
 {
@@ -62,9 +68,9 @@ enum
 #define DZ_O_TRUNC      0x20
 #define DZ_O_APPEND     0x40
 
-#define DZ_SD_RD        0
-#define DZ_SD_WR        1
-#define DZ_SD_RDWR      2
+#define DZ_SEEK_SET     0
+#define DZ_SEEK_CUR     1
+#define DZ_SEEK_END     2
 
 #define DZ_IOV_MAX      64
 
@@ -77,6 +83,12 @@ typedef struct _DzParamNode
 }DzParamNode;
 
 #ifdef _WIN32
+
+#if defined( _X86_ )
+typedef int ssize_t;
+#elif defined( _AMD64_ )
+typedef long long ssize_t;
+#endif
 
 typedef struct _DzBuf
 {
@@ -94,8 +106,7 @@ typedef struct _DzBuf
 
 #endif
 
-struct _DzSynObj;
-typedef struct _DzSynObj* DzHandle;
+typedef void* DzHandle;
 
 #ifdef __linux__
 #define __stdcall __attribute__((stdcall))
@@ -103,6 +114,26 @@ typedef struct _DzSynObj* DzHandle;
 
 typedef void (__stdcall *DzRoutine)( void* context );
 
+
+#define DZMAKEIPADDRESS( a1, a2, a3, a4 ) (\
+    ((a1) << 24) | ((a2) << 16) | ((a3) << 8) | (a4)\
+)
+
+#define hton16( n ) (\
+    ( ( (n) & 0xff ) << 8 ) | ( ( (n) & 0xff00 ) >> 8 )\
+)
+
+#define hton32( n ) (\
+    ( ( (n) & 0xff ) << 24 ) | ( ( (n) & 0xff00 ) << 8 ) |\
+    ( ( (n) & 0xff0000 ) >> 8 ) | ( ( (n) & 0xff000000 ) >> 24 )\
+)
+
+#define hton64( n ) (\
+    ( ( (n) & 0xff ) << 56 )             | ( ( (n) & 0xff00 ) << 40 ) |\
+    ( ( (n) & 0xff0000 ) << 24 )         | ( ( (n) & 0xff000000 ) << 8 ) |\
+    ( ( (n) & 0xff00000000 ) >> 8 )      | ( ( (n) & 0xff0000000000 ) >> 24 ) |\
+    ( ( (n) & 0xff000000000000 ) >> 40 ) | ( ( (n) & 0xff00000000000000 ) >> 56 )\
+)
 
 #ifndef __cplusplus
 #define __DZ_DFT_ARG( x )
@@ -127,6 +158,20 @@ int DzStartCot(
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzStartCotInstant(
+    DzRoutine   entry,
+    void*       context         __DZ_DFT_ARG( NULL ),
+    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
+    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    );
+int DzEvtStartCot(
+    DzHandle    evt,
+    DzRoutine   entry,
+    void*       context         __DZ_DFT_ARG( NULL ),
+    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
+    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    );
+int DzEvtStartCotInstant(
+    DzHandle    evt,
     DzRoutine   entry,
     void*       context         __DZ_DFT_ARG( NULL ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
@@ -158,18 +203,18 @@ DzHandle DzCreateSem( int count );
 int DzReleaseSem( DzHandle sem, int count );
 DzHandle DzCloneSynObj( DzHandle obj );
 BOOL DzCloseSynObj( DzHandle obj );
-DzHandle DzCreateTimer( uint milSec, uint repeat );
+DzHandle DzCreateTimer( u_int milSec, u_int repeat );
 BOOL DzCloseTimer( DzHandle timer );
 DzHandle DzCreateCallbackTimer(
-    uint        milSec,
-    uint        repeat,
+    u_int       milSec,
+    u_int       repeat,
     DzRoutine   callback,
     void*       context         __DZ_DFT_ARG( NULL ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 BOOL DzCloseCallbackTimer( DzHandle timer );
-int DzSleep( uint milSec );
+int DzSleep( u_int milSec );
 int DzSleep0();
 
 int DzOpenFileA( const char* fileName, int flags );
@@ -177,7 +222,7 @@ int DzOpenFileW( const wchar_t* fileName, int flags );
 int DzCloseFd( int fd );
 size_t DzReadFile( int fd, void* buf, size_t count );
 size_t DzWriteFile( int fd, const void* buf, size_t count );
-size_t DzSeekFile( int fd, size_t offset, int whence );
+size_t DzSeekFile( int fd, ssize_t offset, int whence );
 size_t DzGetFileSize( int fd );
 
 #ifdef UNICODE

@@ -139,7 +139,7 @@ inline char* AllocStack( DzHost* host, int size )
             return NULL;
         }
         if( base < host->osStruct.originalStack ){
-            node = AllocQNode( host );
+            node = AllocLNode( host );
             node->content = base;
             node->lItr.next = host->osStruct.reservedStack;
             host->osStruct.reservedStack = &node->lItr;

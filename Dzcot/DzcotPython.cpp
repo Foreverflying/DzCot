@@ -30,7 +30,7 @@ namespace DzcotPython{
         PyObject* func = (PyObject*)node->content;
         PyObject* arg = (PyObject*)node->context1;
         DzHost* host = (DzHost*)node->context3;
-        FreeQNode( host, node );
+        FreeLNode( host, node );
         object entry( (detail::new_non_null_reference)func );
         object argObj( (detail::new_reference)arg );
         object ret = entry( argObj );
@@ -94,7 +94,7 @@ namespace DzcotPython{
             PyObject* arg = context.ptr();
             Py_XINCREF( arg );
 
-            node = AllocQNode( host );
+            node = AllocLNode( host );
             node->content = func;
             node->context1 = arg;
             node->context3 = host;
@@ -144,7 +144,7 @@ namespace DzcotPython{
         PyObject* arg = context.ptr();
         Py_XINCREF( arg );
 
-        node = AllocQNode( host );
+        node = AllocLNode( host );
         node->content = func;
         node->context1 = arg;
         node->context3 = host;
@@ -161,7 +161,7 @@ namespace DzcotPython{
         return ret;
     }
 
-    void DzInitCotPool( uint count, uint depth, int sSize )
+    void DzInitCotPool( u_int count, u_int depth, int sSize )
     {
         DzHost* host = GetHost();
         assert( host );

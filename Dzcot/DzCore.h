@@ -21,6 +21,7 @@ extern "C"{
 #endif
 
 void __stdcall DelayFreeTheadRoutine( void* context );
+void __stdcall EventNotifyCotRoutine( void* context );
 
 inline void ReleaseAllPoolStack( DzHost* host )
 {
@@ -124,7 +125,8 @@ inline int StartCot(
 }
 
 // StartCotInstant:
-// create a new co thread
+// create a new co thread and run it at once
+// current co thread is paused and will continue at next schedule
 inline int StartCotInstant(
     DzHost*     host,
     DzRoutine   entry,
@@ -154,6 +156,58 @@ inline int StartCotInstant(
     TemporaryPushThread( host, host->currThread );
     SwitchToCot( host, dzThread );
     return DS_OK;
+}
+
+// EvtStartCot
+// equal to StartCot, notify an manual event SynObj when cot finished
+inline int EvtStartCot(
+    DzHost*     host,
+    DzSynObj*   evt,
+    DzRoutine   entry,
+    void*       context,
+    int         priority,
+    int         sSize
+    )
+{
+    int ret;
+    DzLNode* node;
+
+    node = AllocLNode( host );
+    node->content = entry;
+    node->context1 = context;
+    node->context2 = CloneSynObj( evt );
+    ret = StartCot( host, EventNotifyCotRoutine, node, priority, sSize );
+    if( ret != DS_OK ){
+        CloseSynObj( host, (DzSynObj*)node->context2 );
+        FreeLNode( host, node );
+    }
+    return ret;
+}
+
+// EvtStartCotInstant:
+// equal to StartCotInstant, notify an manual event SynObj when cot finished
+inline int EvtStartCotInstant(
+    DzHost*     host,
+    DzSynObj*   evt,
+    DzRoutine   entry,
+    void*       context,
+    int         priority,
+    int         sSize
+    )
+{
+    int ret;
+    DzLNode* node;
+
+    node = AllocLNode( host );
+    node->content = entry;
+    node->context1 = context;
+    node->context2 = CloneSynObj( evt );
+    ret = StartCot( host, EventNotifyCotRoutine, node, priority, sSize );
+    if( ret != DS_OK ){
+        CloseSynObj( host, (DzSynObj*)node->context2 );
+        FreeLNode( host, node );
+    }
+    return ret;
 }
 
 // RunHost:

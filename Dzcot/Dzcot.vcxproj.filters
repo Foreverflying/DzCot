@@ -127,9 +127,6 @@
     <ClInclude Include="Inc_DzFastNewDel.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Inc_DzSockUtils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

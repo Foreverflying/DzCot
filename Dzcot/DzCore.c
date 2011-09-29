@@ -17,3 +17,16 @@ void __stdcall DelayFreeTheadRoutine( void* context )
     dzThread->lItr.next = host->threadPool;
     host->threadPool = &dzThread->lItr;
 }
+
+void __stdcall EventNotifyCotRoutine( void* context )
+{
+    DzHost* host = GetHost();
+    DzLNode* node = (DzLNode*)context;
+    DzRoutine entry = (DzRoutine)node->content;
+    DzSynObj* evt = (DzSynObj*)node->context2;
+
+    entry( node->context1 );
+    SetEvt( host, evt );
+    CloseSynObj( host, evt );
+    FreeLNode( host, node );
+}

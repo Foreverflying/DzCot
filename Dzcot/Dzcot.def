@@ -1,58 +1,60 @@
 
 LIBRARY Dzcot
 EXPORTS
-    DzRunHost               @1
-    DzStartCot              @2
-    DzStartCotInstant       @3
-    DzGetCotCount           @4
-    DzGetMaxCotCount        @5
-    DzGrowCotPoolDepth      @6
-    DzWaitSynObj            @7
-    DzWaitMultiSynObj       @8
-    DzCreateMtx             @9
-    DzReleaseMtx            @10
-    DzCreateEvt             @11
-    DzSetEvt                @12
-    DzResetEvt              @13
-    DzCreateSem             @14
-    DzReleaseSem            @15
-    DzCloneSynObj           @16
-    DzCloseSynObj           @17
-    DzCreateTimer           @18
-    DzCloseTimer            @19
-    DzCreateCallbackTimer   @20
-    DzCloseCallbackTimer    @21
-    DzSleep                 @22
-    DzSleep0                @23
-    DzOpenFileA             @24
-    DzOpenFileW             @25
-    DzCloseFd               @26
-    DzReadFile              @27
-    DzWriteFile             @28
-    DzSeekFile              @29
-    DzGetFileSize           @30
-    DzSockStartup           @31
-    DzSockCleanup           @32
-    DzSocket                @33
-    DzShutdown              @34
-    DzCloseSocket           @35
-    DzBind                  @36
-    DzListen                @37
-    DzConnect               @38
-    DzAccept                @39
-    DzSendEx                @40
-    DzRecvEx                @41
-    DzSend                  @42
-    DzRecv                  @43
-    DzSendToEx              @44
-    DzRecvFromEx            @45
-    DzSendTo                @46
-    DzRecvFrom              @47
-    DzAllocParamNode        @48
-    DzFreeParamNode         @49
-    DzMalloc                @50
-    DzCalloc                @51
-    DzReAlloc               @52
-    DzFree                  @53
-    DzUnixTime              @54
-    DzMilUnixTime           @55
+    DzRunHost               
+    DzStartCot              
+    DzStartCotInstant       
+    DzEvtStartCot           
+    DzEvtStartCotInstant    
+    DzGetCotCount           
+    DzGetMaxCotCount        
+    DzGrowCotPoolDepth      
+    DzWaitSynObj            
+    DzWaitMultiSynObj       
+    DzCreateMtx             
+    DzReleaseMtx            
+    DzCreateEvt             
+    DzSetEvt                
+    DzResetEvt              
+    DzCreateSem             
+    DzReleaseSem            
+    DzCloneSynObj           
+    DzCloseSynObj           
+    DzCreateTimer           
+    DzCloseTimer            
+    DzCreateCallbackTimer   
+    DzCloseCallbackTimer    
+    DzSleep                 
+    DzSleep0                
+    DzOpenFileA             
+    DzOpenFileW             
+    DzCloseFd               
+    DzReadFile              
+    DzWriteFile             
+    DzSeekFile              
+    DzGetFileSize           
+    DzSockStartup           
+    DzSockCleanup           
+    DzSocket                
+    DzShutdown              
+    DzCloseSocket           
+    DzBind                  
+    DzListen                
+    DzConnect               
+    DzAccept                
+    DzSendEx                
+    DzRecvEx                
+    DzSend                  
+    DzRecv                  
+    DzSendToEx              
+    DzRecvFromEx            
+    DzSendTo                
+    DzRecvFrom              
+    DzAllocParamNode        
+    DzFreeParamNode         
+    DzMalloc                
+    DzCalloc                
+    DzReAlloc               
+    DzFree                  
+    DzUnixTime              
+    DzMilUnixTime           

@@ -17,7 +17,6 @@
 #define NULL    0
 
 typedef int BOOL;
-typedef unsigned int uint;
 
 enum
 {
@@ -64,6 +63,12 @@ typedef struct _DzParamNode
 
 #ifdef _WIN32
 
+#if defined( _X86_ )
+typedef int ssize_t;
+#elif defined( _AMD64_ )
+typedef long long ssize_t;
+#endif
+
 typedef struct _DzBuf
 {
     unsigned long   len;
@@ -96,9 +101,5 @@ typedef void (__stdcall *DzRoutine)( void* context );
 #define DZ_O_EXCL       0x10
 #define DZ_O_TRUNC      0x20
 #define DZ_O_APPEND     0x40
-
-#define DZ_SD_RD        0
-#define DZ_SD_WR        1
-#define DZ_SD_RDWR      2
 
 #endif // __DzType_h__

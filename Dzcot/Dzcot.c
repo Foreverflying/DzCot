@@ -61,18 +61,18 @@ DzHandle DzCreateSem( int count );
 int DzReleaseSem( DzHandle sem, int count );
 DzHandle DzCloneSynObj( DzHandle obj );
 BOOL DzCloseSynObj( DzHandle obj );
-DzHandle DzCreateTimer( uint milSec, uint repeat );
+DzHandle DzCreateTimer( u_int milSec, u_int repeat );
 BOOL DzCloseTimer( DzHandle timer );
 DzHandle DzCreateCallbackTimer(
-    uint        milSec,
-    uint        repeat,
+    u_int       milSec,
+    u_int       repeat,
     DzRoutine   callback,
     void*       context,
     int         priority,
     int         sSize
     );
 BOOL DzCloseCallbackTimer( DzHandle timer );
-int DzSleep( uint milSec );
+int DzSleep( u_int milSec );
 int DzSleep0();
 
 int DzOpenFileA( const char* fileName, int flags );
@@ -80,7 +80,7 @@ int DzOpenFileW( const wchar_t* fileName, int flags );
 int DzCloseFd( int fd );
 size_t DzReadFile( int fd, void* buf, size_t count );
 size_t DzWriteFile( int fd, const void* buf, size_t count );
-size_t DzSeekFile( int fd, size_t offset, int whence );
+size_t DzSeekFile( int fd, ssize_t offset, int whence );
 size_t DzGetFileSize( int fd );
 BOOL DzSockStartup();
 BOOL DzSockCleanup();
@@ -144,8 +144,6 @@ unsigned long long DzMilUnixTime();
 };
 #endif
 
-// StartHost:
-// create the Io mgr co thread, so the host can serve requests
 int DzRunHost(
     int         lowestPriority,
     int         defaultPri,
@@ -174,8 +172,6 @@ int DzRunHost(
     return RunHost( lowestPriority, defaultPri, defaultSSize, firstEntry, context, priority, sSize );
 }
 
-// StartCot:
-// create a new co thread
 int DzStartCot(
     DzRoutine   entry,
     void*       context,
@@ -198,8 +194,6 @@ int DzStartCot(
     return StartCot( host, entry, context, priority, sSize );
 }
 
-// StartCot:
-// create a new co thread
 int DzStartCotInstant(
     DzRoutine   entry,
     void*       context,
@@ -220,6 +214,54 @@ int DzStartCotInstant(
         );
 
     return StartCotInstant( host, entry, context, priority, sSize );
+}
+
+int DzEvtStartCot(
+    DzSynObj*   evt,
+    DzRoutine   entry,
+    void*       context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( evt->type = TYPE_EVT_MANUAL );
+    assert( entry );
+    assert(
+        priority == CP_DEFAULT ||
+        ( priority >= CP_FIRST && priority <= host->lowestPriority )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return EvtStartCot( host, evt, entry, context, priority, sSize );
+}
+
+int DzEvtStartCotInstant(
+    DzSynObj*   evt,
+    DzRoutine   entry,
+    void*       context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( evt->type = TYPE_EVT_MANUAL );
+    assert( entry );
+    assert(
+        priority >= CP_FIRST &&
+        priority <= COT_PRIORITY_COUNT
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return EvtStartCotInstant( host, evt, entry, context, priority, sSize );
 }
 
 int DzGetCotCount()
@@ -366,7 +408,7 @@ BOOL DzCloseSynObj( DzHandle obj )
     return TRUE;
 }
 
-DzHandle DzCreateTimer( uint milSec, uint repeat )
+DzHandle DzCreateTimer( u_int milSec, u_int repeat )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -388,8 +430,8 @@ BOOL DzCloseTimer( DzHandle timer )
 }
 
 DzHandle DzCreateCallbackTimer(
-    uint            milSec,
-    uint            repeat,
+    u_int           milSec,
+    u_int           repeat,
     DzRoutine       callback,
     void*           context,
     int             priority,
@@ -424,7 +466,7 @@ BOOL DzCloseCallbackTimer( DzHandle timer )
     return TRUE;
 }
 
-int DzSleep( uint milSec )
+int DzSleep( u_int milSec )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -483,7 +525,7 @@ size_t DzWriteFile( int fd, const void* buf, size_t count )
     return Write( host, fd, buf, count );
 }
 
-size_t DzSeekFile( int fd, size_t offset, int whence )
+size_t DzSeekFile( int fd, ssize_t offset, int whence )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -677,7 +719,7 @@ DzParamNode* DzAllocParamNode()
     DzHost* host = GetHost();
     assert( host );
 
-    return (DzParamNode*)AllocQNode( host );
+    return (DzParamNode*)AllocLNode( host );
 }
 
 void DzFreeParamNode( DzParamNode* node )
@@ -686,7 +728,7 @@ void DzFreeParamNode( DzParamNode* node )
     assert( host );
     assert( node );
 
-    FreeQNode( host, (DzLNode*)node );
+    FreeLNode( host, (DzLNode*)node );
 }
 
 void* DzMalloc( size_t size )

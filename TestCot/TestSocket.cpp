@@ -3,21 +3,22 @@
 #include <gtest/gtest.h>
 #include "Util.h"
 #include "DRandom.h"
-#include <WinSock2.h>
-#include "../Dzcot/Inc_DzSockUtils.h"
 
 
 #define DZ_TEST_SOCKET_SVR
 #define DZ_TEST_SOCKET_CLT
 
-#define DZ_SMALL_RECV_BUFF
+//#define DZ_SMALL_RECV_BUFF
 //#define DZ_SMALL_SEND_BUFF
 
-static unsigned long gIp = DZMAKEIPADDRESS( 192, 168, 1, 10 );
-//static unsigned long gIp = DZMAKEIPADDRESS( 127, 0, 0, 1 );
+//static unsigned long gIp = DZMAKEIPADDRESS( 192, 168, 137, 32 );
+//static unsigned long gIp = DZMAKEIPADDRESS( 192, 168, 137, 1 );
+//static unsigned long gIp = DZMAKEIPADDRESS( 192, 168, 1, 10 );
+static unsigned long gIp = DZMAKEIPADDRESS( 127, 0, 0, 1 );
 static unsigned short gPort = 9999;
 static int gCltDelay = 1500;
-static int gSmallBuffSize = 64;
+static int gSmallBuffSize = 32768;
+static int sSmallSendDelay = 0;
 
 struct TestStream
 {
@@ -214,6 +215,9 @@ int TcpReadOneStream( int lisFd, BOOL waitEnd )
     int recvLen = 0;
     do{
         int tmp = DzReadFile( lisFd, (char*)&ts + recvLen, sizeof( TestStream ) - recvLen );
+        if( tmp <= 0 ){
+            return -1;
+        }
         recvLen += tmp;
     }while( recvLen < sizeof( TestStream ) );
     char* cmp = gBufArr[ ts.idx ] + sizeof( TestStream );
@@ -254,10 +258,10 @@ int TcpReadOneStream( int lisFd, BOOL waitEnd )
     }
     EXPECT_EQ( ts.len, recvLen );
     delete[] buff;
-    return ts.idx;
+    return tmp > 0 || ( waitEnd && tmp == 0 ) ? ts.idx : -1;
 }
 
-void TcpWriteOneStream( int lisFd, int idx )
+int TcpWriteOneStream( int lisFd, int idx )
 {
     char* buff = gBufArr[ idx ];
     TestStream& ts = *(TestStream*)buff;
@@ -273,10 +277,12 @@ void TcpWriteOneStream( int lisFd, int idx )
         tmp = DzWriteFile( lisFd, buff + sendLen, emptyLen );
         sendLen += tmp;
         __DbgTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
-        if( emptyLen < buffLen - sendLen ){
+        if( emptyLen > buffLen - sendLen ){
             emptyLen = buffLen - sendLen;
         }
-        DzSleep( 10 );
+        if( sSmallSendDelay ){
+            DzSleep( sSmallSendDelay );
+        }
     }while( tmp > 0 && sendLen < buffLen );
 #else
     int emptyLen = buffLen;
@@ -292,6 +298,7 @@ void TcpWriteOneStream( int lisFd, int idx )
     }while( tmp > 0 && sendLen < buffLen );
 #endif
     EXPECT_EQ( buffLen, sendLen );
+    return tmp > 0 ? 0 : -1;
 }
 
 int TcpRecvOneStream( int lisFd, BOOL waitEnd )
@@ -302,6 +309,9 @@ int TcpRecvOneStream( int lisFd, BOOL waitEnd )
     int recvLen = 0;
     do{
         int tmp = DzRecv( lisFd, (char*)&ts + recvLen, sizeof( TestStream ) - recvLen, 0 );
+        if( tmp <= 0 ){
+            return -1;
+        }
         recvLen += tmp;
     }while( recvLen < sizeof( TestStream ) );
     char* cmp = gBufArr[ ts.idx ] + sizeof( TestStream );
@@ -333,7 +343,6 @@ int TcpRecvOneStream( int lisFd, BOOL waitEnd )
                     }
                 }
             }
-            EXPECT_EQ( 0, ret );
             EXPECT_EQ( 0, ret );
             cmp += tmp;
         }
@@ -388,10 +397,10 @@ int TcpRecvOneStream( int lisFd, BOOL waitEnd )
     }
     EXPECT_EQ( ts.len, recvLen );
     delete[] buff;
-    return ts.idx;
+    return tmp > 0 || ( waitEnd && tmp == 0 ) ? ts.idx : -1;
 }
 
-void TcpSendOneStream( int lisFd, int idx )
+int TcpSendOneStream( int lisFd, int idx )
 {
     DzBuf buffs[ DZ_IOV_MAX ];
 
@@ -421,7 +430,9 @@ void TcpSendOneStream( int lisFd, int idx )
         tmp = DzSendEx( lisFd, buffs, i, 0 );
         sendLen += tmp;
         __DbgTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
-        DzSleep( 10 );
+        if( sSmallSendDelay ){
+            DzSleep( sSmallSendDelay );
+        }
     }while( tmp > 0 && sendLen < buffLen );
 #else
     int n = (int)gRand->rand( 1, DZ_IOV_MAX + 1 );
@@ -453,6 +464,7 @@ void TcpSendOneStream( int lisFd, int idx )
     }while( tmp > 0 && sendLen < buffLen );
 #endif
     EXPECT_EQ( buffLen, sendLen );
+    return tmp > 0 ? 0 : -1;
 }
 
 void TcpSvrMain( DzRoutine svrRoutine, int count )
@@ -572,10 +584,16 @@ void __stdcall TcpSvrRsrsRoutine( void* context )
 {
     int fd = (int)context;
     int idx = TcpRecvOneStream( fd, FALSE );
-    TcpWriteOneStream( fd, idx + 1 );
-    int idx1 = TcpReadOneStream( fd, FALSE );
-    EXPECT_EQ( idx + 2, idx1 );
-    TcpSendOneStream( fd, idx1 + 1 );
+    if( idx >= 0 ){
+        int ret = TcpWriteOneStream( fd, idx + 1 );
+        if( ret >= 0 ){
+            int idx1 = TcpReadOneStream( fd, FALSE );
+            if( idx1 >= 0 ){
+                EXPECT_EQ( idx + 2, idx1 );
+                TcpSendOneStream( fd, idx1 + 1 );
+            }
+        }
+    }
     DzCloseSocket( fd );
     CotStop();
 }
@@ -589,12 +607,18 @@ void __stdcall TcpCltSrsrRoutine( void* context )
         return;
     }
     int idx = (int)context;
-    TcpSendOneStream( fd, idx );
-    int idx1 = TcpRecvOneStream( fd, FALSE );
-    EXPECT_EQ( idx + 1, idx1 );
-    TcpWriteOneStream( fd, idx1 + 1 );
-    int idx2 = TcpReadOneStream( fd, TRUE );
-    EXPECT_EQ( idx1 + 2, idx2 );
+    int ret = TcpSendOneStream( fd, idx );
+    if( ret >= 0 ){
+        int idx1 = TcpRecvOneStream( fd, FALSE );
+        if( idx1 >= 0 ){
+            EXPECT_EQ( idx + 1, idx1 );
+            ret = TcpWriteOneStream( fd, idx1 + 1 );
+            if( ret >= 0 ){
+                int idx2 = TcpReadOneStream( fd, TRUE );
+                EXPECT_EQ( idx1 + 2, idx2 );
+            }
+        }
+    }
     DzCloseSocket( fd );
     CotStop();
 }

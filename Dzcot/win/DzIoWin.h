@@ -641,7 +641,7 @@ inline size_t Write( DzHost* host, int fd, const void* buf, size_t count )
     return bytes;
 }
 
-inline size_t Seek( DzHost* host, int fd, size_t offset, int whence )
+inline size_t Seek( DzHost* host, int fd, ssize_t offset, int whence )
 {
     size_t ret;
 

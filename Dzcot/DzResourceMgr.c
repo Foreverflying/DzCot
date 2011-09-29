@@ -24,7 +24,7 @@ BOOL MemeryPoolGrow( DzHost* host )
     }
     host->memPoolPos = pool;
     host->memPoolEnd = pool + MEMERY_POOL_GROW_SIZE;
-    node = AllocQNode( host );
+    node = AllocLNode( host );
     node->content = pool;
     node->context1 = (void*)MEMERY_POOL_GROW_SIZE;
     node->lItr.next = host->poolGrowList;
@@ -62,7 +62,7 @@ void ReleaseMemoryPool( DzHost* host )
     }
 }
 
-BOOL AllocQueueNodePool( DzHost* host )
+BOOL AllocListNodePool( DzHost* host )
 {
     DzLNode* p;
     DzLNode* end;

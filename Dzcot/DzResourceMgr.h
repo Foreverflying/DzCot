@@ -19,7 +19,7 @@ extern "C"{
 
 BOOL MemeryPoolGrow( DzHost* host );
 void ReleaseMemoryPool( DzHost* host );
-BOOL AllocQueueNodePool( DzHost* host );
+BOOL AllocListNodePool( DzHost* host );
 BOOL AllocSynObjPool( DzHost* host );
 BOOL AllocDzThreadPool( DzHost* host );
 
@@ -38,12 +38,12 @@ inline void* AllocChunk( DzHost* host, int size )
     return PageCommit( p, size );
 }
 
-inline DzLNode* AllocQNode( DzHost* host )
+inline DzLNode* AllocLNode( DzHost* host )
 {
     DzLNode* node;
 
     if( !host->lNodePool ){
-        if( !AllocQueueNodePool( host ) ){
+        if( !AllocListNodePool( host ) ){
             return NULL;
         }
     }
@@ -52,7 +52,7 @@ inline DzLNode* AllocQNode( DzHost* host )
     return node;
 }
 
-inline void FreeQNode( DzHost* host, DzLNode* node )
+inline void FreeLNode( DzHost* host, DzLNode* node )
 {
     node->lItr.next = host->lNodePool;
     host->lNodePool = &node->lItr;

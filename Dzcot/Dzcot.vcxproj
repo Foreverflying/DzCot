@@ -553,7 +553,6 @@
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
     <ClInclude Include="Inc_DzFastNewDel.h" />
-    <ClInclude Include="Inc_DzSockUtils.h" />
     <ClInclude Include="win\DzBaseWin.h" />
     <ClInclude Include="win\DzCoreWin.h" />
     <CustomBuildStep Include="Inc_Dzcot.h">
