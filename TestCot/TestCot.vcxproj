@@ -316,6 +316,7 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="TestCallbackTimer.cpp" />
     <ClCompile Include="TestCot.cpp" />
+    <ClCompile Include="TestCotMechanism.cpp" />
     <ClCompile Include="TestException.cpp" />
     <ClCompile Include="TestFileReadWrite.cpp" />
     <ClCompile Include="TestSocket.cpp" />

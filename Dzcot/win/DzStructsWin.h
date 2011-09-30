@@ -17,7 +17,6 @@ typedef struct _DzOsStruct
     HANDLE          iocp;
     void*           originExceptPtr;
     char*           originalStack;
-    DzLItr*         reservedStack;
 }DzOsStruct;
 
 typedef struct _DzThread

@@ -35,17 +35,22 @@ inline void PageFree( void* p, size_t size )
     VirtualFree( p, 0, MEM_RELEASE );
 }
 
-inline void InitTlsIndex()
+inline BOOL AllocTlsIndex()
+{
+#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
+    return TRUE;
+#else
+    tlsIndex = TlsAlloc();
+    return tlsIndex != TLS_OUT_OF_INDEXES;
+#endif
+}
+
+inline void FreeTlsIndex()
 {
 #ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
 #else
-    if( tlsIndex == TLS_OUT_OF_INDEXES ){
-        while( InterlockedExchange( &tlsLock, 1 ) == 1 );
-        if( *(volatile int*)&tlsIndex == TLS_OUT_OF_INDEXES ){
-            tlsIndex = TlsAlloc();
-        }
-        InterlockedExchange( &tlsLock, 0 );
-    }
+    TlsFree( tlsIndex );
+    tlsIndex = TLS_OUT_OF_INDEXES;
 #endif
 }
 

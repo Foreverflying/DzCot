@@ -196,7 +196,9 @@ int DzWaitMultiSynObj(
     );
 DzHandle DzCreateMtx( BOOL owner );
 BOOL DzReleaseMtx( DzHandle mtx );
-DzHandle DzCreateEvt( BOOL manualReset, BOOL notified );
+DzHandle DzCreateManualEvt( BOOL notified );
+DzHandle DzCreateAutoEvt( BOOL notified );
+DzHandle DzCreateCountDownEvt( u_int count );
 BOOL DzSetEvt( DzHandle evt );
 BOOL DzResetEvt( DzHandle evt );
 DzHandle DzCreateSem( int count );
@@ -216,6 +218,7 @@ DzHandle DzCreateCallbackTimer(
 BOOL DzCloseCallbackTimer( DzHandle timer );
 int DzSleep( u_int milSec );
 int DzSleep0();
+int DzSleepN( u_int milSec );
 
 int DzOpenFileA( const char* fileName, int flags );
 int DzOpenFileW( const wchar_t* fileName, int flags );
@@ -231,8 +234,6 @@ size_t DzGetFileSize( int fd );
 #define DzOpenFile DzOpenFileA
 #endif
 
-BOOL DzSockStartup();
-BOOL DzSockCleanup();
 int DzSocket( int domain, int type, int protocol );
 int DzShutdown( int fd, int how );
 int DzCloseSocket( int fd );

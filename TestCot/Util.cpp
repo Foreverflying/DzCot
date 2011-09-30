@@ -10,7 +10,5 @@
 
 void TestCot( DzRoutine entry, void* context )
 {
-    DzSockStartup();
-    DzRunHost( CP_LOW, CP_LOW, SS_1M, entry, context );
-    DzSockCleanup();
+    DzRunHost( CP_LOW, CP_LOW, SS_64K, entry, context );
 }

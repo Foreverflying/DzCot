@@ -12,8 +12,8 @@ _TEXT   SEGMENT
 
 ; void CallDzcotRoutine
 CallDzcotRoutine PROC   ;CallDzcotRoutine
-    mov rcx, [esp+8]
-    mov rdx, [esp+16]
+    mov rcx, [rsp+8]
+    mov rdx, [rsp+16]
     jmp DzcotRoutine
 CallDzcotRoutine ENDP   ;CallDzcotRoutine
 

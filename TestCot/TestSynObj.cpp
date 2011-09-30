@@ -16,8 +16,8 @@ int retCount = 0;
 
 void InitSynObj()
 {
-    synEvt1 = DzCreateEvt( TRUE, FALSE );
-    synEvt2 = DzCreateEvt( FALSE, TRUE );
+    synEvt1 = DzCreateManualEvt( FALSE );
+    synEvt2 = DzCreateAutoEvt( TRUE );
     synSem1 = DzCreateSem( 0 );
     synSem2 = DzCreateSem( 0 );
     synTimer = DzCreateTimer( 1000, 3 );

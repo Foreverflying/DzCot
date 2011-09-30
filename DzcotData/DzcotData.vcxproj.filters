@@ -26,5 +26,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="DzcotData.def">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

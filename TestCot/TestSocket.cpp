@@ -56,8 +56,8 @@ void InitParam()
     gAddrLen = sizeof( sockaddr_in );
     gCotCount = 1;
     gMaxCotCount = 0;
-    gEndEvt = DzCreateEvt( TRUE, FALSE );
-    gHelloEvt = DzCreateEvt( TRUE, FALSE );
+    gEndEvt = DzCreateManualEvt( FALSE );
+    gHelloEvt = DzCreateManualEvt( FALSE );
 }
 
 void FreeParam()

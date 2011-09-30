@@ -224,11 +224,34 @@ inline int RunHost(
     int         sSize
     )
 {
-    int ret = DS_OK;
-    DzHost host;
     int i;
+    DzHost host;
+    int ret;
+    BOOL tlsOk;
+    BOOL startUpOk;
+    void* mallocSpace;
+    DzTimerNode** timerHeap;
 
-    InitTlsIndex();
+    tlsOk = AllocTlsIndex();
+    startUpOk = SockStartup();
+    timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+    mallocSpace = create_mspace( 0, 0 );
+
+    if( ! ( tlsOk && startUpOk && timerHeap && mallocSpace ) ){
+        if( mallocSpace ){
+            destroy_mspace( mallocSpace );
+        }
+        if( timerHeap ){
+            PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+        }
+        if( startUpOk ){
+            SockStartup();
+        }
+        if( tlsOk ){
+            FreeTlsIndex();
+        }
+        return DS_NO_MEMORY;
+    }
 
     host.originThread.sSize = SS_DEFAULT;
     host.currThread = &host.originThread;
@@ -237,7 +260,6 @@ inline int RunHost(
     for( i = 0; i <= lowestPriority; i++ ){
         InitSList( &host.taskLs[i] );
     }
-    //host.originThread.priority = CP_FIRST;
     host.threadPool = NULL;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host.cotPools[i] = NULL;
@@ -251,8 +273,8 @@ inline int RunHost(
     host.maxThreadCount = 0;
     host.timerCount = 0;
     host.timerHeapSize = 0;
-    host.timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
-    host.mallocSpace = create_mspace( 0, 0 );
+    host.timerHeap = timerHeap;
+    host.mallocSpace = mallocSpace;
     host.synObjPool = NULL;
     host.lNodePool = NULL;
     host.poolGrowList = NULL;
@@ -261,21 +283,28 @@ inline int RunHost(
     host.defaultPri = defaultPri == CP_DEFAULT ? host.lowestPriority : defaultPri;
     host.defaultSSize = defaultSSize;
 
-    InitOsStruct( &host );
     SetHost( &host );
+    if( InitOsStruct( &host ) ){
+        ret = StartCot( &host, firstEntry, context, priority, sSize );
+        if( ret == DS_OK ){
+            Schedule( &host );
+        }
+        IoMgrRoutine( &host );
 
-    ret = StartCot( &host, firstEntry, context, priority, sSize );
-    if( ret == DS_OK ){
-        Schedule( &host );
+        //after all cot finished, IoMgrRoutine will return.
+        //so cleanup the host struct
+        DeleteOsStruct( &host );
+    }else{
+        ret = DS_NO_MEMORY;
     }
-    IoMgrRoutine( &host );
 
-    DeleteOsStruct( &host );
     ReleaseAllPoolStack( &host );
     PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     ReleaseMemoryPool( &host );
     destroy_mspace( host.mallocSpace );
     SetHost( NULL );
+    SockCleanup();
+    FreeTlsIndex();
 
     return ret;
 }

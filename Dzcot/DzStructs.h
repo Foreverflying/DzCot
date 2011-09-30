@@ -21,8 +21,11 @@ typedef enum _SynObjType
 {
     TYPE_SEM,
     TYPE_EVT_AUTO,
+    TYPE_MAX_WAIT_AFFECT = TYPE_EVT_AUTO,
     TYPE_EVT_MANUAL,
+    TYPE_EVT_COUNT,
     TYPE_TIMER,
+    TYPE_MAX_USER_CAN_WAIT = TYPE_TIMER,
     TYPE_CALLBACK_TIMER,
     TYPE_TIMEOUT,
     TYPE_FAST_EVT
@@ -68,8 +71,7 @@ typedef struct _DzSynObj
             int64       unusedTimestamp;
             union{
                 int     unusedInterval;     //for repeat timer, should set minus
-                int     count;              //for semaphore
-                BOOL    notified;           //for event
+                int     notifyCount;        //for semaphore and event
             };
         };
     };

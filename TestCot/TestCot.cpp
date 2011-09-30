@@ -9,10 +9,11 @@ int _tmain(int argc, _TCHAR* argv[])
     _TCHAR* av[] = {
         _T("TestCot"),
         _T("--gtest_break_on_failure"),
+        //_T("--gtest_filter=TestCotMechanism.*"),
         //_T("--gtest_filter=TestSynObj.*"),
         //_T("--gtest_filter=TestCallbackTimer.*"),
         //_T("--gtest_filter=TestSocket.*"),
-        _T("--gtest_filter=TestException.*"),
+        //_T("--gtest_filter=TestException.*"),
         //_T("--gtest_filter=TestSocket.SendRecvSendRecv"),
         //_T("--gtest_filter=TestSocket.LargeBuffer"),
         //_T("--gtest_filter=TestFileReadWrite.*"),

@@ -70,7 +70,7 @@ void CallDzcotRoutine();
 
 #endif
 
-inline void InitOsStruct( DzHost* host )
+inline BOOL InitOsStruct( DzHost* host )
 {
     host->osStruct.iocp = CreateIoCompletionPort(
         INVALID_HANDLE_VALUE,
@@ -86,19 +86,11 @@ inline void InitOsStruct( DzHost* host )
     host->osStruct.originExceptPtr = NULL;
     host->osStruct.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
 #endif
-    host->osStruct.reservedStack = NULL;
+    return host->osStruct.iocp != NULL;
 }
 
 inline void DeleteOsStruct( DzHost* host )
 {
-    DzLNode* node;
-    DzLItr* lItr = host->osStruct.reservedStack;
-
-    while( lItr ){
-        node = MEMBER_BASE( lItr, DzLNode, lItr );
-        VirtualFree( node->content, 0, MEM_RELEASE );
-        lItr = lItr->next;
-    }
     CloseHandle( host->osStruct.iocp );
 }
 
@@ -109,44 +101,20 @@ inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
     bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
     bottom->entry = entry;
     bottom->context = context;
-
-    /*
-    __asm{
-        mov ecx, dzThread
-            mov eax, [ecx] DzThread.stack
-            mov edx, context;
-        mov [eax-4], edx
-            mov edx, entry
-            mov [eax-8], edx
-    }
-    */
 }
 
 inline char* AllocStack( DzHost* host, int size )
 {
     char* base;
-    DzLNode* node;
     
-    while( 1 ){
-        base = (char*)VirtualAlloc(
-            NULL,
-            size,
-            MEM_RESERVE,
-            PAGE_READWRITE
-            );
+    base = (char*)VirtualAlloc(
+        NULL,
+        size,
+        MEM_RESERVE | MEM_TOP_DOWN,
+        PAGE_READWRITE
+        );
 
-        if( !base ){
-            return NULL;
-        }
-        if( base < host->osStruct.originalStack ){
-            node = AllocLNode( host );
-            node->content = base;
-            node->lItr.next = host->osStruct.reservedStack;
-            host->osStruct.reservedStack = &node->lItr;
-        }else{
-            return base + size;
-        }
-    }
+    return base ? base + size : NULL;
 }
 
 inline void FreeStack( char* stack, int size )

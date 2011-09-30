@@ -48,18 +48,18 @@ inline void FreeSynObj( DzHost* host, DzSynObj* obj )
 
 inline BOOL IsNotified( DzSynObj* obj )
 {
-    return obj->count > 0;
+    return obj->notifyCount > 0;
 }
 
 inline void WaitNotified( DzSynObj* obj )
 {
-    if( obj->type > TYPE_EVT_AUTO ){
+    if( obj->type > TYPE_MAX_WAIT_AFFECT ){
         return;
     }
     if( obj->type == TYPE_SEM ){
-        obj->count--;
+        obj->notifyCount--;
     }else{
-        obj->notified = FALSE;
+        obj->notifyCount = 0;
     }
 }
 
@@ -109,24 +109,35 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
             }else{
                 head = node->helper->nodeArray;
                 if( head + node->helper->checkIdx == node ){
-                    node->helper->checkIdx = -1;
-                    for( i = 0; i < node->helper->waitCount; i++ ){
-                        if( !IsNotified( head[i].synObj ) ){
-                            node->helper->checkIdx = i;
-                            break;
+                    i = node->helper->checkIdx + 1;
+                    while(
+                        i < node->helper->waitCount &&
+                        IsNotified( head[i].synObj )
+                        ){
+                        i++;
+                    }
+                    if( i == node->helper->waitCount ){
+                        i = node->helper->checkIdx - 1;
+                        while(
+                            i >= 0 &&
+                            IsNotified( head[i].synObj )
+                            ){
+                            i--;
                         }
                     }
-                }
-                if( node->helper->checkIdx < 0 ){
-                    for( i = 0; i < node->helper->waitCount; i++ ){
-                        WaitNotified( head[i].synObj );
-                    }
-                    ClearWait( host, node->helper );
-                    DispatchThread( host, node->helper->dzThread );
-                    node->helper->checkIdx = 0;
-                    ret = TRUE;
-                    if( !IsNotified( obj ) ){
-                        return ret;
+                    if( i >= 0 ){
+                        node->helper->checkIdx = i;
+                    }else{
+                        for( i = 0; i < node->helper->waitCount; i++ ){
+                            WaitNotified( head[i].synObj );
+                        }
+                        ClearWait( host, node->helper );
+                        DispatchThread( host, node->helper->dzThread );
+                        node->helper->checkIdx = 0;
+                        ret = TRUE;
+                        if( !IsNotified( obj ) ){
+                            return ret;
+                        }
                     }
                 }
             }
@@ -135,7 +146,7 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
     return ret;
 }
 
-inline DzSynObj* CreateEvt( DzHost* host,  BOOL manualReset, BOOL notified )
+inline DzSynObj* CreateManualEvt( DzHost* host, BOOL notified )
 {
     DzSynObj* obj;
 
@@ -143,18 +154,49 @@ inline DzSynObj* CreateEvt( DzHost* host,  BOOL manualReset, BOOL notified )
     if( !obj ){
         return NULL;
     }
-    obj->type = manualReset ? TYPE_EVT_MANUAL : TYPE_EVT_AUTO;
-    obj->notified = notified;
+    obj->type = TYPE_EVT_MANUAL;
+    obj->notifyCount = notified ? 1 : 0;
+    obj->ref = 1;
+    return obj;
+}
+
+inline DzSynObj* CreateAutoEvt( DzHost* host, BOOL notified )
+{
+    DzSynObj* obj;
+
+    obj = AllocSynObj( host );
+    if( !obj ){
+        return NULL;
+    }
+    obj->type = TYPE_EVT_AUTO;
+    obj->notifyCount = notified ? 1 : 0;
+    obj->ref = 1;
+    return obj;
+}
+
+inline DzSynObj* CreateCountDownEvt( DzHost* host, u_int count )
+{
+    DzSynObj* obj;
+
+    obj = AllocSynObj( host );
+    if( !obj ){
+        return NULL;
+    }
+    obj->type = TYPE_EVT_COUNT;
+    obj->notifyCount = 1 - count;
     obj->ref = 1;
     return obj;
 }
 
 inline void SetEvt( DzHost* host, DzSynObj* evt )
 {
-    if( evt->notified ){
+    if( evt->notifyCount > 0 ){
         return;
     }
-    evt->notified = TRUE;
+    evt->notifyCount++;
+    if( evt->notifyCount <= 0 ){
+        return;
+    }
     if( NotifyWaitQueue( host, evt ) ){
         host->currPriority = CP_FIRST;
     }
@@ -162,7 +204,11 @@ inline void SetEvt( DzHost* host, DzSynObj* evt )
 
 inline void ResetEvt( DzSynObj* evt )
 {
-    evt->notified = FALSE;
+    if( evt->type == TYPE_EVT_COUNT ){
+        evt->notifyCount--;
+    }else{
+        evt->notifyCount = 0;
+    }
 }
 
 inline DzSynObj* CreateSem( DzHost* host, int count )
@@ -174,22 +220,22 @@ inline DzSynObj* CreateSem( DzHost* host, int count )
         return NULL;
     }
     obj->type = TYPE_SEM;
-    obj->count = count;
+    obj->notifyCount = count;
     obj->ref = 1;
     return obj;
 }
 
 inline int ReleaseSem( DzHost* host, DzSynObj* sem, int count )
 {
-    if( sem->count > 0 ){
-        sem->count += count;
-        return sem->count;
+    if( sem->notifyCount > 0 ){
+        sem->notifyCount += count;
+        return sem->notifyCount;
     }
-    sem->count += count;
+    sem->notifyCount += count;
     if( NotifyWaitQueue( host, sem ) ){
         host->currPriority = CP_FIRST;
     }
-    return sem->count;
+    return sem->notifyCount;
 }
 
 inline DzSynObj* CreateTimer( DzHost* host, int milSec, unsigned short repeat )
@@ -275,16 +321,16 @@ inline BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
     switch( timerNode->type ){
     case TYPE_TIMER:
         timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
-        //since DzTimerNode.interval and DzTimerNode.notified is union,
-        //negative DzTimerNode.notified means not notified.
+        //since DzTimerNode.interval and DzTimerNode.notifyCount is union,
+        //negative DzTimerNode.notifyCount means not notified.
         //so interval is a negative number
-        //when notifying Timer, DzTimerNode.notified should keep positive,
-        timer->notified = - timer->notified;
+        //when notifying Timer, DzTimerNode.notifyCount should keep positive,
+        timer->notifyCount = - timer->notifyCount;
         ret = NotifyWaitQueue( host, timer );
         //well, if a timer can be notified more than once, it is still in timer heap.
         //so we set it to NOT notified, or else, we keep it notified.
         if( IsTimeNodeInHeap( timerNode ) ){
-            timer->notified = - timer->notified;
+            timer->notifyCount = - timer->notifyCount;
         }
         return ret;
 

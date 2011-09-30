@@ -17,6 +17,8 @@
 #   endif
 #endif
 
+//#define DZCOTDATA_API
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -27,20 +29,19 @@ extern "C"{
 #include <MSWSock.h>
 
 extern DZCOTDATA_API DWORD tlsIndex;
-extern DZCOTDATA_API LONG tlsLock;
-extern DZCOTDATA_API LONG sockInitCount;
-extern DZCOTDATA_API LONG sockInitLock;
-extern DZCOTDATA_API BOOL isSocketStarted;
 extern DZCOTDATA_API LPFN_ACCEPTEX _AcceptEx;
 extern DZCOTDATA_API LPFN_CONNECTEX _ConnectEx;
 extern DZCOTDATA_API LPFN_GETACCEPTEXSOCKADDRS _GetAcceptExSockAddrs;
+
+// extern DWORD tlsIndex;
+// extern LPFN_ACCEPTEX _AcceptEx;
+// extern LPFN_CONNECTEX _ConnectEx;
+// extern LPFN_GETACCEPTEXSOCKADDRS _GetAcceptExSockAddrs;
 
 #elif defined __linux__
 #include <pthread.h>
 
 extern pthread_key_t tlsIndex;
-extern int tlsLock;
-extern int isSocketStarted;
 
 #endif
 
