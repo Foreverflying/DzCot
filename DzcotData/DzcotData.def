@@ -1,6 +1,0 @@
-LIBRARY DzcotData
-EXPORTS
-    tlsIndex
-    _AcceptEx
-    _ConnectEx
-    _GetAcceptExSockAddrs

@@ -5,10 +5,12 @@
     purpose:    
 *********************************************************************/
 
+#include <gtest/gtest.h>
 #include "Util.h"
 //#include "../Dzcot/DzFastNewDel.h"
 
 void TestCot( DzRoutine entry, void* context )
 {
-    DzRunHost( CP_LOW, CP_LOW, SS_64K, entry, context );
+    int ret = DzRunHost( CP_LOW, CP_LOW, SS_64K, entry, context );
+    EXPECT_EQ( DS_OK, ret );
 }

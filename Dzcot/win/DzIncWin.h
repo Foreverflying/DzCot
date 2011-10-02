@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <WinSock2.h>
 #include <sys/timeb.h>
-
+#include <MSWSock.h>
 #include <windows.h>
 
 #ifndef __cplusplus

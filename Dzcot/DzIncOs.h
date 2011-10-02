@@ -14,6 +14,7 @@
     #include "linux/DzIncLnx.h"
 #endif
 
+#define DZ_TLS_IDX                  ( 16 )
 #define PAGE_SIZE                   ( 4096 )
 #define DZ_STACK_UNIT_SIZE          ( 4096 )
 #define DZ_STACK_SIZE_STEP          ( 2 )

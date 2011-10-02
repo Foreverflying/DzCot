@@ -8,15 +8,19 @@
 #ifndef __DzStructsWin_h__
 #define __DzStructsWin_h__
 
+#include "../DzIncOs.h"
 #include "../DzStructsList.h"
 
 struct _DzSynObj;
 
 typedef struct _DzOsStruct
 {
-    HANDLE          iocp;
-    void*           originExceptPtr;
-    char*           originalStack;
+    HANDLE                      iocp;
+    void*                       originExceptPtr;
+    char*                       originalStack;
+    LPFN_ACCEPTEX               _AcceptEx;
+    LPFN_CONNECTEX              _ConnectEx;
+    LPFN_GETACCEPTEXSOCKADDRS   _GetAcceptExSockAddrs;
 }DzOsStruct;
 
 typedef struct _DzThread

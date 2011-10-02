@@ -24,7 +24,6 @@ int DzRunHost(
     int         sSize
     )
 {
-    assert( tlsIndex == TLS_OUT_OF_INDEXES );
     assert(
         lowestPriority >= CP_HIGH &&
         lowestPriority < COT_PRIORITY_COUNT
@@ -40,7 +39,10 @@ int DzRunHost(
     assert( !GetHost() );
     assert( firstEntry );
 
-    return RunHost( lowestPriority, defaultPri, defaultSSize, firstEntry, context, priority, sSize );
+    return RunHost(
+        NULL, lowestPriority, defaultPri, defaultSSize,
+        firstEntry, context, priority, sSize
+        );
 }
 
 int DzStartCot(
@@ -97,6 +99,7 @@ int DzEvtStartCot(
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( evt );
     assert( evt->type == TYPE_EVT_MANUAL || evt->type == TYPE_EVT_COUNT );
     assert( entry );
     assert(
@@ -121,6 +124,7 @@ int DzEvtStartCotInstant(
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( evt );
     assert( evt->type == TYPE_EVT_MANUAL || evt->type == TYPE_EVT_COUNT );
     assert( entry );
     assert(
@@ -183,10 +187,14 @@ int DzWaitSynObj( DzHandle obj, int timeout )
 
 int DzWaitMultiSynObj( int count, DzHandle* obj, BOOL waitAll, int timeout )
 {
+    int i;
     DzHost* host = GetHost();
     assert( host );
     assert( obj );
     assert( count > 0 );
+    for( i = 0; i < count; i++ ){
+        assert( obj[i] && obj[i]->type <= TYPE_MAX_USER_CAN_WAIT );
+    }
 
     return WaitMultiSynObj( host, count, obj, waitAll, timeout );
 }

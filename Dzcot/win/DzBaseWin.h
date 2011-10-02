@@ -9,7 +9,6 @@
 #define __DzBaseWin_h__
 
 #include "../DzStructs.h"
-#include "../../DzcotData/DzcotData.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -40,8 +39,28 @@ inline BOOL AllocTlsIndex()
 #ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
     return TRUE;
 #else
+    int i;
+    DWORD tlsIndex;
+    DWORD tlsArr[ TLS_MINIMUM_AVAILABLE ];
+
+    i = 0;
     tlsIndex = TlsAlloc();
-    return tlsIndex != TLS_OUT_OF_INDEXES;
+    while( tlsIndex < TLS_MINIMUM_AVAILABLE - 1 && tlsIndex != DZ_TLS_IDX ){
+        tlsArr[i] = tlsIndex;
+        tlsIndex = TlsAlloc();
+        i++;
+    }
+    i--;
+    while( i >= 0 ){
+        TlsFree( tlsArr[i] );
+        i--;
+    }
+    if( tlsIndex != DZ_TLS_IDX ){
+        TlsFree( tlsIndex );
+        return FALSE;
+    }else{
+        return TRUE;
+    }
 #endif
 }
 
@@ -49,8 +68,7 @@ inline void FreeTlsIndex()
 {
 #ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
 #else
-    TlsFree( tlsIndex );
-    tlsIndex = TLS_OUT_OF_INDEXES;
+    TlsFree( DZ_TLS_IDX );
 #endif
 }
 
@@ -63,7 +81,7 @@ inline DzHost* GetHost()
     return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
 #endif
 #else
-    return (DzHost*)TlsGetValue( tlsIndex );
+    return (DzHost*)TlsGetValue( DZ_TLS_IDX );
 #endif
 }
 
@@ -76,7 +94,7 @@ inline void SetHost( DzHost* host )
     *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
 #endif
 #else
-    TlsSetValue( tlsIndex, host );
+    TlsSetValue( DZ_TLS_IDX, host );
 #endif
 }
 

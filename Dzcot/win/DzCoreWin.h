@@ -11,12 +11,13 @@
 #include "../DzBaseOs.h"
 #include "../DzResourceMgr.h"
 #include "../DzSynObj.h"
-#include "../../DzcotData/DzcotData.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
+BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
+void DeleteOsStruct( DzHost* host, DzHost* parentHost );
 void __stdcall DzcotRoutine( DzRoutine entry, void* context );
 
 inline void InitDzThread( DzThread* dzThread )
@@ -69,30 +70,6 @@ void CallDzcotRoutine();
 #define DzcotRoutineEntry CallDzcotRoutine
 
 #endif
-
-inline BOOL InitOsStruct( DzHost* host )
-{
-    host->osStruct.iocp = CreateIoCompletionPort(
-        INVALID_HANDLE_VALUE,
-        NULL,
-        (ULONG_PTR)NULL,
-        1
-        );
-
-#if defined( _X86_ )
-    host->osStruct.originExceptPtr = (void*)__readfsdword( 0 );
-    host->osStruct.originalStack = (char*)__readfsdword( 4 );
-#elif defined( _M_AMD64 )
-    host->osStruct.originExceptPtr = NULL;
-    host->osStruct.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
-#endif
-    return host->osStruct.iocp != NULL;
-}
-
-inline void DeleteOsStruct( DzHost* host )
-{
-    CloseHandle( host->osStruct.iocp );
-}
 
 inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
 {

@@ -35,7 +35,7 @@ void __stdcall TestCotStackGrow( void* context )
     gRand = new DRandom( 542234 );
     DzHandle evt = DzCreateCountDownEvt( count );
     for( int i = 0; i < count; i++ ){
-        DzEvtStartCot( DzCloneSynObj( evt ), CotStackGrowRoutine, (void*)32768 );
+        DzEvtStartCot( evt, CotStackGrowRoutine, (void*)32768 );
     }
     DzWaitSynObj( evt );
     EXPECT_EQ( count, gCount );

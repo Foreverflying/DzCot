@@ -215,6 +215,7 @@ inline int EvtStartCotInstant(
 // the function will block while there are cots running
 // after all cots exit, the host will stop and the block ends
 inline int RunHost(
+    DzHost*     parentHost,
     int         lowestPriority,
     int         defaultPri,
     int         defaultSSize,
@@ -228,24 +229,19 @@ inline int RunHost(
     DzHost host;
     int ret;
     BOOL tlsOk;
-    BOOL startUpOk;
     void* mallocSpace;
     DzTimerNode** timerHeap;
 
     tlsOk = AllocTlsIndex();
-    startUpOk = SockStartup();
     timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     mallocSpace = create_mspace( 0, 0 );
 
-    if( ! ( tlsOk && startUpOk && timerHeap && mallocSpace ) ){
+    if( ! ( tlsOk && timerHeap && mallocSpace ) ){
         if( mallocSpace ){
             destroy_mspace( mallocSpace );
         }
         if( timerHeap ){
             PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
-        }
-        if( startUpOk ){
-            SockStartup();
         }
         if( tlsOk ){
             FreeTlsIndex();
@@ -284,7 +280,7 @@ inline int RunHost(
     host.defaultSSize = defaultSSize;
 
     SetHost( &host );
-    if( InitOsStruct( &host ) ){
+    if( InitOsStruct( &host, parentHost ) ){
         ret = StartCot( &host, firstEntry, context, priority, sSize );
         if( ret == DS_OK ){
             Schedule( &host );
@@ -293,7 +289,7 @@ inline int RunHost(
 
         //after all cot finished, IoMgrRoutine will return.
         //so cleanup the host struct
-        DeleteOsStruct( &host );
+        DeleteOsStruct( &host, parentHost );
     }else{
         ret = DS_NO_MEMORY;
     }
@@ -303,7 +299,6 @@ inline int RunHost(
     ReleaseMemoryPool( &host );
     destroy_mspace( host.mallocSpace );
     SetHost( NULL );
-    SockCleanup();
     FreeTlsIndex();
 
     return ret;

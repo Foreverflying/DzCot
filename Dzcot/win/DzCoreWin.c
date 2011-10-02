@@ -9,6 +9,86 @@
 #include "../DzCoreOs.h"
 #include "../DzCore.h"
 
+inline void GetWinSockFunc( SOCKET tmpSock, GUID* guid, void* funcAddr )
+{
+    DWORD bytes;
+    WSAIoctl(
+        tmpSock,
+        SIO_GET_EXTENSION_FUNCTION_POINTER,
+        guid,
+        (DWORD)sizeof( GUID ),
+        funcAddr,
+        (DWORD)sizeof( void* ),
+        &bytes,
+        NULL,
+        NULL
+        );
+}
+
+BOOL SockStartup( DzOsStruct* osStruct )
+{
+    BOOL ret;
+    WSADATA data;
+    WORD wVer;
+    SOCKET tmpSock;
+    GUID guidAcceptEx = WSAID_ACCEPTEX;
+    GUID guidConnectEx = WSAID_CONNECTEX;
+    GUID guidGetAcceptExSockAddrs = WSAID_GETACCEPTEXSOCKADDRS;
+
+    wVer = MAKEWORD( 2, 2 );
+    ret = WSAStartup( wVer, &data ) == 0;
+    if( ret ){
+        tmpSock = socket( AF_INET, SOCK_STREAM, 0 );
+        GetWinSockFunc( tmpSock, &guidAcceptEx, &osStruct->_AcceptEx );
+        GetWinSockFunc( tmpSock, &guidConnectEx, &osStruct->_ConnectEx );
+        GetWinSockFunc( tmpSock, &guidGetAcceptExSockAddrs, &osStruct->_GetAcceptExSockAddrs );
+        closesocket( tmpSock );
+    }
+    return ret;
+}
+
+BOOL SockCleanup()
+{
+    return WSACleanup() == 0;
+}
+
+BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
+{
+    if( !parentHost ){
+        if( !SockStartup( &host->osStruct ) ){
+            return FALSE;
+        }
+    }else{
+        host->osStruct._AcceptEx = parentHost->osStruct._AcceptEx;
+        host->osStruct._ConnectEx = parentHost->osStruct._ConnectEx;
+        host->osStruct._GetAcceptExSockAddrs = parentHost->osStruct._GetAcceptExSockAddrs;
+    }
+    host->osStruct.iocp = CreateIoCompletionPort(
+        INVALID_HANDLE_VALUE,
+        NULL,
+        (ULONG_PTR)NULL,
+        1
+        );
+
+#if defined( _X86_ )
+    host->osStruct.originExceptPtr = (void*)__readfsdword( 0 );
+    host->osStruct.originalStack = (char*)__readfsdword( 4 );
+#elif defined( _M_AMD64 )
+    host->osStruct.originExceptPtr = NULL;
+    host->osStruct.originalStack = (char*)( __readgsqword( 0x30 ) + 8 );
+#endif
+
+    return host->osStruct.iocp != NULL;
+}
+
+void DeleteOsStruct( DzHost* host, DzHost* parentHost )
+{
+    CloseHandle( host->osStruct.iocp );
+    if( !parentHost ){
+        SockCleanup();
+    }
+}
+
 #ifdef GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
 #include <tchar.h>
@@ -73,62 +153,3 @@ void __stdcall DzcotRoutine( DzRoutine entry, void* context )
         exit( 0 );
     }
 }
-
-/*
-void StackGrow()
-{
-    void** tib;
-    char* stackLimit;
-
-#if defined( _X86_ )
-    tib = (void**)__readfsdword( 24 );
-#elif defined( _M_AMD64 )
-    tib = (void**)( __readgsqword( 0x30 ) + 48 );
-#endif
-    stackLimit = (char*)*(tib+2) - PAGE_SIZE;
-    //TODO: something wrong with the code
-    VirtualAlloc(
-        stackLimit - PAGE_SIZE,
-        PAGE_SIZE,
-        MEM_COMMIT,
-        PAGE_READWRITE | PAGE_GUARD
-        );
-    *(tib+2) = stackLimit;
-}
-
-int GuardMiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
-{
-    if( exception->ExceptionRecord->ExceptionCode == STATUS_GUARD_PAGE_VIOLATION ){
-        StackGrow();
-        return EXCEPTION_CONTINUE_EXECUTION;
-    }
-    return EXCEPTION_CONTINUE_SEARCH;
-}
-
-// DzcotRoutine:
-// the real entry the co thread starts, it call the user entry
-// after that, the thread is finished, so put itself to the thread pool
-// schedule next thread
-void __stdcall DzcotRoutine( DzRoutine entry, void* context )
-{
-    DzHost* host = GetHost();
-    __try{
-        __try{
-            while(1){
-                //call the entry
-                ( *(DzRoutine volatile *)(&entry) )( *(void* volatile *)(&context) );
-
-                //free the thread
-                host->threadCount--;
-                FreeDzThread( host, host->currThread );
-
-                //then schedule another thread
-                Schedule( host );
-            }
-        }__except( GuardMiniDumpExpFilter( GetExceptionInformation() ) ){
-        }
-    }__except( MiniDumpExpFilter( GetExceptionInformation() ) ){
-        exit( 0 );
-    }
-}
-*/

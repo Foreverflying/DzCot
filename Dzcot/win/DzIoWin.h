@@ -15,15 +15,11 @@
 #include "../DzResourceMgr.h"
 #include "../DzCoreOs.h"
 #include "../DzSynObj.h"
-#include "../../DzcotData/DzcotData.h"
 #include <MSWSock.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
-
-BOOL SockStartup();
-BOOL SockCleanup();
 
 inline int Socket( DzHost* host, int domain, int type, int protocol )
 {
@@ -70,7 +66,7 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
     ZeroMemory( &tmpAddr, sizeof( struct sockaddr ) );
     tmpAddr.sa_family = addr->sa_family;
     bind( (SOCKET)fd, &tmpAddr, (int)sizeof(struct sockaddr) );
-    if( !_ConnectEx( (SOCKET)fd, addr, addrLen, NULL, 0, &bytes, &asynIo.overlapped ) ){
+    if( !host->osStruct._ConnectEx( (SOCKET)fd, addr, addrLen, NULL, 0, &bytes, &asynIo.overlapped ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             SetLastErr( host, err );
@@ -125,7 +121,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
         return -1;
     }
     ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
-    if( !_AcceptEx( (SOCKET)fd, s, buf, 0, 32, 32, &bytes, &asynIo.overlapped ) ){
+    if( !host->osStruct._AcceptEx( (SOCKET)fd, s, buf, 0, 32, 32, &bytes, &asynIo.overlapped ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             closesocket( s );
@@ -159,7 +155,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
     }
     CreateIoCompletionPort( (HANDLE)s, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     if( addr ){
-        _GetAcceptExSockAddrs( buf, bytes, 32, 32, &lAddr, &lAddrLen, &rAddr, addrLen );
+        host->osStruct._GetAcceptExSockAddrs( buf, bytes, 32, 32, &lAddr, &lAddrLen, &rAddr, addrLen );
         memcpy( addr, rAddr, *addrLen );
     }
     SetLastErr( host, 0 );
