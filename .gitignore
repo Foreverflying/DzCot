@@ -1,3 +1,4 @@
+*manifest*
 *.ilk
 *.pdb
 *.exp
@@ -9,8 +10,6 @@
 *.pch
 *.htm
 *.user
-*Debug*
-*.manifest*
 *.dep
 *.dsp
 *.sdf
@@ -21,3 +20,4 @@
 *.ipch
 *.unsuccessfulbuild
 *.pgc
+*.cache

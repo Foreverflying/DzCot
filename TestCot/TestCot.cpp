@@ -3,9 +3,11 @@
 
 #include "stdafx.h"
 #include <gtest/gtest.h>
+#include "TestCompileInC.h"
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+    TestCompileInC();
     _TCHAR* av[] = {
         _T("TestCot"),
         //_T("--gtest_break_on_failure"),
@@ -16,7 +18,7 @@ int _tmain(int argc, _TCHAR* argv[])
         //_T("--gtest_filter=TestException.*"),
         //_T("--gtest_filter=TestSocket.SendRecvSendRecv"),
         //_T("--gtest_filter=TestSocket.LargeBuffer"),
-        _T("--gtest_filter=TestFileReadWrite.*"),
+        //_T("--gtest_filter=TestFileReadWrite.*"),
         _T("")
     };
     int ac = sizeof( av ) / sizeof(_TCHAR*);
