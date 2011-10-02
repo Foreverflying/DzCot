@@ -45,7 +45,7 @@ inline BOOL AllocTlsIndex()
 
     i = 0;
     tlsIndex = TlsAlloc();
-    while( i < TLS_MINIMUM_AVAILABLE - 1 && tlsIndex != DZ_TLS_IDX ){
+    while( tlsIndex != DZ_TLS_IDX && i < TLS_MINIMUM_AVAILABLE - 1 ){
         tlsArr[i] = tlsIndex;
         tlsIndex = TlsAlloc();
         i++;
@@ -114,7 +114,6 @@ void __fastcall DzSwitchFloatSafe( DzHost* host, DzThread* dzThread );
 void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
 #define DzSwitch DzSwitchFast
 #endif
-
 
 #ifdef __DBG_CHECK_COT_STACK_OVERFLOW
 

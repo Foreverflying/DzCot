@@ -8,7 +8,6 @@
 #include "DzIncOs.h"
 #include "DzSynObj.h"
 #include "DzCore.h"
-#include <assert.h>
 
 #ifdef __cplusplus
 extern "C"{

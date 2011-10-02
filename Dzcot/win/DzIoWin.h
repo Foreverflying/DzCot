@@ -15,7 +15,6 @@
 #include "../DzResourceMgr.h"
 #include "../DzCoreOs.h"
 #include "../DzSynObj.h"
-#include <MSWSock.h>
 
 #ifdef __cplusplus
 extern "C"{

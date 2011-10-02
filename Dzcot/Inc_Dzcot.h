@@ -14,7 +14,6 @@
 #include <sys/socket.h>
 #endif
 
-
 #undef FALSE
 #undef TRUE
 #undef NULL

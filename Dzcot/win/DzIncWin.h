@@ -24,6 +24,8 @@
 #include <sys/timeb.h>
 #include <MSWSock.h>
 #include <windows.h>
+#include <malloc.h>
+#include <assert.h>
 
 #ifndef __cplusplus
 #define inline static __inline

@@ -8,7 +8,6 @@
 #ifndef __DzSynObj_h__
 #define __DzSynObj_h__
 
-#include <malloc.h>
 #include "DzStructs.h"
 #include "DzResourceMgr.h"
 #include "DzTimer.h"
