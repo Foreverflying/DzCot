@@ -7,5 +7,5 @@ void TestCompileInC();
 
 #ifdef __cplusplus
 };
-#endif;
+#endif
 

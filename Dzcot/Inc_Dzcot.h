@@ -12,6 +12,7 @@
 #include <WinSock2.h>
 #elif defined( __linux__ )
 #include <sys/socket.h>
+#include <netinet/in.h>
 #endif
 
 #undef FALSE
@@ -99,7 +100,7 @@ typedef struct _DzBuf
 
 typedef struct _DzBuf
 {
-    void*           buf;
+    char*           buf;
     size_t          len;
 }DzBuf;
 
@@ -220,14 +221,14 @@ int DzSleep0();
 int DzSleepN( u_int milSec );
 
 int DzOpenFileA( const char* fileName, int flags );
-int DzOpenFileW( const wchar_t* fileName, int flags );
 int DzCloseFd( int fd );
 size_t DzReadFile( int fd, void* buf, size_t count );
 size_t DzWriteFile( int fd, const void* buf, size_t count );
 size_t DzSeekFile( int fd, ssize_t offset, int whence );
 size_t DzGetFileSize( int fd );
 
-#ifdef UNICODE
+#if defined( _WIN32 ) && defined( UNICODE )
+int DzOpenFileW( const wchar_t* fileName, int flags );
 #define DzOpenFile DzOpenFileW
 #else
 #define DzOpenFile DzOpenFileA

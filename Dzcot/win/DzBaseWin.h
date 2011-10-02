@@ -41,11 +41,11 @@ inline BOOL AllocTlsIndex()
 #else
     int i;
     DWORD tlsIndex;
-    DWORD tlsArr[ TLS_MINIMUM_AVAILABLE ];
+    DWORD tlsArr[ DZ_TLS_IDX * 2 ];
 
     i = 0;
     tlsIndex = TlsAlloc();
-    while( tlsIndex != DZ_TLS_IDX && i < TLS_MINIMUM_AVAILABLE - 1 ){
+    while( tlsIndex != DZ_TLS_IDX && i < DZ_TLS_IDX * 2 - 1 ){
         tlsArr[i] = tlsIndex;
         tlsIndex = TlsAlloc();
         i++;

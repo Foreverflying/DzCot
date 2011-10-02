@@ -3,8 +3,6 @@
 #include <gtest/gtest.h>
 #include "Util.h"
 
-static int currCount = 0;
-
 DzHandle synEvt1 = NULL;
 DzHandle synEvt2 = NULL;
 DzHandle synSem1 = NULL;

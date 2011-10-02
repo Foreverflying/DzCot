@@ -79,7 +79,7 @@ typedef struct _DzBuf
 
 typedef struct _DzBuf
 {
-    void*           buf;
+    char*           buf;
     size_t          len;
 }DzBuf;
 

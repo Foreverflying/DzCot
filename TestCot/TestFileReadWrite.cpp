@@ -20,7 +20,7 @@ void __stdcall TestReadFile( void* context )
     unsigned char md5Ret[16];
     md5_context mc;
 
-    int fd = DzOpenFile( _T("../../test/sailing.mp3"), DZ_O_RD );
+    int fd = DzOpenFile( "../../test/sailing.mp3", DZ_O_RD );
     ASSERT_NE( -1, fd );
     size_t n = DzGetFileSize( fd );
     ASSERT_EQ( 3678906, n );
@@ -97,7 +97,7 @@ void __stdcall TestWriteFile( void* context )
     }
 
     int fd = DzOpenFile(
-        _T("../../test/test_write.txt"),
+        "../../test/test_write.txt",
         DZ_O_RDWR | DZ_O_TRUNC | DZ_O_CREATE
         );
     ASSERT_NE( -1, fd );
