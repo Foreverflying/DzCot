@@ -45,7 +45,7 @@ inline BOOL AllocTlsIndex()
 
     i = 0;
     tlsIndex = TlsAlloc();
-    while( tlsIndex < TLS_MINIMUM_AVAILABLE - 1 && tlsIndex != DZ_TLS_IDX ){
+    while( i < TLS_MINIMUM_AVAILABLE - 1 && tlsIndex != DZ_TLS_IDX ){
         tlsArr[i] = tlsIndex;
         tlsIndex = TlsAlloc();
         i++;
