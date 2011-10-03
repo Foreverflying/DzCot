@@ -99,7 +99,7 @@ int DzEvtStartCot(
     DzHost* host = GetHost();
     assert( host );
     assert( evt );
-    assert( evt->type == TYPE_EVT_MANUAL || evt->type == TYPE_EVT_COUNT );
+    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( entry );
     assert(
         priority == CP_DEFAULT ||
@@ -124,7 +124,7 @@ int DzEvtStartCotInstant(
     DzHost* host = GetHost();
     assert( host );
     assert( evt );
-    assert( evt->type == TYPE_EVT_MANUAL || evt->type == TYPE_EVT_COUNT );
+    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( entry );
     assert(
         priority >= CP_FIRST &&
