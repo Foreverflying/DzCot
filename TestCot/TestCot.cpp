@@ -5,20 +5,23 @@
 #include <gtest/gtest.h>
 #include "TestCompileInC.h"
 
-int main(int argc, char* argv[])
+int main(int argc, _TCHAR* argv[])
 {
     TestCompileInC();
     char* av[] = {
         "TestCot",
-        //"--gtest_break_on_failure",
+        "--gtest_break_on_failure",
         //"--gtest_filter=TestCotMechanism.*",
-        "--gtest_filter=TestSynObj.*",
+        //"--gtest_filter=TestSynObj.*",
         //"--gtest_filter=TestCallbackTimer.*",
         //"--gtest_filter=TestException.*",
-        //"--gtest_filter=TestSocket.*",
-        //"--gtest_filter=TestSocket.SendRecvSendRecv",
-        //"--gtest_filter=TestSocket.LargeBuffer",
         //"--gtest_filter=TestFileReadWrite.*",
+        "--gtest_filter=TestTcpSocket.*",
+        //"--gtest_filter=TestTcpSocket.Simple*",
+        //"--gtest_filter=TestTcpSocket.SimpleSend",
+        //"--gtest_filter=TestTcpSocket.SimpleRecv",
+        //"--gtest_filter=TestTcpSocket.SendRecvSendRecv",
+        //"--gtest_filter=TestTcpSocket.LargeBuffer",
         ""
     };
     int ac = sizeof( av ) / sizeof( char* );
@@ -30,7 +33,7 @@ int main(int argc, char* argv[])
     return ret;
 }
 
-int _tmain(int argc, char* argv[])
+int _tmain(int argc, _TCHAR* argv[])
 {
     return main( argc, argv );
 }

@@ -152,6 +152,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
         SetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
+    setsockopt( s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&fd, sizeof( fd ) );
     CreateIoCompletionPort( (HANDLE)s, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     if( addr ){
         host->osStruct._GetAcceptExSockAddrs( buf, bytes, 32, 32, &lAddr, &lAddrLen, &rAddr, addrLen );
@@ -161,7 +162,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
     return (int)s;
 }
 
-inline int SendEx( DzHost* host, int fd, DzBuf* bufs, int bufCount, int flags )
+inline int SendEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags )
 {
     DWORD bytes;
     DzAsynIo asynIo;
@@ -207,7 +208,7 @@ inline int SendEx( DzHost* host, int fd, DzBuf* bufs, int bufCount, int flags )
     return bytes;
 }
 
-inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, int bufCount, int flags )
+inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags )
 {
     DWORD bytes;
     DzAsynIo asynIo;
@@ -254,20 +255,20 @@ inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, int bufCount, int flags )
     return bytes;
 }
 
-inline int Send( DzHost* host, int fd, const void* buf, int len, int flags )
+inline int Send( DzHost* host, int fd, const void* buf, u_int len, int flags )
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
-    tmpBuf.buf = (char*)buf;
+    tmpBuf.buf = (void*)buf;
 
     return SendEx( host, fd, &tmpBuf, 1, flags );
 }
 
-inline int Recv( DzHost* host, int fd, void* buf, int len, int flags )
+inline int Recv( DzHost* host, int fd, void* buf, u_int len, int flags )
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
-    tmpBuf.buf = (char*)buf;
+    tmpBuf.buf = buf;
 
     return RecvEx( host, fd, &tmpBuf, 1, flags );
 }
@@ -276,7 +277,7 @@ inline int SendToEx(
     DzHost*                 host,
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
@@ -330,7 +331,7 @@ inline int RecvFromEx(
     DzHost*                 host,
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen
@@ -384,8 +385,8 @@ inline int RecvFromEx(
 inline int SendTo(
     DzHost*                 host,
     int                     fd,
-    const char*             buf,
-    int                     len,
+    const void*             buf,
+    u_int                   len,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
@@ -393,7 +394,7 @@ inline int SendTo(
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
-    tmpBuf.buf = (char*)buf;
+    tmpBuf.buf = (void*)buf;
 
     return SendToEx( host, fd, &tmpBuf, 1, flags, to, tolen );
 }
@@ -401,8 +402,8 @@ inline int SendTo(
 inline int RecvFrom(
     DzHost*                 host,
     int                     fd,
-    char*                   buf,
-    int                     len,
+    void*                   buf,
+    u_int                   len,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen
@@ -410,7 +411,7 @@ inline int RecvFrom(
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
-    tmpBuf.buf = (char*)buf;
+    tmpBuf.buf = buf;
 
     return RecvFromEx( host, fd, &tmpBuf, 1, flags, from, fromlen );
 }
@@ -504,7 +505,7 @@ inline int Close( DzHost* host, int fd )
     return ret ? 0 : -1;
 }
 
-inline size_t Read( DzHost* host, int fd, void* buf, size_t count )
+inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;
@@ -570,7 +571,7 @@ inline size_t Read( DzHost* host, int fd, void* buf, size_t count )
     return bytes;
 }
 
-inline size_t Write( DzHost* host, int fd, const void* buf, size_t count )
+inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;

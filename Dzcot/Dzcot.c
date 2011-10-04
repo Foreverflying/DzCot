@@ -427,7 +427,7 @@ int DzCloseFd( int fd )
     return Close( host, fd );
 }
 
-size_t DzReadFile( int fd, void* buf, size_t count )
+ssize_t DzReadFile( int fd, void* buf, size_t count )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -435,7 +435,7 @@ size_t DzReadFile( int fd, void* buf, size_t count )
     return Read( host, fd, buf, count );
 }
 
-size_t DzWriteFile( int fd, const void* buf, size_t count )
+ssize_t DzWriteFile( int fd, const void* buf, size_t count )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -512,25 +512,25 @@ int DzAccept( int fd, struct sockaddr* addr, int* addrLen )
     return Accept( host, fd, addr, addrLen );
 }
 
-int DzSendEx( int fd, DzBuf* bufs, int bufCount, int flags )
+int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
+    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
     return SendEx( host, fd, bufs, bufCount, flags );
 }
 
-int DzRecvEx( int fd, DzBuf* bufs, int bufCount, int flags )
+int DzRecvEx( int fd, DzBuf* bufs, u_int bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
+    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
     return RecvEx( host, fd, bufs, bufCount, flags );
 }
 
-int DzSend( int fd, const void* buf, int len, int flags )
+int DzSend( int fd, const void* buf, u_int len, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -538,7 +538,7 @@ int DzSend( int fd, const void* buf, int len, int flags )
     return Send( host, fd, buf, len, flags );
 }
 
-int DzRecv( int fd, void* buf, int len, int flags )
+int DzRecv( int fd, void* buf, u_int len, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -549,7 +549,7 @@ int DzRecv( int fd, void* buf, int len, int flags )
 int DzSendToEx(
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
@@ -557,7 +557,7 @@ int DzSendToEx(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
+    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
     return SendToEx( host, fd, bufs, bufCount, flags, to, tolen );
 }
@@ -565,7 +565,7 @@ int DzSendToEx(
 int DzRecvFromEx(
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen
@@ -573,15 +573,15 @@ int DzRecvFromEx(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( bufCount > 0 && bufCount <= DZ_IOV_MAX );
+    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
     return RecvFromEx( host, fd, bufs, bufCount, flags, from, fromlen );
 }
 
 int DzSendTo(
     int                     fd,
-    const char*             buf,
-    int                     len,
+    const void*             buf,
+    u_int                   len,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
@@ -595,8 +595,8 @@ int DzSendTo(
 
 int DzRecvFrom(
     int                     fd,
-    char*                   buf,
-    int                     len,
+    void*                   buf,
+    u_int                   len,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen

@@ -72,14 +72,14 @@ typedef long long ssize_t;
 typedef struct _DzBuf
 {
     unsigned long   len;
-    char*           buf;
+    void*           buf;
 }DzBuf;
 
 #elif defined __linux__
 
 typedef struct _DzBuf
 {
-    char*           buf;
+    void*           buf;
     size_t          len;
 }DzBuf;
 

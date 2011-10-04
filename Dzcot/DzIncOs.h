@@ -24,6 +24,6 @@
 #define OBJ_POOL_GROW_COUNT         ( PAGE_SIZE / sizeof( int ) )
 #define TIME_HEAP_SIZE              ( 1024 * 1024 )
 #define MIN_TIME_INTERVAL           ( 5 )
-#define DZ_IOV_MAX                  ( 64 )
+#define DZ_MAX_IOV                  ( 64 )
 
 #endif // __DzIncOs_h__

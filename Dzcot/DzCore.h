@@ -14,7 +14,6 @@
 #include "DzSchedule.h"
 #include "DzIoOs.h"
 #include "dlmalloc.h"
-#include <assert.h>
 
 #ifdef __cplusplus
 extern "C"{

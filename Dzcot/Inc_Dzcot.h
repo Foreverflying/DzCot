@@ -72,7 +72,7 @@ enum
 #define DZ_SEEK_CUR     1
 #define DZ_SEEK_END     2
 
-#define DZ_IOV_MAX      64
+#define DZ_MAX_IOV      64
 
 typedef struct _DzParamNode
 {
@@ -93,14 +93,14 @@ typedef long long ssize_t;
 typedef struct _DzBuf
 {
     unsigned long   len;
-    char*           buf;
+    void*           buf;
 }DzBuf;
 
 #elif defined __linux__
 
 typedef struct _DzBuf
 {
-    char*           buf;
+    void*           buf;
     size_t          len;
 }DzBuf;
 
@@ -222,8 +222,8 @@ int DzSleepN( u_int milSec );
 
 int DzOpenFileA( const char* fileName, int flags );
 int DzCloseFd( int fd );
-size_t DzReadFile( int fd, void* buf, size_t count );
-size_t DzWriteFile( int fd, const void* buf, size_t count );
+ssize_t DzReadFile( int fd, void* buf, size_t count );
+ssize_t DzWriteFile( int fd, const void* buf, size_t count );
 size_t DzSeekFile( int fd, ssize_t offset, int whence );
 size_t DzGetFileSize( int fd );
 
@@ -241,14 +241,14 @@ int DzBind( int fd, struct sockaddr* addr, int addrLen );
 int DzListen( int fd, int backlog );
 int DzConnect( int fd, struct sockaddr* addr, int addrLen );
 int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
-int DzSendEx( int fd, DzBuf* bufs, int bufCount, int flags );
-int DzRecvEx( int fd, DzBuf* bufs, int bufCount, int flags );
-int DzSend( int fd, const void* buf, int len, int flags );
-int DzRecv( int fd, void* buf, int len, int flags );
+int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags );
+int DzRecvEx( int fd, DzBuf* bufs, u_int bufCount, int flags );
+int DzSend( int fd, const void* buf, u_int len, int flags );
+int DzRecv( int fd, void* buf, u_int len, int flags );
 int DzSendToEx(
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
@@ -256,23 +256,23 @@ int DzSendToEx(
 int DzRecvFromEx(
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen
     );
 int DzSendTo(
     int                     fd,
-    const char*             buf,
-    int                     len,
+    const void*             buf,
+    u_int                   len,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
     );
 int DzRecvFrom(
     int                     fd,
-    char*                   buf,
-    int                     len,
+    void*                   buf,
+    u_int                   len,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen
