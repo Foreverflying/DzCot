@@ -216,29 +216,33 @@ DzHandle DzCreateCallbackTimer(
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 BOOL DzCloseCallbackTimer( DzHandle timer );
-int DzSleep( u_int milSec );
-int DzSleep0();
-int DzSleepN( u_int milSec );
+void DzSleep( u_int milSec );
 
 int DzOpenFileA( const char* fileName, int flags );
-int DzCloseFd( int fd );
+int DzCloseFile( int fd );
 ssize_t DzReadFile( int fd, void* buf, size_t count );
 ssize_t DzWriteFile( int fd, const void* buf, size_t count );
 size_t DzSeekFile( int fd, ssize_t offset, int whence );
 size_t DzGetFileSize( int fd );
 
-#if defined( _WIN32 ) && defined( UNICODE )
+#ifdef _WIN32
 int DzOpenFileW( const wchar_t* fileName, int flags );
-#define DzOpenFile DzOpenFileW
-#else
+#endif
+
+#ifndef UNICODE
 #define DzOpenFile DzOpenFileA
+#else
+#define DzOpenFile DzOpenFileW
 #endif
 
 int DzSocket( int domain, int type, int protocol );
-int DzShutdown( int fd, int how );
 int DzCloseSocket( int fd );
+int DzGetSockOpt( int fd, int level, int name, void* option, int* len );
+int DzSetSockOpt( int fd, int level, int name, const void* option, int len );
+int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen );
 int DzBind( int fd, struct sockaddr* addr, int addrLen );
 int DzListen( int fd, int backlog );
+int DzShutdown( int fd, int how );
 int DzConnect( int fd, struct sockaddr* addr, int addrLen );
 int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
 int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags );

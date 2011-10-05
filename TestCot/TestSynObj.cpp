@@ -148,15 +148,15 @@ void __stdcall TestAllSynObj2( void* context )
     DzStartCot( Wait6Evt1 );
 
     DzSetEvt( synEvt1 );
-    DzSleep0();
+    DzSleep( 0 );
     DzSetEvt( synEvt2 );
-    DzSleep0();
+    DzSleep( 0 );
     DzResetEvt( synEvt1 );
-    DzSleep0();
+    DzSleep( 0 );
     DzReleaseSem( synSem1, 1 );
-    DzSleep0();
+    DzSleep( 0 );
     DzSetEvt( synEvt2 );
-    DzSleep0();
+    DzSleep( 0 );
     DzReleaseSem( synSem2, 2 );
 
     DzSleep( 500 );
@@ -208,18 +208,18 @@ void __stdcall TestAllSynObj3( void* context )
     DzStartCot( Wait6Evt1 );
 
     DzSetEvt( synEvt1 );
-    DzSleep0();
+    DzSleep( 0 );
     DzSetEvt( synEvt2 );
-    DzSleep0();
+    DzSleep( 0 );
     DzResetEvt( synEvt1 );
-    DzSleep0();
+    DzSleep( 0 );
     DzReleaseSem( synSem1, 2 );
-    DzSleep0();
+    DzSleep( 0 );
     DzSetEvt( synEvt2 );
     DzSleep( 3000 );
     DzReleaseSem( synSem2, 2 );
 
-    DzSleep0();
+    DzSleep( 0 );
     int rightRet[] = { 201, 301, 601, 402, 900, 501, 501, 701, 701, 501, 901, 1000, 901, 1001, 1000 };
 
     EXPECT_EQ( 7, retCount );
@@ -276,18 +276,18 @@ void __stdcall TestAllSynObj4( void* context )
     DzStartCot( Wait6Evt1 );
 
     DzSetEvt( synEvt1 );
-    DzSleep0();
+    DzSleep( 0 );
     DzSetEvt( synEvt2 );
-    DzSleep0();
+    DzSleep( 0 );
     DzResetEvt( synEvt1 );
-    DzSleep0();
+    DzSleep( 0 );
     DzReleaseSem( synSem1, 2 );
-    DzSleep0();
+    DzSleep( 0 );
     DzSetEvt( synEvt2 );
     DzSleep( 3000 );
     DzReleaseSem( synSem2, 2 );
 
-    DzSleep0();
+    DzSleep( 0 );
     int rightRet[] = { 201, 301, 601, 402, 900, 501, 501, 701, 701, 501, 901, 1000, 901, 1001, 1000 };
 
     EXPECT_EQ( 7, retCount );

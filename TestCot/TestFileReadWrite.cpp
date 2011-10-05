@@ -68,7 +68,7 @@ void ReadFileEntry( char* buff, int buffLen )
     ret = memcmp( buff, content, 16 );
     ASSERT_EQ( 0, ret );
 
-    DzCloseFd( fd );
+    DzCloseFile( fd );
 }
 
 void __stdcall TestReadFile( void* context )
@@ -138,7 +138,7 @@ void WriteFileEntry( char* buff, int buffLen )
     int ret = memcmp( md5Ret, md5, 16 );
     ASSERT_EQ( 0, ret );
 
-    DzCloseFd( fd );
+    DzCloseFile( fd );
 }
 
 void __stdcall TestWriteFile( void* context )

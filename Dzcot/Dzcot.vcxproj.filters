@@ -35,9 +35,6 @@
     <ClCompile Include="DzcotPython.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="win\DzIoWin.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="DzResourceMgr.c">
       <Filter>源文件</Filter>
     </ClCompile>

@@ -8,6 +8,7 @@ EXPORTS
     DzEvtStartCotInstant
     DzGetCotCount
     DzGetMaxCotCount
+    DzChangePriority
     DzGrowCotPoolDepth
     DzWaitSynObj
     DzWaitMultiSynObj
@@ -27,20 +28,21 @@ EXPORTS
     DzCreateCallbackTimer
     DzCloseCallbackTimer
     DzSleep
-    DzSleep0
-    DzSleepN
     DzOpenFileA
     DzOpenFileW
-    DzCloseFd
+    DzCloseFile
     DzReadFile
     DzWriteFile
     DzSeekFile
     DzGetFileSize
     DzSocket
-    DzShutdown
     DzCloseSocket
+    DzGetSockOpt
+    DzSetSockOpt
+    DzGetSockName
     DzBind
     DzListen
+    DzShutdown
     DzConnect
     DzAccept
     DzSendEx

@@ -158,7 +158,7 @@ int DzChangePriority( int priority )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( priority > CP_FIRST && priority <= host->lowestPriority );
+    assert( priority >= CP_FIRST && priority <= host->lowestPriority );
 
     return SetCurrCotPriority( host, priority );
 }
@@ -370,7 +370,7 @@ BOOL DzCloseCallbackTimer( DzHandle timer )
     return TRUE;
 }
 
-int DzSleep( u_int milSec )
+void DzSleep( u_int milSec )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -381,26 +381,6 @@ int DzSleep( u_int milSec )
     }else{
         DispatchCurrThread( host );
     }
-    return DS_OK;
-}
-
-int DzSleep0()
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    DispatchCurrThread( host );
-    return DS_OK;
-}
-
-int DzSleepN( u_int milSec )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( (int)milSec > 0 );
-
-    DelayCurrThread( host, (int)milSec );
-    return DS_OK;
 }
 
 int DzOpenFileA( const char* fileName, int flags )
@@ -419,7 +399,7 @@ int DzOpenFileW( const wchar_t* fileName, int flags )
     return OpenW( host, fileName, flags );
 }
 
-int DzCloseFd( int fd )
+int DzCloseFile( int fd )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -467,19 +447,35 @@ int DzSocket( int domain, int type, int protocol )
     return Socket( host, domain, type, protocol );
 }
 
-int DzShutdown( int fd, int how )
-{
-    assert( GetHost() );
-
-    return Shutdown( fd, how );
-}
-
 int DzCloseSocket( int fd )
 {
     DzHost* host = GetHost();
     assert( host );
 
     return CloseSocket( host, fd );
+}
+
+int DzGetSockOpt( int fd, int level, int name, void* option, int* len )
+{
+    assert( GetHost() );
+
+    return GetSockOpt( fd, level, name, option, len );
+}
+
+int DzSetSockOpt( int fd, int level, int name, const void* option, int len )
+{
+    assert( GetHost() );
+    assert( !( level == SOL_SOCKET && name == SO_LINGER ) );
+    assert( !( level == SOL_SOCKET && name == SO_DONTLINGER ) );
+
+    return SetSockOpt( fd, level, name, option, len );
+}
+
+int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen )
+{
+    assert( GetHost() );
+
+    return GetSockName( fd, addr, addrLen );
 }
 
 int DzBind( int fd, struct sockaddr* addr, int addrLen )
@@ -494,6 +490,13 @@ int DzListen( int fd, int backlog )
     assert( GetHost() );
 
     return Listen( fd, backlog );
+}
+
+int DzShutdown( int fd, int how )
+{
+    assert( GetHost() );
+
+    return Shutdown( fd, how );
 }
 
 int DzConnect( int fd, struct sockaddr* addr, int addrLen )

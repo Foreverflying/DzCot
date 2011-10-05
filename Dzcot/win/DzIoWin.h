@@ -25,18 +25,31 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     SOCKET fd;
 
     fd = socket( domain, type, protocol );
+    if( fd == INVALID_SOCKET ){
+        return -1;
+    }
     CreateIoCompletionPort( (HANDLE)fd, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     return (int)fd;
-}
-
-inline int Shutdown( int fd, int how )
-{
-    return shutdown( (SOCKET)fd, how );
 }
 
 inline int CloseSocket( DzHost* host, int fd )
 {
     return closesocket( (SOCKET)fd );
+}
+
+inline int GetSockOpt( int fd, int level, int name, void* option, int* len )
+{
+    return getsockopt( (SOCKET)fd, level, name, (char*)option, len );
+}
+
+inline int SetSockOpt( int fd, int level, int name, const void* option, int len )
+{
+    return setsockopt( (SOCKET)fd, level, name, (const char*)option, len );
+}
+
+inline int GetSockName( int fd, struct sockaddr* addr, int* addrLen )
+{
+    return getsockname( (SOCKET)fd, addr, addrLen );
 }
 
 inline int Bind( int fd, struct sockaddr* addr, int addrLen )
@@ -47,6 +60,25 @@ inline int Bind( int fd, struct sockaddr* addr, int addrLen )
 inline int Listen( int fd, int backlog )
 {
     return listen( (SOCKET)fd, backlog );
+}
+
+inline int Shutdown( int fd, int how )
+{
+    return shutdown( (SOCKET)fd, how );
+}
+
+inline int TryConnectDatagram( int fd, struct sockaddr* addr, int addrLen )
+{
+    int sockType;
+    int sockTypeLen = sizeof( sockType );
+
+    if( getsockopt( fd, SOL_SOCKET, SO_TYPE, (char*)&sockType, &sockTypeLen ) ){
+        return -1;
+    }
+    if( sockType == SOCK_DGRAM ){
+        return connect( fd, addr, addrLen );
+    }
+    return -1;
 }
 
 inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
@@ -68,6 +100,12 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
     if( !host->osStruct._ConnectEx( (SOCKET)fd, addr, addrLen, NULL, 0, &bytes, &asynIo.overlapped ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
+            if( err == WSAEINVAL ){
+                if( TryConnectDatagram( fd, addr, addrLen ) == 0 ){
+                    SetLastErr( host, 0 );
+                    return 0;
+                }
+            }
             SetLastErr( host, err );
             return -1;
         }
@@ -95,6 +133,7 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
         SetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
+    setsockopt( fd, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0 );
     SetLastErr( host, 0 );
     return 0;
 }
@@ -529,12 +568,9 @@ inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
     }
     if( !ReadFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo.overlapped ) ){
         err = GetLastError();
-        if( err == ERROR_HANDLE_EOF ){
+        if( err != ERROR_IO_PENDING ){
             SetLastErr( host, err );
-            return 0;
-        }else if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, err );
-            return -1;
+            return err == ERROR_HANDLE_EOF ? 0 : -1;
         }
         InitFastEvt( &asynIo.fastEvt );
         WaitFastEvt( host, &asynIo.fastEvt, -1 );
@@ -595,12 +631,9 @@ inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
     }
     if( !WriteFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo.overlapped )  ){
         err = GetLastError();
-        if( err == ERROR_HANDLE_EOF ){
+        if( err != ERROR_IO_PENDING ){
             SetLastErr( host, err );
-            return 0;
-        }else if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, err );
-            return -1;
+            return err == ERROR_HANDLE_EOF ? 0 : -1;
         }
         InitFastEvt( &asynIo.fastEvt );
         WaitFastEvt( host, &asynIo.fastEvt, -1 );
