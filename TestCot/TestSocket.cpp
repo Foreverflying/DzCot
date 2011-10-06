@@ -196,7 +196,7 @@ void __stdcall WaitHello( void* context )
     DzCloseSocket( lisFd );
 }
 
-void WaitAllCotEnd()
+void WaitAllCotEnd( int expectMaxCotCount )
 {
     gCotCount--;
     if( gCotCount == 0 ){
@@ -204,6 +204,7 @@ void WaitAllCotEnd()
     }
     DzWaitSynObj( gEndEvt );
 
+    EXPECT_EQ( expectMaxCotCount, gMaxCotCount );
 #ifdef DZ_TEST_SOCKET_SVR
     DzSetEvt( gHelloEvt );
 #endif
@@ -213,22 +214,22 @@ void WaitAllCotEnd()
 #endif
 }
 
-int ReadFunc( int fd, void* buff, int len )
+int ReadFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
     return (int)DzReadFile( fd, buff, len );
 }
 
-int RecvFunc( int fd, void* buff, int len )
+int RecvFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
     return DzRecv( fd, buff, len, 0 );
 }
 
-int RecvFromFunc( int fd, void* buff, int len )
+int RecvFromFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
-    return DzRecvFrom( fd, buff, len, 0, NULL, 0 );
+    return DzRecvFrom( fd, buff, len, 0, from, fromLen );
 }
 
-int RecvExFunc( int fd, void* buff, int len )
+int RecvExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
     char* startPos = (char*)buff;
     DzBuf buffs[ DZ_TEST_IOV_COUNT ];
@@ -242,7 +243,7 @@ int RecvExFunc( int fd, void* buff, int len )
     return DzRecvEx( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
 }
 
-int RecvFromExFunc( int fd, void* buff, int len )
+int RecvFromExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
     char* startPos = (char*)buff;
     DzBuf buffs[ DZ_TEST_IOV_COUNT ];
@@ -253,25 +254,25 @@ int RecvFromExFunc( int fd, void* buff, int len )
         startPos += buffLen;
     }
     buffs[ DZ_TEST_IOV_COUNT - 1 ].len += len % DZ_TEST_IOV_COUNT;
-    return DzRecvFromEx( fd, buffs, DZ_TEST_IOV_COUNT, 0, NULL, 0 );
+    return DzRecvFromEx( fd, buffs, DZ_TEST_IOV_COUNT, 0, from, fromLen );
 }
 
-int WriteFunc( int fd, const void* buff, int len )
+int WriteFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
     return (int)DzWriteFile( fd, buff, len );
 }
 
-int SendFunc( int fd, const void* buff, int len )
+int SendFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
     return DzSend( fd, buff, len, 0 );
 }
 
-int SendToFunc( int fd, const void* buff, int len )
+int SendToFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
-    return DzSendTo( fd, buff, len, 0, NULL, 0 );
+    return DzSendTo( fd, buff, len, 0, to, toLen );
 }
 
-int SendExFunc( int fd, const void* buff, int len )
+int SendExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
     char* startPos = (char*)buff;
     DzBuf buffs[ DZ_TEST_IOV_COUNT ];
@@ -285,7 +286,7 @@ int SendExFunc( int fd, const void* buff, int len )
     return DzSendEx( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
 }
 
-int SendToExFunc( int fd, const void* buff, int len )
+int SendToExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
     char* startPos = (char*)buff;
     DzBuf buffs[ DZ_TEST_IOV_COUNT ];
@@ -296,11 +297,11 @@ int SendToExFunc( int fd, const void* buff, int len )
         startPos += buffLen;
     }
     buffs[ DZ_TEST_IOV_COUNT - 1 ].len += len % DZ_TEST_IOV_COUNT;
-    return DzSendToEx( fd, buffs, DZ_TEST_IOV_COUNT, 0, NULL, 0 );
+    return DzSendToEx( fd, buffs, DZ_TEST_IOV_COUNT, 0, to, toLen );
 }
 
-typedef int ( *FuncRead )( int, void*, int );
-typedef int ( *FuncWrite )( int, const void*, int );
+typedef int ( *FuncRead )( int fd, void* buff, int len, sockaddr* from, int* fromLen );
+typedef int ( *FuncWrite )( int fd, const void* buff, int len, const sockaddr* to, int toLen );
 
 static int gNextReadFuncIdx = 0;
 static int gNextWriteFuncIdx = 0;
@@ -412,7 +413,7 @@ int TcpReadOneStream( FuncRead readFunc, int lisFd )
     int recvLen = 0;
     do{
         __DbgTce5( "recv start %d\r\n", recvTimeCount++ );
-        tmp = readFunc( lisFd, buff, buffLen );
+        tmp = readFunc( lisFd, buff, buffLen, NULL, NULL );
         if( tmp < 0 ){
             delete[] buff;
             throw (int)__LINE__;
@@ -423,7 +424,7 @@ int TcpReadOneStream( FuncRead readFunc, int lisFd )
             if( recvLen < sizeof( TestStream ) ){
                 int tmp1;
                 do{
-                    tmp1 = readFunc( lisFd, buff + recvLen, buffLen - recvLen );
+                    tmp1 = readFunc( lisFd, buff + recvLen, buffLen - recvLen, NULL, NULL );
                     if( tmp1 <= 0 ){
                         throw (int)__LINE__;
                     }
@@ -467,7 +468,7 @@ void TcpWriteOneStream( FuncWrite writeFunc, int fd, int idx )
             emptyLen = buffLen - sendLen;
         }
         __DbgTce5( "send start %d\r\n", sendTimeCount++ );
-        tmp = writeFunc( fd, buff + sendLen, emptyLen );
+        tmp = writeFunc( fd, buff + sendLen, emptyLen, NULL, NULL );
         if( tmp < 0 ){
             throw (int)__LINE__;
         }
@@ -520,11 +521,11 @@ void TcpSvrMain( DzRoutine svrRoutine, int count )
     CotStop();
 }
 
-int UdpReadOneStream( FuncRead readFunc, int fd )
+int UdpReadOneStream( FuncRead readFunc, int fd, sockaddr* from = NULL, int* fromLen = NULL )
 {
     int buffLen = gMaxBuffLen;
     char* buff = new char[ buffLen ];
-    int tmp = readFunc( fd, buff, buffLen );
+    int tmp = readFunc( fd, buff, buffLen, from, fromLen );
     if( tmp < 0 ){
         throw (int)__LINE__;
     }
@@ -533,10 +534,10 @@ int UdpReadOneStream( FuncRead readFunc, int fd )
     return ts->idx;
 }
 
-void UdpWriteOneStream( FuncWrite writeFunc, int fd, int idx )
+void UdpWriteOneStream( FuncWrite writeFunc, int fd, int idx, const sockaddr* to = NULL, int toLen = 0 )
 {
     TestStream* ts = (TestStream*)gBufArr[ idx ];
-    int tmp = writeFunc( fd, gBufArr[ idx ], ts->len );
+    int tmp = writeFunc( fd, gBufArr[ idx ], ts->len, to, toLen );
     if( tmp < 0 ){
         throw (int)__LINE__;
     }
@@ -561,9 +562,7 @@ void UdpSvrMain( DzRoutine svrRoutine, int count )
         int connCount = count;
         while( connCount ){
             int idx = UdpReadOneStream( GetReadFunc(), fd );
-            if( svrRoutine ){
-                CotStart( svrRoutine, (void*)idx );
-            }
+            CotStart( svrRoutine, (void*)idx );
             connCount--;
         }
     }catch( int line ){
@@ -595,7 +594,7 @@ void SocketTestFrame(
     n++;
 #endif
 
-    WaitAllCotEnd();
+    WaitAllCotEnd( n * ( 1 + testCount ) );
     FreeParam();
 }
 
@@ -717,7 +716,7 @@ void __stdcall TcpSvrRecvCloseRoutine( void* context )
     char buff[ 32 ];
 
     unsigned long long start = DzMilUnixTime();
-    int ret = readFunc( fd, buff, 32 );
+    int ret = readFunc( fd, buff, 32, NULL, NULL );
     unsigned long long stop = DzMilUnixTime();
     EXPECT_EQ( 0, ret );
     EXPECT_GE( 200, stop - start );
@@ -764,7 +763,7 @@ void __stdcall TcpSvrSendCloseRoutine( void* context )
     int fd = (int)context;
     int idx;
     try{
-        int ret = readFunc( fd, &idx, sizeof( idx ) );
+        int ret = readFunc( fd, &idx, sizeof( idx ), NULL, NULL );
         EXPECT_EQ( sizeof( idx ), ret );
         DzSleep( 100 );
         if( idx % 2 ){
@@ -802,7 +801,7 @@ void __stdcall TcpCltSendCloseRoutine( void* context )
         int ret;
         unsigned long long start = DzMilUnixTime();
         do{
-            ret = writeFunc( fd, &idx, sizeof( idx ) );
+            ret = writeFunc( fd, &idx, sizeof( idx ), NULL, 0 );
             DzSleep( 10 );
         }while( ret > 0 );
         unsigned long long stop = DzMilUnixTime();
@@ -828,6 +827,9 @@ void __stdcall UdpSvrRecvSendRoutine( void* context )
         addr.sin_port = hton16( gPort + 2 + idx );
 
         fd = DzSocket( gAddr->sa_family, SOCK_DGRAM, 0 );
+        if( fd == -1 ){
+            throw (int)__LINE__;
+        }
         if( DzConnect( fd, (sockaddr*)&addr, sizeof( addr ) ) != 0 ){
             throw (int)__LINE__;
         }
@@ -835,7 +837,7 @@ void __stdcall UdpSvrRecvSendRoutine( void* context )
     }catch( int line ){
         ADD_FAILURE() << "socket error, line : " << line;
     }
-    if( fd == -1 ){
+    if( fd != -1 ){
         DzCloseSocket( fd );
     }
     CotStop();
@@ -871,6 +873,7 @@ void __stdcall UdpCltSendRecvRoutine( void* context )
         }
 
         UdpWriteOneStream( GetWriteFunc(), fd, idx );
+
         int ret = UdpReadOneStream( GetReadFunc(), recvFd );
         EXPECT_EQ( idx + 1, ret );
     }catch( int line ){
@@ -881,6 +884,76 @@ void __stdcall UdpCltSendRecvRoutine( void* context )
     }
     if( recvFd != -1 ){
         DzCloseSocket( recvFd );
+    }
+    CotStop();
+}
+
+void __stdcall UdpSvrRecvSendNoConnRoutine( void* context )
+{
+    int idx = (int)context;
+    int fd = -1;
+    try{
+        sockaddr_in addr;
+        addr.sin_family = gAddr->sa_family;
+        addr.sin_addr.s_addr = hton32( 0 );
+        addr.sin_port = hton16( gPort - idx );
+
+        fd = DzSocket( gAddr->sa_family, SOCK_DGRAM, 0 );
+        if( fd == -1 ){
+            throw (int)__LINE__;
+        }
+        if( DzBind( fd, (sockaddr*)&addr, sizeof( addr ) ) != 0 ){
+            throw (int)__LINE__;
+        }
+
+        sockaddr_in addr1;
+        addr1.sin_family = gAddr->sa_family;
+        addr1.sin_addr.s_addr = hton32( gIp );
+        addr1.sin_port = hton16( gPort + 2 + idx );
+
+        UdpWriteOneStream( GetWriteFunc(), fd, idx + 1, (sockaddr*)&addr1, sizeof( addr1 ) );
+    }catch( int line ){
+        ADD_FAILURE() << "socket error, line : " << line;
+    }
+    if( fd == -1 ){
+        DzCloseSocket( fd );
+    }
+    CotStop();
+}
+
+void __stdcall UdpCltSendRecvNoConnRoutine( void* context )
+{
+    int idx = (int)context;
+    int fd = -1;
+
+    DzSleep( gRand->rand( 0, 1000 ) );
+    try{
+        sockaddr_in addr;
+        addr.sin_family = gAddr->sa_family;
+        addr.sin_addr.s_addr = hton32( 0 );
+        addr.sin_port = hton16( gPort + 2 + idx );
+
+        fd = DzSocket( gAddr->sa_family, SOCK_DGRAM, 0 );
+        if( fd == -1 ){
+            throw (int)__LINE__;
+        }
+        if( DzBind( fd, (sockaddr*)&addr, sizeof( addr ) ) != 0 ){
+            throw (int)__LINE__;
+        }
+
+        UdpWriteOneStream( GetWriteFunc(), fd, idx, gAddr, gAddrLen );
+
+        sockaddr_in addr1;
+        int addr1Len = sizeof( addr1 );
+        int ret = UdpReadOneStream( GetReadFunc(), fd, (sockaddr*)&addr1, &addr1Len );
+        EXPECT_EQ( idx + 1, ret );
+        EXPECT_EQ( hton16( gPort - idx ), addr1.sin_port );
+        EXPECT_EQ( ( (sockaddr_in*)gAddr )->sin_addr.s_addr, addr1.sin_addr.s_addr );
+    }catch( int line ){
+        ADD_FAILURE() << "socket error, line : " << line;
+    }
+    if( fd != -1 ){
+        DzCloseSocket( fd );
     }
     CotStop();
 }
@@ -935,6 +1008,70 @@ void __stdcall TcpCltSendCloseMain( void* context )
     CltMain( TcpCltSendCloseRoutine, (int)context );
 }
 
+void __stdcall HelpCloseSocket( void* context )
+{
+    int fd = (int)context;
+    DzCloseSocket( fd );
+}
+
+void __stdcall TcpSvrAcceptCloseMain( void* context )
+{
+    DzStartCot( WaitHello );
+
+    int lisSock = -1;
+    try{
+        lisSock = DzSocket( gAddr->sa_family, SOCK_STREAM, 0 );
+        if( lisSock == -1 ){
+            throw (int)__LINE__;
+        }
+        int ret = DzBind( lisSock, gAddr, gAddrLen );
+        if( ret != 0 ){
+            throw (int)__LINE__;
+        }
+
+        DzSleep( gCltDelay + 1000 );
+        ret = DzListen( lisSock, SOMAXCONN );
+        if( ret != 0 ){
+            throw (int)__LINE__;
+        }
+
+        DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (void*)lisSock );
+        sockaddr acptAddr;
+        int acptAddrLen = sizeof( sockaddr );
+        int fd = DzAccept( lisSock, &acptAddr, &acptAddrLen );
+        EXPECT_EQ( -1, fd );
+        lisSock = -1;
+        DzCloseCallbackTimer( timer );
+    }catch( int line ){
+        ADD_FAILURE() << "socket error, line : " << line;
+    }
+    if( lisSock != -1 ){
+        DzCloseSocket( lisSock );
+    }
+    CotStop();
+}
+
+void __stdcall TcpCltConnectCloseMain( void* context )
+{
+    int fd = -1;
+    try{
+        fd = DzSocket( gAddr->sa_family, SOCK_STREAM, 0 );
+        if( fd == -1 ){
+            throw (int)__LINE__;
+        }
+        DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (void*)fd );
+        int ret = DzConnect( fd, gAddr, gAddrLen );
+        EXPECT_EQ( -1, ret );
+        DzCloseCallbackTimer( timer );
+    }catch( int line ){
+        ADD_FAILURE() << "socket error, line : " << line;
+    }
+    if( fd != -1 ){
+        DzCloseSocket( fd );
+    }
+    CotStop();
+}
+
 void __stdcall UdpSvrRecvSendMain( void* context )
 {
     UdpSvrMain( UdpSvrRecvSendRoutine, (int)context );
@@ -943,6 +1080,16 @@ void __stdcall UdpSvrRecvSendMain( void* context )
 void __stdcall UdpCltSendRecvMain( void* context )
 {
     CltMain( UdpCltSendRecvRoutine, (int)context );
+}
+
+void __stdcall UdpSvrRecvSendNoConnMain( void* context )
+{
+    UdpSvrMain( UdpSvrRecvSendNoConnRoutine, (int)context );
+}
+
+void __stdcall UdpCltSendRecvNoConnMain( void* context )
+{
+    CltMain( UdpCltSendRecvNoConnRoutine, (int)context );
 }
 
 void __stdcall TcpTestSimpleSend( void* context )
@@ -1003,9 +1150,9 @@ void __stdcall TcpTestSendCloseValue( void* context )
     SocketTestFrame( TcpSvrSendCloseMain, TcpCltSendCloseMain, 5 );
 }
 
-void __stdcall TcpTestConnectAcceptCloseValue( void* context )
+void __stdcall TcpTestConnectAcceptClose( void* context )
 {
-
+    SocketTestFrame( TcpSvrAcceptCloseMain, TcpCltConnectCloseMain, 0 );
 }
 
 void __stdcall UdpTestSendRecv( void* context )
@@ -1021,6 +1168,22 @@ void __stdcall UdpTestMultiSendRecv( void* context )
     int cotCount = 100;
     InitBuffArray( 342553, cotCount + 1, 1024, 256 );
     SocketTestFrame( UdpSvrRecvSendMain, UdpCltSendRecvMain, cotCount );
+    DeleteBuffArray();
+}
+
+void __stdcall UdpTestSendRecvNoConn( void* context )
+{
+    int cotCount = 1;
+    InitBuffArray( 2546257, cotCount + 1, 1024, 256 );
+    SocketTestFrame( UdpSvrRecvSendNoConnMain, UdpCltSendRecvNoConnMain, cotCount );
+    DeleteBuffArray();
+}
+
+void __stdcall UdpTestMultiSendRecvNoConn( void* context )
+{
+    int cotCount = 100;
+    InitBuffArray( 342553, cotCount + 1, 1024, 256 );
+    SocketTestFrame( UdpSvrRecvSendNoConnMain, UdpCltSendRecvNoConnMain, cotCount );
     DeleteBuffArray();
 }
 
@@ -1080,16 +1243,35 @@ TEST( TestTcpSocket, SendCloseValue )
     TestCot( TcpTestSendCloseValue );
 }
 
+TEST( TestTcpSocket, ConnectAcceptClose )
+{
+    TestCot( TcpTestConnectAcceptClose );
+}
+
 TEST( TestUdpSocket, SendRecv )
 {
     SetReadFunc( RecvFromExFunc, TRUE );
-    SetWriteFunc( SendToExFunc, TRUE );
+    SetWriteFunc( SendToFunc, TRUE );
     TestCot( UdpTestSendRecv );
 }
 
 TEST( TestUdpSocket, MultiSendRecv )
 {
-    SetReadFunc( RecvFromExFunc, TRUE );
+    SetReadFunc( RecvFromFunc, TRUE );
     SetWriteFunc( SendToExFunc, TRUE );
     TestCot( UdpTestMultiSendRecv );
+}
+
+TEST( TestUdpSocket, SendRecvNoConn )
+{
+    SetReadFunc( RecvFromExFunc );
+    SetWriteFunc( SendToFunc );
+    TestCot( UdpTestSendRecvNoConn );
+}
+
+TEST( TestUdpSocket, MultiSendRecvNoConn )
+{
+    SetReadFunc( RecvFromFunc );
+    SetWriteFunc( SendToExFunc );
+    TestCot( UdpTestMultiSendRecvNoConn );
 }

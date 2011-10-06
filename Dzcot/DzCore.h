@@ -231,7 +231,7 @@ inline int RunHost(
     void* mallocSpace;
     DzTimerNode** timerHeap;
 
-    tlsOk = AllocTlsIndex();
+    tlsOk = parentHost ? TRUE : AllocTlsIndex();
     timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     mallocSpace = create_mspace( 0, 0 );
 
@@ -242,7 +242,7 @@ inline int RunHost(
         if( timerHeap ){
             PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
         }
-        if( tlsOk ){
+        if( tlsOk && !parentHost ){
             FreeTlsIndex();
         }
         return DS_NO_MEMORY;
@@ -298,7 +298,9 @@ inline int RunHost(
     ReleaseMemoryPool( &host );
     destroy_mspace( host.mallocSpace );
     SetHost( NULL );
-    FreeTlsIndex();
+    if( !parentHost ){
+        FreeTlsIndex();
+    }
 
     return ret;
 }

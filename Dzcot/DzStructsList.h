@@ -8,29 +8,31 @@
 #ifndef __DzStructsList_h__
 #define __DzStructsList_h__
 
-typedef struct _DzLItr
-{
-    struct _DzLItr*     next;
-}DzLItr;
+#include "DzDeclareStructs.h"
 
-typedef struct _DzSList
+struct _DzLItr
 {
-    struct _DzLItr*     head;
-    struct _DzLItr*     tail;
-}DzSList;
+    DzLItr*     next;
+};
 
-typedef struct _DzDLItr
+struct _DzSList
 {
-    struct _DzDLItr*    next;
-    struct _DzDLItr*    prev;
-}DzDLItr;
+    DzLItr*     head;
+    DzLItr*     tail;
+};
 
-typedef struct _DzDList
+struct _DzDLItr
 {
-    struct _DzDLItr     entry;
-}DzDList;
+    DzDLItr*    next;
+    DzDLItr*    prev;
+};
 
-typedef struct _DzLNode
+struct _DzDList
+{
+    DzDLItr     entry;
+};
+
+struct _DzLNode
 {
     union{
         struct{
@@ -44,6 +46,6 @@ typedef struct _DzLNode
     };
     void*               context1;
     void*               content;
-}DzLNode;
+};
 
 #endif // __DzStructsList_h__

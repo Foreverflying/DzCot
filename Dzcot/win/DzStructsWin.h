@@ -9,11 +9,10 @@
 #define __DzStructsWin_h__
 
 #include "../DzIncOs.h"
+#include "../DzDeclareStructs.h"
 #include "../DzStructsList.h"
 
-struct _DzSynObj;
-
-typedef struct _DzOsStruct
+struct _DzOsStruct
 {
     HANDLE                      iocp;
     void*                       originExceptPtr;
@@ -21,9 +20,9 @@ typedef struct _DzOsStruct
     LPFN_ACCEPTEX               _AcceptEx;
     LPFN_CONNECTEX              _ConnectEx;
     LPFN_GETACCEPTEXSOCKADDRS   _GetAcceptExSockAddrs;
-}DzOsStruct;
+};
 
-typedef struct _DzThread
+struct _DzThread
 {
     DzLItr              lItr;
     void*               sp;
@@ -32,6 +31,6 @@ typedef struct _DzThread
     int                 sSize;
     int                 lastErr;
     int                 priority;
-}DzThread;
+};
 
 #endif // __DzStructsWin_h__

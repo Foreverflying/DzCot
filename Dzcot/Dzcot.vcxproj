@@ -520,6 +520,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</CompileAs>
     </ClCompile>
     <ClCompile Include="DzCore.c" />
+    <ClCompile Include="DzDebug.c" />
     <ClCompile Include="DzTimer.c" />
     <ClCompile Include="win\DzCoreWin.c" />
     <ClCompile Include="Dzcot.c">
@@ -548,9 +549,11 @@
     <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
+    <ClInclude Include="DzDeclareStructs.h" />
     <ClInclude Include="Inc_DzFastNewDel.h" />
     <ClInclude Include="win\DzBaseWin.h" />
     <ClInclude Include="win\DzCoreWin.h" />
+    <ClInclude Include="DzDebug.h" />
     <CustomBuildStep Include="Inc_Dzcot.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|x64'">true</ExcludedFromBuild>
@@ -573,7 +576,6 @@
     <ClInclude Include="win\DzStructsWin.h" />
     <ClInclude Include="DzSynObj.h" />
     <ClInclude Include="DzTimer.h" />
-    <ClInclude Include="DzPreDef.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Dzcot.def" />

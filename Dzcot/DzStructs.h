@@ -8,16 +8,12 @@
 #ifndef __DzStructs_h__
 #define __DzStructs_h__
 
-#include "DzPreDef.h"
+#include "DzIncOs.h"
+#include "DzDeclareStructs.h"
 #include "DzStructsList.h"
 #include "DzStructsOs.h"
 
-struct _DzHost;
-struct _DzThread;
-struct _DzWaitNode;
-struct _DzWaitHelper;
-
-typedef enum _SynObjType
+enum
 {
     TYPE_SEM,
     TYPE_EVT_AUTO,
@@ -29,18 +25,18 @@ typedef enum _SynObjType
     TYPE_CALLBACK_TIMER,
     TYPE_TIMEOUT,
     TYPE_FAST_EVT
-}SynObjType;
+};
 
-typedef struct _DzTimerNode
+struct _DzTimerNode
 {
     short           type;
     unsigned short  repeat;
     int             index;
     int64           timestamp;
     int             interval;       //for repeat timer, should set minus
-}DzTimerNode;
+};
 
-typedef struct _DzFastEvt
+struct _DzFastEvt
 {
     union{
         DzTimerNode     timerNode;
@@ -54,12 +50,12 @@ typedef struct _DzFastEvt
     };
     BOOL                notified;
     union{
-        struct _DzWaitHelper*   helper;     //for timeout
-        struct _DzThread*       dzThread;   //for fast event
+        DzWaitHelper*   helper;     //for timeout
+        DzThread*       dzThread;   //for fast event
     };
-}DzFastEvt;
+};
 
-typedef struct _DzSynObj
+struct _DzSynObj
 {
     union{
         DzLItr          lItr;
@@ -87,28 +83,28 @@ typedef struct _DzSynObj
             DzDList     waitQ[ COT_PRIORITY_COUNT ];
         };
     };
-}DzSynObj;
+};
 
-typedef struct _DzWaitNode
+struct _DzWaitNode
 {
     union{
-        DzLItr              lItr;
-        DzDLItr             dlItr;
+        DzLItr      lItr;
+        DzDLItr     dlItr;
     };
-    struct _DzWaitHelper*   helper;
-    DzSynObj*               synObj;
-}DzWaitNode;
+    DzWaitHelper*   helper;
+    DzSynObj*       synObj;
+};
 
-typedef struct _DzWaitHelper
+struct _DzWaitHelper
 {
-    int                     waitCount;
-    int                     checkIdx;
-    struct _DzThread*       dzThread;
-    DzWaitNode*             nodeArray;
-    DzFastEvt               timeout;
-}DzWaitHelper;
+    int             waitCount;
+    int             checkIdx;
+    DzThread*       dzThread;
+    DzWaitNode*     nodeArray;
+    DzFastEvt       timeout;
+};
 
-typedef struct _DzHost
+struct _DzHost
 {
     //running co thread
     DzThread*       currThread;
@@ -159,6 +155,6 @@ typedef struct _DzHost
     //default co thread value
     int             defaultPri;
     int             defaultSSize;
-}DzHost;
+};
 
 #endif // __DzStructs_h__

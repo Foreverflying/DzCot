@@ -17,6 +17,7 @@ int main(int argc, _TCHAR* argv[])
         //"--gtest_filter=TestException.*",
         //"--gtest_filter=TestFileReadWrite.*",
         //"--gtest_filter=TestUdpSocket.*",
+        //"--gtest_filter=TestUdpSocket.MultiSendRecvNoConn",
         //"--gtest_filter=TestTcpSocket.*",
         //"--gtest_filter=TestTcpSocket.RecvCloseValue",
         //"--gtest_filter=TestTcpSocket.SendCloseValue",
@@ -25,6 +26,7 @@ int main(int argc, _TCHAR* argv[])
         //"--gtest_filter=TestTcpSocket.SimpleRecv",
         //"--gtest_filter=TestTcpSocket.SendRecvSendRecv",
         //"--gtest_filter=TestTcpSocket.LargeBuffer",
+        //"--gtest_filter=TestTcpSocket.ConnectAcceptClose",
         ""
     };
     int ac = sizeof( av ) / sizeof( char* );

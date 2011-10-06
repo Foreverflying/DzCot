@@ -99,10 +99,12 @@ BOOL AllocSynObjPool( DzHost* host )
     host->synObjPool = &p->lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
+    end->ref = 0;
     InitDList( &end->waitQ[ CP_HIGH ] );
     InitDList( &end->waitQ[ CP_NORMAL ] );
     InitDList( &end->waitQ[ CP_LOW ] );
     while( p != end ){
+        p->ref = 0;
         InitDList( &p->waitQ[ CP_HIGH ] );
         InitDList( &p->waitQ[ CP_NORMAL ] );
         InitDList( &p->waitQ[ CP_LOW ] );

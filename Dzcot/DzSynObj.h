@@ -155,7 +155,7 @@ inline DzSynObj* CreateManualEvt( DzHost* host, BOOL notified )
     }
     obj->type = TYPE_EVT_MANUAL;
     obj->notifyCount = notified ? 1 : 0;
-    obj->ref = 1;
+    obj->ref++;
     return obj;
 }
 
@@ -169,7 +169,7 @@ inline DzSynObj* CreateAutoEvt( DzHost* host, BOOL notified )
     }
     obj->type = TYPE_EVT_AUTO;
     obj->notifyCount = notified ? 1 : 0;
-    obj->ref = 1;
+    obj->ref++;
     return obj;
 }
 
@@ -183,7 +183,7 @@ inline DzSynObj* CreateCountDownEvt( DzHost* host, u_int count )
     }
     obj->type = TYPE_EVT_COUNT;
     obj->notifyCount = 1 - count;
-    obj->ref = 1;
+    obj->ref++;
     return obj;
 }
 
@@ -220,7 +220,7 @@ inline DzSynObj* CreateSem( DzHost* host, int count )
     }
     obj->type = TYPE_SEM;
     obj->notifyCount = count;
-    obj->ref = 1;
+    obj->ref++;
     return obj;
 }
 
@@ -249,7 +249,7 @@ inline DzSynObj* CreateTimer( DzHost* host, int milSec, unsigned short repeat )
     obj->timerNode.timestamp = MilUnixTime() + milSec;
     obj->timerNode.repeat = repeat;
     obj->timerNode.interval = - milSec;
-    obj->ref = 1;
+    obj->ref++;
     AddTimer( host, &obj->timerNode );
     return obj;
 }
@@ -290,9 +290,9 @@ inline DzSynObj* CreateCallbackTimer(
     obj->timerNode.repeat = repeat;
     obj->priority = priority;
     obj->sSize = sSize;
+    obj->ref++;
 
     AddTimer( host, &obj->timerNode );
-    obj->ref = 1;
     return obj;
 }
 

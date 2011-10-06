@@ -11,6 +11,7 @@
 #include "DzStructs.h"
 #include "DzList.h"
 #include "DzBaseOs.h"
+#include "DzDebug.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -44,7 +45,7 @@ inline void TemporaryPushThread( DzHost* host, DzThread* dzThread )
 
 inline void SwitchToCot( DzHost* host, DzThread* dzThread )
 {
-    __DbgCheckCotStackOverflow( host->currThread->sSize );
+    __DbgCheckCotStackOverflow( host->currThread );
     DzSwitch( host, dzThread );
 }
 

@@ -10,10 +10,10 @@
 
 #include "../DzStructs.h"
 
-typedef struct _DzAsynIo
+struct _DzAsynIo
 {
     OVERLAPPED      overlapped;
     DzFastEvt       fastEvt;
-}DzAsynIo;
+};
 
 #endif // __DzStructsIoWin_h__

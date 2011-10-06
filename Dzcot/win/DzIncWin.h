@@ -31,17 +31,33 @@
 #define inline static __inline
 #endif
 
+//predefine
+#if defined( _X86_ )
+typedef int ssize_t;
+#elif defined( _AMD64_ )
+typedef long long ssize_t;
+#endif
+
+typedef struct _DzBuf
+{
+    unsigned long   len;
+    void*           buf;
+}DzBuf;
+
 typedef long long int64;
 
 
 //global constants on windows
 
+
 //windows specific constants
+
 
 //switchers
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
 //#define SWITCH_COT_FLOAT_SAFE
 //#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
+
 
 //debug switchers
 //#define __DBG_CHECK_COT_STACK_OVERFLOW

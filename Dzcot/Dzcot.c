@@ -656,7 +656,6 @@ void DzFree( void* mem )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( mem );
 
     Free( host, mem );
 }
@@ -669,6 +668,14 @@ unsigned long long DzUnixTime()
 unsigned long long DzMilUnixTime()
 {
     return (unsigned long long)MilUnixTime();
+}
+
+int __DzDbgLastErr()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return __DbgGetLastErr( host );
 }
 
 #ifdef __cplusplus

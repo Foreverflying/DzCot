@@ -15,6 +15,7 @@
 #include "../DzResourceMgr.h"
 #include "../DzCoreOs.h"
 #include "../DzSynObj.h"
+#include "../DzDebug.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -102,11 +103,11 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
         if( err != ERROR_IO_PENDING ){
             if( err == WSAEINVAL ){
                 if( TryConnectDatagram( fd, addr, addrLen ) == 0 ){
-                    SetLastErr( host, 0 );
+                    __DbgSetLastErr( host, 0 );
                     return 0;
                 }
             }
-            SetLastErr( host, err );
+            __DbgSetLastErr( host, err );
             return -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -130,11 +131,11 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
         &flag
         );
     if( !ret ){
-        SetLastErr( host, (int)WSAGetLastError() );
+        __DbgSetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
     setsockopt( fd, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0 );
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return 0;
 }
 
@@ -163,7 +164,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             closesocket( s );
-            SetLastErr( host, err );
+            __DbgSetLastErr( host, err );
             return -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -188,7 +189,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
         );
     if( !ret ){
         closesocket( s );
-        SetLastErr( host, (int)WSAGetLastError() );
+        __DbgSetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
     setsockopt( s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&fd, sizeof( fd ) );
@@ -197,7 +198,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
         host->osStruct._GetAcceptExSockAddrs( buf, bytes, 32, 32, &lAddr, &lAddrLen, &rAddr, addrLen );
         memcpy( addr, rAddr, *addrLen );
     }
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return (int)s;
 }
 
@@ -216,7 +217,7 @@ inline int SendEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags 
     if( WSASend( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, flags, &asynIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, (int)err );
+            __DbgSetLastErr( host, (int)err );
             return -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -240,10 +241,10 @@ inline int SendEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags 
         &tmpFlag
         );
     if( !ret ){
-        SetLastErr( host, (int)WSAGetLastError() );
+        __DbgSetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return bytes;
 }
 
@@ -263,7 +264,7 @@ inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags 
     if( WSARecv( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, &asynIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, (int)err );
+            __DbgSetLastErr( host, (int)err );
             return -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -287,10 +288,10 @@ inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags 
         &tmpFlag
         );
     if( !ret ){
-        SetLastErr( host, (int)WSAGetLastError() );
+        __DbgSetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return bytes;
 }
 
@@ -335,7 +336,7 @@ inline int SendToEx(
     if( WSASendTo( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, flags, to, tolen, &asynIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, (int)err );
+            __DbgSetLastErr( host, (int)err );
             return -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -359,10 +360,10 @@ inline int SendToEx(
         &tmpFlag
         );
     if( !ret ){
-        SetLastErr( host, (int)WSAGetLastError() );
+        __DbgSetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return bytes;
 }
 
@@ -390,7 +391,7 @@ inline int RecvFromEx(
     if( WSARecvFrom( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, from, fromlen, &asynIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, (int)err );
+            __DbgSetLastErr( host, (int)err );
             return -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -414,10 +415,10 @@ inline int RecvFromEx(
         &tmpFlag
         );
     if( !ret ){
-        SetLastErr( host, (int)WSAGetLastError() );
+        __DbgSetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return bytes;
 }
 
@@ -569,7 +570,7 @@ inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
     if( !ReadFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo.overlapped ) ){
         err = GetLastError();
         if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, err );
+            __DbgSetLastErr( host, err );
             return err == ERROR_HANDLE_EOF ? 0 : -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -593,7 +594,7 @@ inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
         );
     if( !ret ){
         err = GetLastError();
-        SetLastErr( host, err );
+        __DbgSetLastErr( host, err );
         if( err == ERROR_HANDLE_EOF ){
             return 0;
         }else{
@@ -603,7 +604,7 @@ inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
     if( isFile ){
         SetFilePointer( (HANDLE)fd, (LONG)bytes, 0, FILE_CURRENT );
     }
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return bytes;
 }
 
@@ -632,7 +633,7 @@ inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
     if( !WriteFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo.overlapped )  ){
         err = GetLastError();
         if( err != ERROR_IO_PENDING ){
-            SetLastErr( host, err );
+            __DbgSetLastErr( host, err );
             return err == ERROR_HANDLE_EOF ? 0 : -1;
         }
         InitFastEvt( &asynIo.fastEvt );
@@ -656,7 +657,7 @@ inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
         );
     if( !ret ){
         err = GetLastError();
-        SetLastErr( host, err );
+        __DbgSetLastErr( host, err );
         if( err == ERROR_HANDLE_EOF ){
             return 0;
         }else{
@@ -666,7 +667,7 @@ inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
     if( isFile ){
         SetFilePointer( (HANDLE)fd, (LONG)bytes, 0, FILE_CURRENT );
     }
-    SetLastErr( host, 0 );
+    __DbgSetLastErr( host, 0 );
     return bytes;
 }
 

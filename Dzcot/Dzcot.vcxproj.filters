@@ -44,6 +44,9 @@
     <ClCompile Include="dlmalloc.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="DzDebug.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DzCore.h">
@@ -115,13 +118,16 @@
     <ClInclude Include="dlconfig.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DzPreDef.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Inc_DzSocketReplace.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Inc_DzFastNewDel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzDebug.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzDeclareStructs.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

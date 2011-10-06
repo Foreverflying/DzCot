@@ -28,10 +28,6 @@ typedef int BOOL;
 enum
 {
     DS_OK,
-    DS_TIMEOUT,
-    DS_INVALID_ARG,
-    DS_ALREADY_EXIST,
-    DS_NOT_INIT,
     DS_NO_MEMORY
 };
 
@@ -292,6 +288,8 @@ void DzFree( void* p );
 
 unsigned long long DzUnixTime();
 unsigned long long DzMilUnixTime();
+
+int __DzDbgLastErr();
 
 #ifdef __cplusplus
 };
