@@ -2,16 +2,13 @@
     created:    2010/11/22 17:27
     file:       DzBaseLnx.h
     author:     Foreverflying
-    purpose:    
+    purpose:
 *********************************************************************/
 
 #ifndef __DzBaseLnx_h__
 #define __DzBaseLnx_h__
 
 #include "../DzStructs.h"
-#include "../../DzcotData/DzcotData.h"
-#include <pthread.h>
-#include <sys/mman.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -34,70 +31,70 @@ inline void* PageCommit( void* p, size_t size )
 
 inline void PageFree( void* p, size_t size )
 {
-    munmap( p - size, size );
+    munmap( p, size );
 }
 
-#ifdef CONFIG_SMP
-#define LOCK "lock ; "
-#else
-#define LOCK ""
-#endif
-
-inline int InterlockedExchange( volatile int* addr, int value )
+inline BOOL AllocTlsIndex()
 {
-    //TODO: rewrite with atom asm
-    //    int ret = *addr;
-    //    *addr = value;
-    //    return ret;
-
+    int i;
     int ret;
-    __asm__ __volatile__(
-        LOCK "movl %3, %1; movl %2, %0"
-        : "=m" (addr), "=ir" (ret)
-        : "ir" (value), "m" (addr)
-    );
-    return ret;
+    pthread_key_t tlsKey;
+    pthread_key_t tlsArr[ DZ_TLS_IDX * 2 ];
+
+    i = 0;
+    ret = pthread_key_create( &tlsKey, NULL );
+    if( ret != 0 ){
+        tlsKey = ( pthread_key_t ) -1;
+    }
+    while( tlsKey != DZ_TLS_IDX && i < DZ_TLS_IDX * 2 - 1 ){
+        tlsArr[i] = tlsKey;
+        ret = pthread_key_create( &tlsKey, NULL );
+        if( ret != 0 ){
+            tlsKey = ( pthread_key_t ) -1;
+        }
+        i++;
+    }
+    i--;
+    while( i >= 0 ){
+        if( tlsArr[i] > 0 ){
+            pthread_key_delete( tlsArr[i] );
+        }
+        i--;
+    }
+    if( tlsKey != DZ_TLS_IDX ){
+        if( tlsArr[i] > 0 ){
+            pthread_key_delete( tlsArr[i] );
+        }
+        return FALSE;
+    }else{
+        return TRUE;
+    }
 }
 
-inline void InitTlsIndex()
+inline void FreeTlsIndex()
 {
-#ifdef STORE_HOST_IN_SPECIFIC_POINTER
-#else
-    if( tlsIndex == -1 ){
-        while( InterlockedExchange( &tlsLock, 1 ) == 1 );
-        if( *(volatile int*)&tlsIndex == -1 ){
-            pthread_key_create( (pthread_key_t*)&tlsIndex, NULL );
-        }
-        InterlockedExchange( &tlsLock, 0 );
-    }
-#endif
+    pthread_key_delete( DZ_TLS_IDX );
 }
 
 inline DzHost* GetHost()
 {
-#ifdef STORE_HOST_IN_SPECIFIC_POINTER
-#if defined( __i386 )
-    return (DzHost*)__readfsdword( 20 );
-#elif defined( __amd64 )
-    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
-#endif
-#else
-    return (DzHost*)pthread_getspecific( tlsIndex );
-#endif
+    return (DzHost*)pthread_getspecific( DZ_TLS_IDX );
 }
 
 inline void SetHost( DzHost* host )
 {
-#ifdef STORE_HOST_IN_SPECIFIC_POINTER
-#if defined( __i386 )
-    __writefsdword( 20, (DWORD)host );
-#elif defined( __amd64 )
-    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
-#endif
-#else
-    pthread_setspecific( tlsIndex, host );
-#endif
+    pthread_setspecific( DZ_TLS_IDX, host );
 }
+
+#ifdef SWITCH_COT_FLOAT_SAFE
+void __fastcall DzSwitchFloatSafe( DzHost* host, DzThread* dzThread );
+#define DzSwitch DzSwitchFloatSafe
+#else
+void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
+#define DzSwitch DzSwitchFast
+#endif
+
+#define __DbgCheckCotStackOverflow( size )
 
 #ifdef __cplusplus
 };

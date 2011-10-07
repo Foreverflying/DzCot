@@ -2,7 +2,7 @@
     created:    2010/02/11 22:05
     file:       DzStructsIoLnx.h
     author:     Foreverflying
-    purpose:    
+    purpose:
 *********************************************************************/
 
 #ifndef __DzStructsIoLnx_h__
@@ -10,10 +10,7 @@
 
 #include "../DzStructs.h"
 
-#define ASYNIO_SIGN_ERR_MASK     0x7fff
-#define ASYNIO_SIGN_ISFILE       0x8000
-
-typedef struct _DzAsynIo
+struct _DzAsynIo
 {
     union{
         DzLItr      lItr;
@@ -24,6 +21,6 @@ typedef struct _DzAsynIo
     };
     DzFastEvt       inEvt;
     DzFastEvt       outEvt;
-}DzAsynIo;
+};
 
 #endif // __DzStructsIoLnx_h__

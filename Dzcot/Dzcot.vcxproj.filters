@@ -130,6 +130,9 @@
     <ClInclude Include="DzDeclareStructs.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DzStructsDebug.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

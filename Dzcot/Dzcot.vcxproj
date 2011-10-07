@@ -549,6 +549,7 @@
     <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
+    <ClInclude Include="DzStructsDebug.h" />
     <ClInclude Include="DzDeclareStructs.h" />
     <ClInclude Include="Inc_DzFastNewDel.h" />
     <ClInclude Include="win\DzBaseWin.h" />

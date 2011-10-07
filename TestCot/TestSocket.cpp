@@ -46,7 +46,6 @@ void InitParam()
 {
     gTestCount++;
     sockaddr_in* addr = new sockaddr_in;
-    ZeroMemory( addr, sizeof( sockaddr_in ) );
     addr->sin_family = AF_INET;
     addr->sin_addr.s_addr = hton32( gIp );
     addr->sin_port = hton16( gPort );
@@ -726,7 +725,6 @@ void __stdcall TcpSvrRecvCloseRoutine( void* context )
 
 void __stdcall TcpCltRecvCloseRoutine( void* context )
 {
-    FuncWrite writeFunc = GetWriteFunc();
     int idx = (int)context;
     int fd = -1;
     try{

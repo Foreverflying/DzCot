@@ -2,7 +2,7 @@
     created:    2010/02/11 22:02
     file:       DzIncLnx.h
     author:     Foreverflying
-    purpose:    
+    purpose:
 *********************************************************************/
 
 #ifndef __DzIncLnx_h__
@@ -10,16 +10,31 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/timeb.h>
+#include <stddef.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/timeb.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
+#include <sys/mman.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <assert.h>
 
 #ifndef __cplusplus
 #define inline static __inline
 #endif
 
-#define __fastcall __attribute__((fastcall))
+#define __stdcall   __attribute__((stdcall))
+#define __fastcall  __attribute__((fastcall))
+
+typedef struct _DzBuf
+{
+    void*           buf;
+    size_t          len;
+}DzBuf;
 
 typedef long long int64;
 
@@ -28,8 +43,13 @@ typedef long long int64;
 
 //linux specific constants
 #define EPOLL_EVT_LIST_SIZE     4096
+#define ASYNIO_SIGN_ERR_MASK    0x7fff
+#define ASYNIO_SIGN_ISFILE      0x8000
+
 
 //switchers
-//#define STORE_HOST_IN_SPECIFIC_POINTER
+//#define SWITCH_COT_FLOAT_SAFE
+
+//debug switchers
 
 #endif // __DzIncLnx_h__

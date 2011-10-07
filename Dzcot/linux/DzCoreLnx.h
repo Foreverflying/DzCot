@@ -11,13 +11,13 @@
 #include "../DzBaseOs.h"
 #include "../DzResourceMgr.h"
 #include "../DzSynObj.h"
-#include "../../DzcotData/DzcotData.h"
-#include <sys/resource.h>
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
+BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
+void DeleteOsStruct( DzHost* host, DzHost* parentHost );
 BOOL AllocAsynIoPool( DzHost* host );
 
 inline void InitDzThread( DzThread* dzThread )
@@ -79,22 +79,6 @@ void DzcotRoutine(
     );
 
 #endif
-
-inline void InitOsStruct( DzHost* host )
-{
-    struct rlimit fdLimit;
-
-    getrlimit( RLIMIT_NOFILE, &fdLimit );
-    host->osStruct.maxFd = fdLimit.rlim_cur;
-    host->osStruct.fdTable = PageAlloc( sizeof(int) * host->osStruct.maxFd );
-    host->osStruct.epollFd = epoll_create( host->osStruct.maxFd );
-}
-
-inline void DeleteOsStruct( DzHost* host )
-{
-    PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFd );
-    close( host->osStruct.epollFd );
-}
 
 inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
 {
@@ -174,7 +158,7 @@ inline DzThread* InitCot( DzHost* host, DzThread* dzThread, int sSize )
 
 inline void FreeCotStack( DzThread* dzThread )
 {
-	FreeStack( dzThread->stack, DZ_STACK_UNIT_SIZE << ( dzThread->sSize * DZ_STACK_SIZE_STEP ) );
+    FreeStack( dzThread->stack, DZ_STACK_UNIT_SIZE << ( dzThread->sSize * DZ_STACK_SIZE_STEP ) );
 }
 
 #ifdef __cplusplus

@@ -10,6 +10,7 @@
 
 #include "../DzIncOs.h"
 #include "../DzDeclareStructs.h"
+#include "../DzStructsDebug.h"
 #include "../DzStructsList.h"
 
 struct _DzOsStruct
@@ -29,8 +30,9 @@ struct _DzThread
     char*               stack;
     char*               stackLimit;
     int                 sSize;
-    int                 lastErr;
     int                 priority;
+
+    __DBG_INFO_DEFINE( DzThread )
 };
 
 #endif // __DzStructsWin_h__

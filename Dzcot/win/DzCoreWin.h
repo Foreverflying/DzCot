@@ -163,7 +163,6 @@ inline DzThread* InitCot( DzHost* host, DzThread* dzThread, int sSize )
         }
     }
     dzThread->sSize = sSize;
-    dzThread->lastErr = 0;
     InitCotStack( host, dzThread );
     return dzThread;
 }

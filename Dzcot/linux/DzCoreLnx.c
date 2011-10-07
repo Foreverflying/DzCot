@@ -2,12 +2,45 @@
     created:    2010/02/11 22:12
     file:       DzCoreLnx.c
     author:     Foreverflying
-    purpose:    
+    purpose:
 *********************************************************************/
 
 #include "../DzIncOs.h"
 #include "../DzCoreOs.h"
 #include "../DzCore.h"
+
+BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
+{
+    struct rlimit fdLimit;
+
+    if( parentHost ){
+        host->osStruct.maxFd = parentHost->osStruct.maxFd;
+    }else{
+        if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
+            return FALSE;
+        }
+        host->osStruct.maxFd = fdLimit.rlim_cur;
+    }
+    host->osStruct.epollFd = epoll_create( host->osStruct.maxFd );
+    host->osStruct.fdTable = ( DzAsynIo** )PageAlloc( sizeof( DzAsynIo* ) * host->osStruct.maxFd );
+    if( host->osStruct.epollFd < 0 || !host->osStruct.fdTable ){
+        if( host->osStruct.epollFd >= 0 ){
+            close( host->osStruct.epollFd );
+        }
+        if( host->osStruct.fdTable ){
+            PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFd );
+        }
+        return FALSE;
+    }
+    host->osStruct.asynIoPool = NULL;
+    return TRUE;
+}
+
+void DeleteOsStruct( DzHost* host, DzHost* parentHost )
+{
+    PageFree( host->osStruct.fdTable, sizeof( DzAsynIo* ) * host->osStruct.maxFd );
+    close( host->osStruct.epollFd );
+}
 
 BOOL AllocAsynIoPool( DzHost* host )
 {
@@ -20,7 +53,7 @@ BOOL AllocAsynIoPool( DzHost* host )
         return FALSE;
     }
 
-    host->asynIoPool = &p->lItr;
+    host->osStruct.asynIoPool = &p->lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
     InitAsynIo( end );

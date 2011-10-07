@@ -466,7 +466,6 @@ int DzSetSockOpt( int fd, int level, int name, const void* option, int len )
 {
     assert( GetHost() );
     assert( !( level == SOL_SOCKET && name == SO_LINGER ) );
-    assert( !( level == SOL_SOCKET && name == SO_DONTLINGER ) );
 
     return SetSockOpt( fd, level, name, option, len );
 }
