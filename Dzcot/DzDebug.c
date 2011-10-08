@@ -13,12 +13,12 @@
 
 int __DbgGetLastErr( DzHost* host )
 {
-    return __DBG_INFO( host->currThread ).lastErr;
+    return __DBG_DATA( host->currThread ).lastErr;
 }
 
 void __DbgSetLastErr( DzHost* host, int err )
 {
-    __DBG_INFO( host->currThread ).lastErr = err;
+    __DBG_DATA( host->currThread ).lastErr = err;
 }
 
 void __DbgCheckCotStackOverflow( DzThread* dzThread )

@@ -22,6 +22,7 @@ void __stdcall DzcotRoutine( DzRoutine entry, void* context );
 
 inline void InitDzThread( DzThread* dzThread )
 {
+    __DBG_INIT_INFO( DzThread, NULL, dzThread );
 }
 
 #if defined( _X86_ )

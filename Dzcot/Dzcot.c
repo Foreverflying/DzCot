@@ -401,10 +401,9 @@ int DzOpenFileW( const wchar_t* fileName, int flags )
 
 int DzCloseFile( int fd )
 {
-    DzHost* host = GetHost();
-    assert( host );
+    assert( GetHost() );
 
-    return Close( host, fd );
+    return Close( fd );
 }
 
 ssize_t DzReadFile( int fd, void* buf, size_t count )
@@ -425,18 +424,16 @@ ssize_t DzWriteFile( int fd, const void* buf, size_t count )
 
 size_t DzSeekFile( int fd, ssize_t offset, int whence )
 {
-    DzHost* host = GetHost();
-    assert( host );
+    assert( GetHost() );
 
-    return Seek( host, fd, offset, whence );
+    return Seek( fd, offset, whence );
 }
 
 size_t DzGetFileSize( int fd )
 {
-    DzHost* host = GetHost();
-    assert( host );
+    assert( GetHost() );
 
-    return FileSize( host, fd );
+    return FileSize( fd );
 }
 
 int DzSocket( int domain, int type, int protocol )
@@ -449,10 +446,9 @@ int DzSocket( int domain, int type, int protocol )
 
 int DzCloseSocket( int fd )
 {
-    DzHost* host = GetHost();
-    assert( host );
+    assert( GetHost() );
 
-    return CloseSocket( host, fd );
+    return CloseSocket( fd );
 }
 
 int DzGetSockOpt( int fd, int level, int name, void* option, int* len )

@@ -32,7 +32,7 @@ struct _DzThread
     int                 sSize;
     int                 priority;
 
-    __DBG_INFO_DEFINE( DzThread )
+    __DBG_DATA_DEFINE( DzThread )
 };
 
 #endif // __DzStructsWin_h__

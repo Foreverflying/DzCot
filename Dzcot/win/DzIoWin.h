@@ -33,7 +33,7 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     return (int)fd;
 }
 
-inline int CloseSocket( DzHost* host, int fd )
+inline int CloseSocket( int fd )
 {
     return closesocket( (SOCKET)fd );
 }
@@ -537,12 +537,9 @@ inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline int Close( DzHost* host, int fd )
+inline int Close( int fd )
 {
-    BOOL ret;
-        
-    ret = CloseHandle( (HANDLE)fd );
-    return ret ? 0 : -1;
+    return CloseHandle( (HANDLE)fd ) ? 0 : -1;
 }
 
 inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
@@ -671,7 +668,7 @@ inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
     return bytes;
 }
 
-inline size_t Seek( DzHost* host, int fd, ssize_t offset, int whence )
+inline size_t Seek( int fd, ssize_t offset, int whence )
 {
     size_t ret;
 
@@ -684,7 +681,7 @@ inline size_t Seek( DzHost* host, int fd, ssize_t offset, int whence )
     return ret;
 }
 
-inline size_t FileSize( DzHost* host, int fd )
+inline size_t FileSize( int fd )
 {
     size_t ret;
 
