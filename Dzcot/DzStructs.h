@@ -36,6 +36,11 @@ struct _DzTimerNode
     int             interval;       //for repeat timer, should set minus
 };
 
+struct _DzEasyEvt
+{
+    DzThread*       dzThread;
+};
+
 struct _DzFastEvt
 {
     union{

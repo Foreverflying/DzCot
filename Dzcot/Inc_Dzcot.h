@@ -56,17 +56,21 @@ enum
     SS_DEFAULT = STACK_SIZE_COUNT
 };
 
-#define DZ_O_RD         0x01
-#define DZ_O_WR         0x02
-#define DZ_O_RDWR       0x03
-#define DZ_O_CREATE     0x08
-#define DZ_O_EXCL       0x10
-#define DZ_O_TRUNC      0x20
-#define DZ_O_APPEND     0x40
+#define DZ_O_RD         0x0000
+#define DZ_O_WR         0x0001
+#define DZ_O_RDWR       0x0002
+#define DZ_O_CREATE     0x0100
+#define DZ_O_EXCL       0x0200
+#define DZ_O_TRUNC      0x1000
+#define DZ_O_APPEND     0x2000
 
 #define DZ_SEEK_SET     0
 #define DZ_SEEK_CUR     1
 #define DZ_SEEK_END     2
+
+#define DZ_SHUT_READ    0
+#define DZ_SHUT_WRITE   1
+#define DZ_SHUT_BOTH    2
 
 #define DZ_MAX_IOV      64
 

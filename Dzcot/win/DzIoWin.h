@@ -29,6 +29,7 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     if( fd == INVALID_SOCKET ){
         return -1;
     }
+    __DbgSetLastErr( host, WSAGetLastError() );
     CreateIoCompletionPort( (HANDLE)fd, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     return (int)fd;
 }
@@ -85,20 +86,20 @@ inline int TryConnectDatagram( int fd, struct sockaddr* addr, int addrLen )
 inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
 {
     DWORD bytes;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     struct sockaddr tmpAddr;
     DWORD flag;
     int err;
     BOOL ret;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
     ZeroMemory( &tmpAddr, sizeof( struct sockaddr ) );
     tmpAddr.sa_family = addr->sa_family;
     bind( (SOCKET)fd, &tmpAddr, (int)sizeof(struct sockaddr) );
-    if( !host->osStruct._ConnectEx( (SOCKET)fd, addr, addrLen, NULL, 0, &bytes, &asynIo.overlapped ) ){
+    if( !host->osStruct._ConnectEx( (SOCKET)fd, addr, addrLen, NULL, 0, &bytes, &asyncIo.overlapped ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             if( err == WSAEINVAL ){
@@ -110,22 +111,21 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
             __DbgSetLastErr( host, err );
             return -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = WSAGetOverlappedResult(
         (SOCKET)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE,
         &flag
@@ -144,7 +144,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
     SOCKET s;
     char buf[64];
     DWORD bytes;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     DWORD flag;
     DWORD err;
     BOOL ret;
@@ -153,36 +153,35 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
     int lAddrLen;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
     s = socket( AF_INET, SOCK_STREAM, 0 );
     if( s == INVALID_SOCKET ){
         return -1;
     }
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
-    if( !host->osStruct._AcceptEx( (SOCKET)fd, s, buf, 0, 32, 32, &bytes, &asynIo.overlapped ) ){
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
+    if( !host->osStruct._AcceptEx( (SOCKET)fd, s, buf, 0, 32, 32, &bytes, &asyncIo.overlapped ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             closesocket( s );
             __DbgSetLastErr( host, err );
             return -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = WSAGetOverlappedResult(
         (SOCKET)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE,
         &flag
@@ -205,37 +204,36 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
 inline int SendEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags )
 {
     DWORD bytes;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
-    if( WSASend( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, flags, &asynIo.overlapped, NULL ) ){
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
+    if( WSASend( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, flags, &asyncIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __DbgSetLastErr( host, (int)err );
             return -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = WSAGetOverlappedResult(
         (SOCKET)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE,
         &tmpFlag
@@ -251,38 +249,37 @@ inline int SendEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags 
 inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags )
 {
     DWORD bytes;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
     tmpFlag = (DWORD)flags;
-    if( WSARecv( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, &asynIo.overlapped, NULL ) ){
+    if( WSARecv( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, &asyncIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __DbgSetLastErr( host, (int)err );
             return -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = WSAGetOverlappedResult(
         (SOCKET)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE,
         &tmpFlag
@@ -324,37 +321,36 @@ inline int SendToEx(
     )
 {
     DWORD bytes;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
-    if( WSASendTo( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, flags, to, tolen, &asynIo.overlapped, NULL ) ){
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
+    if( WSASendTo( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, flags, to, tolen, &asyncIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __DbgSetLastErr( host, (int)err );
             return -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = WSAGetOverlappedResult(
         (SOCKET)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE,
         &tmpFlag
@@ -378,38 +374,37 @@ inline int RecvFromEx(
     )
 {
     DWORD bytes;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
     tmpFlag = (DWORD)flags;
-    if( WSARecvFrom( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, from, fromlen, &asynIo.overlapped, NULL ) ){
+    if( WSARecvFrom( (SOCKET)fd, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, from, fromlen, &asyncIo.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __DbgSetLastErr( host, (int)err );
             return -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = WSAGetOverlappedResult(
         (SOCKET)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE,
         &tmpFlag
@@ -460,11 +455,14 @@ inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
 {
     DWORD access = 0;
     DWORD createFlag = 0;
+    DWORD rwFlag = 0;
 
-    if( flags & DZ_O_RD ){
+    rwFlag = flags & 3;
+    rwFlag++;
+    if( rwFlag & 1 ){
         access |= GENERIC_READ;
     }
-    if( flags & DZ_O_WR ){
+    if( rwFlag & 2 ){
         access |= GENERIC_WRITE;
     }
     if( flags & DZ_O_CREATE ){
@@ -546,55 +544,55 @@ inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     DWORD err;
     BOOL ret;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
     isFile = GetFileType( (HANDLE)fd ) == FILE_TYPE_DISK;
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
     if( isFile ){
-        asynIo.overlapped.OffsetHigh = 0;
-        asynIo.overlapped.Offset = SetFilePointer(
+        asyncIo.overlapped.OffsetHigh = 0;
+        asyncIo.overlapped.Offset = SetFilePointer(
             (HANDLE)fd,
             0,
-            (PLONG)&asynIo.overlapped.OffsetHigh,
+            (PLONG)&asyncIo.overlapped.OffsetHigh,
             FILE_CURRENT
             );
     }
-    if( !ReadFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo.overlapped ) ){
+    if( !ReadFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asyncIo.overlapped ) ){
         err = GetLastError();
         if( err != ERROR_IO_PENDING ){
             __DbgSetLastErr( host, err );
             return err == ERROR_HANDLE_EOF ? 0 : -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = GetOverlappedResult(
         (HANDLE)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE
         );
     if( !ret ){
         err = GetLastError();
-        __DbgSetLastErr( host, err );
         if( err == ERROR_HANDLE_EOF ){
+            __DbgSetLastErr( host, 0 );
             return 0;
         }else{
+            __DbgSetLastErr( host, (int)err );
             return -1;
         }
     }
@@ -609,46 +607,45 @@ inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
 {
     DWORD bytes;
     BOOL isFile;
-    DzAsynIo asynIo;
+    DzAsyncIo asyncIo;
     DWORD err;
     BOOL ret;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIoPtr;
+    DzAsyncIo* asyncIoPtr;
 
     isFile = GetFileType( (HANDLE)fd ) == FILE_TYPE_DISK;
-    ZeroMemory( &asynIo.overlapped, sizeof( asynIo.overlapped ) );
+    ZeroMemory( &asyncIo.overlapped, sizeof( asyncIo.overlapped ) );
     if( isFile ){
-        asynIo.overlapped.OffsetHigh = 0;
-        asynIo.overlapped.Offset = SetFilePointer(
+        asyncIo.overlapped.OffsetHigh = 0;
+        asyncIo.overlapped.Offset = SetFilePointer(
             (HANDLE)fd,
             0,
-            (PLONG)&asynIo.overlapped.OffsetHigh,
+            (PLONG)&asyncIo.overlapped.OffsetHigh,
             FILE_CURRENT
             );
     }
-    if( !WriteFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asynIo.overlapped )  ){
+    if( !WriteFile( (HANDLE)fd, buf, (DWORD)count, &bytes, &asyncIo.overlapped )  ){
         err = GetLastError();
         if( err != ERROR_IO_PENDING ){
             __DbgSetLastErr( host, err );
             return err == ERROR_HANDLE_EOF ? 0 : -1;
         }
-        InitFastEvt( &asynIo.fastEvt );
-        WaitFastEvt( host, &asynIo.fastEvt, -1 );
+        WaitEasyEvt( host, &asyncIo.easyEvt );
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-        if( overlapped != &asynIo.overlapped ){
+        if( overlapped != &asyncIo.overlapped ){
             host->currPriority = CP_FIRST;
             do{
-                asynIoPtr = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIoPtr->fastEvt, 0 );
+                asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != &asynIo.overlapped );
+            }while( overlapped != &asyncIo.overlapped );
         }
     }
     ret = GetOverlappedResult(
         (HANDLE)fd,
-        &asynIo.overlapped,
+        &asyncIo.overlapped,
         &bytes,
         FALSE
         );
@@ -675,7 +672,9 @@ inline size_t Seek( int fd, ssize_t offset, int whence )
 #if defined( _X86_ )
     ret = (size_t)SetFilePointer( (HANDLE)fd, (long)offset, NULL, whence );
 #elif defined( _M_AMD64 )
-    SetFilePointerEx( (HANDLE)fd, *(LARGE_INTEGER*)&offset, (LARGE_INTEGER*)&ret, whence );
+    if( !SetFilePointerEx( (HANDLE)fd, *(LARGE_INTEGER*)&offset, (LARGE_INTEGER*)&ret, whence ) ){
+        return -1;
+    }
 #endif
 
     return ret;
@@ -688,8 +687,11 @@ inline size_t FileSize( int fd )
 #if defined( _X86_ )
     ret = GetFileSize( (HANDLE)fd, NULL );
 #elif defined( _M_AMD64 )
-    GetFileSizeEx( (HANDLE)fd, (LARGE_INTEGER*)&ret );
+    if( !GetFileSizeEx( (HANDLE)fd, (LARGE_INTEGER*)&ret ) ){
+        return -1;
+    }
 #endif
+
     return ret;
 }
 
@@ -701,7 +703,7 @@ inline void IoMgrRoutine( DzHost* host )
     ULONG_PTR key;
     DWORD bytes;
     OVERLAPPED* overlapped;
-    DzAsynIo* asynIo;
+    DzAsyncIo* asyncIo;
     DWORD timeout;
 
     timeout = (DWORD)NotifyMinTimers( host );
@@ -709,8 +711,8 @@ inline void IoMgrRoutine( DzHost* host )
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeout );
         if( overlapped != NULL ){
             do{
-                asynIo = MEMBER_BASE( overlapped, DzAsynIo, overlapped );
-                NotifyFastEvt( host, &asynIo->fastEvt, 0 );
+                asyncIo = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIo->easyEvt );
                 GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
             }while( overlapped != NULL );
             host->currPriority = CP_FIRST;

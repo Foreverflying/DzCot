@@ -14,51 +14,60 @@ BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
     struct rlimit fdLimit;
 
     if( parentHost ){
-        host->osStruct.maxFd = parentHost->osStruct.maxFd;
+        host->osStruct.maxFdCount = parentHost->osStruct.maxFdCount;
     }else{
         if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
             return FALSE;
         }
-        host->osStruct.maxFd = fdLimit.rlim_cur;
+        host->osStruct.maxFdCount = fdLimit.rlim_cur;
     }
-    host->osStruct.epollFd = epoll_create( host->osStruct.maxFd );
-    host->osStruct.fdTable = ( DzAsynIo** )PageAlloc( sizeof( DzAsynIo* ) * host->osStruct.maxFd );
+    host->osStruct.epollFd = epoll_create( host->osStruct.maxFdCount );
+    host->osStruct.fdTable =
+        ( DzAsyncIo** )PageAlloc( sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
     if( host->osStruct.epollFd < 0 || !host->osStruct.fdTable ){
         if( host->osStruct.epollFd >= 0 ){
             close( host->osStruct.epollFd );
         }
         if( host->osStruct.fdTable ){
-            PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFd );
+            PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFdCount );
         }
         return FALSE;
     }
-    host->osStruct.asynIoPool = NULL;
+    host->osStruct.asyncIoPool = NULL;
     return TRUE;
 }
 
 void DeleteOsStruct( DzHost* host, DzHost* parentHost )
 {
-    PageFree( host->osStruct.fdTable, sizeof( DzAsynIo* ) * host->osStruct.maxFd );
+    PageFree( host->osStruct.fdTable, sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
     close( host->osStruct.epollFd );
 }
 
-BOOL AllocAsynIoPool( DzHost* host )
+BOOL AllocAsyncIoPool( DzHost* host )
 {
-    DzAsynIo* p;
-    DzAsynIo* end;
+    DzAsyncIo* p;
+    DzAsyncIo* end;
     DzLItr* lItr;
 
-    p = (DzAsynIo*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzAsynIo ) );
+    p = (DzAsyncIo*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzAsyncIo ) );
     if( !p ){
         return FALSE;
     }
 
-    host->osStruct.asynIoPool = &p->lItr;
+    host->osStruct.asyncIoPool = &p->lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
-    InitAsynIo( end );
+    CleanEasyEvt( &end->inEvt );
+    CleanEasyEvt( &end->outEvt );
+    end->inEvt.dzThread = NULL;
+    end->outEvt.dzThread = NULL;
+    end->ref = 0;
     while( p != end ){
-        InitAsynIo( p );
+        CleanEasyEvt( &p->inEvt );
+        CleanEasyEvt( &p->outEvt );
+        p->inEvt.dzThread = NULL;
+        p->outEvt.dzThread = NULL;
+        p->ref = 0;
         lItr = &p->lItr;
         lItr->next = &(++p)->lItr;
     }

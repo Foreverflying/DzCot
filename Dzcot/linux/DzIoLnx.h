@@ -15,38 +15,39 @@
 #include "../DzResourceMgr.h"
 #include "../DzCoreOs.h"
 #include "../DzSynObj.h"
+#include "../DzDebug.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-inline DzAsynIo* CreateAsynIo( DzHost* host )
+inline DzAsyncIo* CreateAsyncIo( DzHost* host )
 {
-    DzAsynIo* asynIo;
+    DzAsyncIo* asyncIo;
 
-    if( !host->osStruct.asynIoPool ){
-        if( !AllocAsynIoPool( host ) ){
+    if( !host->osStruct.asyncIoPool ){
+        if( !AllocAsyncIoPool( host ) ){
             return NULL;
         }
     }
-    asynIo = MEMBER_BASE( host->osStruct.asynIoPool, DzAsynIo, lItr );
-    host->osStruct.asynIoPool = host->osStruct.asynIoPool->next;
-    asynIo->sign = 0;
-    asynIo->ref = 1;
-    return asynIo;
+    asyncIo = MEMBER_BASE( host->osStruct.asyncIoPool, DzAsyncIo, lItr );
+    host->osStruct.asyncIoPool = host->osStruct.asyncIoPool->next;
+    asyncIo->err = 0;
+    asyncIo->ref++;
+    return asyncIo;
 }
 
-inline void CloneAsynIo( DzAsynIo* asynIo )
+inline void CloneAsyncIo( DzAsyncIo* asyncIo )
 {
-    asynIo->ref++;
+	asyncIo->ref++;
 }
 
-inline void CloseAsynIo( DzHost* host, DzAsynIo* asynIo )
+inline void CloseAsyncIo( DzHost* host, DzAsyncIo* asyncIo )
 {
-    asynIo->ref--;
-    if( !asynIo->ref ){
-        asynIo->lItr.next = host->osStruct.asynIoPool;
-        host->osStruct.asynIoPool = &asynIo->lItr;
+    asyncIo->ref--;
+    if( asyncIo->ref == 0 ){
+        asyncIo->lItr.next = host->osStruct.asyncIoPool;
+        host->osStruct.asyncIoPool = &asyncIo->lItr;
     }
 }
 
@@ -57,10 +58,15 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     struct epoll_event evt;
 
     fd = socket( domain, type, protocol );
+    __DbgSetLastErr( host, errno );
     if( fd >= 0 ){
-        host->osStruct.fdTable[ fd ] = CreateAsynIo( host );
+        host->osStruct.fdTable[ fd ] = CreateAsyncIo( host );
+        if( !host->osStruct.fdTable[ fd ] ){
+            close( fd );
+            return -1;
+        }
         evt.data.ptr = host->osStruct.fdTable[ fd ];
-        evt.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLET;
+        evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
         flag = fcntl( fd, F_GETFL, 0 );
         fcntl( fd, F_SETFL, flag | O_NONBLOCK );
         epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_ADD, fd, &evt );
@@ -68,36 +74,49 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     return fd;
 }
 
-inline int CloseSocket( DzHost* host, int fd )
+inline int CloseSocket( int fd )
 {
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
+    DzHost* host;
+    DzAsyncIo* asyncIo;
+    int ret;
 
-    epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_DEL, fd, (struct epoll_event*)1 );
-    CloseAsynIo( host, host->osStruct.fdTable[ fd ] );
-    host->osStruct.fdTable[ fd ] = NULL;
-    return close( fd );
+    ret = close( fd );
+    if( ret == 0 ){
+        host = GetHost();
+        asyncIo = host->osStruct.fdTable[ fd ];
+        asyncIo->err = ECONNABORTED;
+        if( IsEasyEvtWaiting( &asyncIo->inEvt ) ){
+        	NotifyEasyEvt( host, &asyncIo->inEvt );
+        	CleanEasyEvt( &asyncIo->inEvt );
+        }
+        if( IsEasyEvtWaiting( &asyncIo->outEvt ) ){
+        	NotifyEasyEvt( host, &asyncIo->outEvt );
+        	CleanEasyEvt( &asyncIo->outEvt );
+        }
+        CloseAsyncIo( host, asyncIo );
+        host->osStruct.fdTable[ fd ] = NULL;
+    }
+    return ret;
 }
 
 inline int GetSockOpt( int fd, int level, int name, void* option, int* len )
 {
-    return getsockopt( (SOCKET)fd, level, name, (char*)option, len );
+    return getsockopt( fd, level, name, (char*)option, (socklen_t*)len );
 }
 
 inline int SetSockOpt( int fd, int level, int name, const void* option, int len )
 {
-    return setsockopt( (SOCKET)fd, level, name, (const char*)option, len );
+    return setsockopt( fd, level, name, (const char*)option, (socklen_t)len );
 }
 
 inline int GetSockName( int fd, struct sockaddr* addr, int* addrLen )
 {
-    return getsockname( (SOCKET)fd, addr, addrLen );
+    return getsockname( fd, addr, (socklen_t*)addrLen );
 }
 
 inline int Bind( int fd, struct sockaddr* addr, int addrLen )
 {
-    return bind( fd, addr, addrLen );
+    return bind( fd, addr, (socklen_t)addrLen );
 }
 
 inline int Listen( int fd, int backlog )
@@ -112,216 +131,282 @@ inline int Shutdown( int fd, int how )
 
 inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
 {
-    DzAsynIo* asynIo;
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
+    DzAsyncIo* asyncIo;
+	int err;
 
-    if( connect( fd, addr, addrLen ) != 0 && errno != EINPROGRESS ){
-        return -1;
+    if( connect( fd, addr, (socklen_t)addrLen ) != 0 ){
+    	if( errno == EINPROGRESS ){
+    	    asyncIo = host->osStruct.fdTable[ fd ];
+    	    CloneAsyncIo( asyncIo );
+    	    WaitEasyEvt( host, &asyncIo->outEvt );
+    	    err = asyncIo->err;
+    	    CloseAsyncIo( host, asyncIo );
+    	    if( err ){
+    	    	__DbgSetLastErr( host, err );
+    	        return -1;
+    	    }
+    	}else{
+    	    __DbgSetLastErr( host, errno );
+    	    return -1;
+    	}
     }
-    asynIo = host->osStruct.fdTable[ fd ];
-    CloneAsynIo( asynIo );
-    WaitFastEvt( host, &asynIo->outEvt, -1 );
-    CloseAsynIo( host, asynIo );
-    if( asynIo->sign ){
-        return -1;
-    }
-    NotifyFastEvt( host, &asynIo->inEvt, 0 );
-    NotifyFastEvt( host, &asynIo->outEvt, 0 );
+    __DbgSetLastErr( host, 0 );
     return 0;
 }
 
 inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
 {
-    DzAsynIo* asynIo;
+    DzAsyncIo* asyncIo;
+    int err;
     int ret;
     int flag;
     struct epoll_event evt;
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
 
-    asynIo = host->osStruct.fdTable[ fd ];
-    CloneAsynIo( asynIo );
-    while( 1 ){
-        WaitFastEvt( host, &asynIo->inEvt, -1 );
-        if( asynIo->sign ){
-            CloseAsynIo( host, asynIo );
-            return -1;
-        }
-        ret = accept( fd, addr, (socklen_t*)addrLen );
-        if( ret >= 0 ){
-            host->osStruct.fdTable[ ret ] = CreateAsynIo( host );
-            NotifyFastEvt( host, &host->osStruct.fdTable[ ret ]->inEvt, 0 );
-            NotifyFastEvt( host, &host->osStruct.fdTable[ ret ]->outEvt, 0 );
-            evt.data.ptr = host->osStruct.fdTable[ ret ];
-            evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
-            flag = fcntl( ret, F_GETFL, 0 );
-            fcntl( ret, F_SETFL, flag | O_NONBLOCK );
-            epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_ADD, ret, &evt );
-            NotifyFastEvt( host, &asynIo->inEvt, 0 );
-            CloseAsynIo( host, asynIo );
-            return ret;
-        }else if( errno != EAGAIN ){
-            CloseAsynIo( host, asynIo );
-            return -1;
-        }
+    ret = accept( fd, addr, (socklen_t*)addrLen );
+    if( ret < 0 ){
+    	if( errno == EAGAIN ){
+    	    asyncIo = host->osStruct.fdTable[ fd ];
+    	    CloneAsyncIo( asyncIo );
+    	    WaitEasyEvt( host, &asyncIo->inEvt );
+    	    err = asyncIo->err;
+    	    CloseAsyncIo( host, asyncIo );
+    	    if( err ){
+    	    	__DbgSetLastErr( host, err );
+    	    	return -1;
+    	    }
+    	    ret = accept( fd, addr, (socklen_t*)addrLen );
+    	    if( ret < 0 ){
+    	    	__DbgSetLastErr( host, errno );
+    	    	return -1;
+    	    }
+    	}else{
+    		__DbgSetLastErr( host, errno );
+    		return -1;
+    	}
     }
-}
-inline int SendEx( DzHost* host, int fd, DzBuf* bufs, int bufCount, int flags )
-{
-    return 0;
+    host->osStruct.fdTable[ ret ] = CreateAsyncIo( host );
+    if( !host->osStruct.fdTable[ ret ] ){
+    	__DbgSetLastErr( host, errno );
+        close( ret );
+        return -1;
+    }
+    evt.data.ptr = host->osStruct.fdTable[ ret ];
+    evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
+    flag = fcntl( ret, F_GETFL, 0 );
+    fcntl( ret, F_SETFL, flag | O_NONBLOCK );
+    epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_ADD, ret, &evt );
+    __DbgSetLastErr( host, 0 );
+    return ret;
 }
 
-inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, int bufCount, int flags )
+inline int SendMsg( DzHost* host, int fd, struct msghdr* msg, int flags )
 {
-    return 0;
-}
-
-inline int Send( DzHost* host, int fd, const void* buf, int len, int flag )
-{
-    DzAsynIo* asynIo;
     int ret;
-    int sendLen = 0;
-    int leftLen = len;
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
+    int err;
+	DzAsyncIo* asyncIo;
 
-    asynIo = host->osStruct.fdTable[ fd ];
-    CloneAsynIo( asynIo );
-    while( 1 ){
-        WaitFastEvt( host, &asynIo->outEvt, -1 );
-        if( asynIo->sign ){
-            CloseAsynIo( host, asynIo );
-            return -1;
-        }
-        ret = send( fd, (char*)buf + sendLen, leftLen, flag | MSG_NOSIGNAL );
-        if( ret < 0 ){
-            if( errno != EAGAIN ){
-                CloseAsynIo( host, asynIo );
+    ret = sendmsg( fd, msg, flags | MSG_NOSIGNAL );
+    if( ret < 0 ){
+        if( errno == EAGAIN ){
+    	    asyncIo = host->osStruct.fdTable[ fd ];
+    	    CloneAsyncIo( asyncIo );
+    	    WaitEasyEvt( host, &asyncIo->outEvt );
+    	    err = asyncIo->err;
+    	    CloseAsyncIo( host, asyncIo );
+    	    if( err ){
+    	    	__DbgSetLastErr( host, err );
                 return -1;
-            }
-        }else if( ret == leftLen ){
-            NotifyFastEvt( host, &asynIo->outEvt, 0 );
-            CloseAsynIo( host, asynIo );
-            return len;
-        }else if( ret > 0 ){
-            sendLen += ret;
-            leftLen -= ret;
+    	    }
+    	    ret = sendmsg( fd, msg, flags | MSG_NOSIGNAL );
+    	    if( ret < 0 ){
+    	    	__DbgSetLastErr( host, errno );
+    	    	return -1;
+    	    }
         }else{
-            CloseAsynIo( host, asynIo );
-            return 0;
+        	__DbgSetLastErr( host, errno );
+        	return -1;
         }
     }
+    __DbgSetLastErr( host, 0 );
+    return ret;
 }
 
-inline int Recv( DzHost* host, int fd, void* buf, int len, int flag )
+inline int RecvMsg( DzHost* host, int fd, struct msghdr* msg, int flags )
 {
-    DzAsynIo* asynIo;
     int ret;
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
+    int err;
+    DzAsyncIo* asyncIo;
 
-    asynIo = host->osStruct.fdTable[ fd ];
-    CloneAsynIo( asynIo );
-    while( 1 ){
-        WaitFastEvt( host, &asynIo->inEvt, -1 );
-        if( asynIo->sign ){
-            CloseAsynIo( host, asynIo );
-            return -1;
-        }
-        ret = recv( fd, buf, len, flag );
-        if( ret < 0 ){
-            if( errno != EAGAIN ){
-                CloseAsynIo( host, asynIo );
+    ret = recvmsg( fd, msg, flags );
+    if( ret < 0 ){
+        if( errno == EAGAIN ){
+    	    asyncIo = host->osStruct.fdTable[ fd ];
+    	    CloneAsyncIo( asyncIo );
+    	    WaitEasyEvt( host, &asyncIo->inEvt );
+    	    err = asyncIo->err;
+    	    CloseAsyncIo( host, asyncIo );
+    	    if( err ){
+    	    	__DbgSetLastErr( host, err );
                 return -1;
-            }
+    	    }
+    	    ret = recvmsg( fd, msg, flags );
+    	    if( ret < 0 ){
+    	    	__DbgSetLastErr( host, errno );
+    	    	return -1;
+    	    }
         }else{
-            if( ret == len ){
-                NotifyFastEvt( host, &asynIo->inEvt, 0 );
-            }
-            CloseAsynIo( host, asynIo );
-            return ret;
+        	__DbgSetLastErr( host, errno );
+        	return -1;
         }
     }
+    __DbgSetLastErr( host, 0 );
+    return ret;
+}
+
+inline int SendEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags )
+{
+    struct msghdr msg;
+
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+    msg.msg_iov = (struct iovec*)bufs;
+    msg.msg_iovlen = bufCount;
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+	return SendMsg( host, fd, &msg, flags );
+}
+
+inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags )
+{
+    struct msghdr msg;
+
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+    msg.msg_iov = (struct iovec*)bufs;
+    msg.msg_iovlen = bufCount;
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+    return RecvMsg( host, fd, &msg, flags );
+}
+
+inline int Send( DzHost* host, int fd, const void* buf, u_int len, int flags )
+{
+    DzBuf tmpBuf;
+
+    tmpBuf.len = (unsigned long)len;
+    tmpBuf.buf = (void*)buf;
+    return SendEx( host, fd, &tmpBuf, 1, flags );
+}
+
+inline int Recv( DzHost* host, int fd, void* buf, u_int len, int flags )
+{
+    DzBuf tmpBuf;
+
+    tmpBuf.len = (unsigned long)len;
+    tmpBuf.buf = buf;
+    return RecvEx( host, fd, &tmpBuf, 1, flags );
 }
 
 inline int SendToEx(
     DzHost*                 host,
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
     )
 {
-	return 0;
+    struct msghdr msg;
+
+    msg.msg_name = (void*)to;
+    msg.msg_namelen = (socklen_t)tolen;
+    msg.msg_iov = (struct iovec*)bufs;
+    msg.msg_iovlen = bufCount;
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+    return SendMsg( host, fd, &msg, flags );
 }
 
 inline int RecvFromEx(
     DzHost*                 host,
     int                     fd,
     DzBuf*                  bufs,
-    int                     bufCount,
+    u_int                   bufCount,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen
     )
 {
-    return 0;
+	int ret;
+    struct msghdr msg;
+
+    msg.msg_name = from;
+    msg.msg_namelen = (socklen_t)( fromlen ? *fromlen : 0 );
+    msg.msg_iov = (struct iovec*)bufs;
+    msg.msg_iovlen = bufCount;
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+    ret = RecvMsg( host, fd, &msg, flags );
+    if( fromlen ){
+    	*fromlen = (int)msg.msg_namelen;
+    }
+    return ret;
 }
 
 inline int SendTo(
     DzHost*                 host,
     int                     fd,
     const void*             buf,
-    int                     len,
+    u_int                   len,
     int                     flags,
     const struct sockaddr*  to,
     int                     tolen
     )
 {
-    return 0;
+    DzBuf tmpBuf;
+
+    tmpBuf.len = (unsigned long)len;
+    tmpBuf.buf = (void*)buf;
+    return SendToEx( host, fd, &tmpBuf, 1, flags, to, tolen );
 }
 
 inline int RecvFrom(
     DzHost*                 host,
     int                     fd,
     void*                   buf,
-    int                     len,
+    u_int                   len,
     int                     flags,
     struct sockaddr*        from,
     int*                    fromlen
     )
 {
-    return 0;
+    DzBuf tmpBuf;
+
+    tmpBuf.len = (unsigned long)len;
+    tmpBuf.buf = buf;
+    return RecvFromEx( host, fd, &tmpBuf, 1, flags, from, fromlen );
 }
 
 inline int OpenA( DzHost* host, const char* fileName, int flags )
 {
     int fd;
     int flag;
-    struct stat st;
     struct epoll_event evt;
 
     fd = open( fileName, flags );
-    int err = errno;
-    printf("errno %d\n" , err );
+    __DbgSetLastErr( host, errno );
     if( fd >= 0 ){
-        host->osStruct.fdTable[ fd ] = CreateAsynIo( host );
+        host->osStruct.fdTable[ fd ] = CreateAsyncIo( host );
+        if( !host->osStruct.fdTable[ fd ] ){
+            close( fd );
+            return -1;
+        }
         evt.data.ptr = host->osStruct.fdTable[ fd ];
-        evt.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLET;
+        evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
         flag = fcntl( fd, F_GETFL, 0 );
         fcntl( fd, F_SETFL, flag | O_NONBLOCK );
         epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_ADD, fd, &evt );
-        fstat( fd, &st );
-        if( st.st_mode & S_IFREG ){
-            host->osStruct.fdTable[ fd ]->sign |= ASYNIO_SIGN_ISFILE;
-        }
     }
     return fd;
 }
@@ -331,106 +416,109 @@ inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
     return -1;
 }
 
-inline int Close( DzHost* host, int fd )
+inline int Close( int fd )
 {
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
+    DzHost* host;
+    DzAsyncIo* asyncIo;
+    int ret;
 
-    epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_DEL, fd, (struct epoll_event*)1 );
-    CloseAsynIo( host, host->osStruct.fdTable[ fd ] );
-    host->osStruct.fdTable[ fd ] = NULL;
-    return close( fd );
+    ret = close( fd );
+    if( ret == 0 ){
+        host = GetHost();
+        asyncIo = host->osStruct.fdTable[ fd ];
+        asyncIo->err = ECONNABORTED;
+        if( IsEasyEvtWaiting( &asyncIo->inEvt ) ){
+        	NotifyEasyEvt( host, &asyncIo->inEvt );
+        	CleanEasyEvt( &asyncIo->inEvt );
+        }
+        if( IsEasyEvtWaiting( &asyncIo->outEvt ) ){
+        	NotifyEasyEvt( host, &asyncIo->outEvt );
+        	CleanEasyEvt( &asyncIo->outEvt );
+        }
+        CloseAsyncIo( host, asyncIo );
+        host->osStruct.fdTable[ fd ] = NULL;
+    }
+    return ret;
 }
 
 inline size_t Read( DzHost* host, int fd, void* buf, size_t count )
 {
-    DzAsynIo* asynIo;
     int ret;
-    int readLen = 0;
-    int leftLen = count;
-    BOOL isFile;
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
+    int err;
+	DzAsyncIo* asyncIo;
 
-    asynIo = host->osStruct.fdTable[ fd ];
-    CloneAsynIo( asynIo );
-    isFile = asynIo->sign & ASYNIO_SIGN_ISFILE;
-    do{
-        WaitFastEvt( host, &asynIo->inEvt, -1 );
-        if( asynIo->sign & ASYNIO_SIGN_ERR_MASK ){
-            CloseAsynIo( host, asynIo );
-            return -1;
-        }
-        ret = read( fd, (char*)buf + readLen, leftLen );
-        if( ret < 0 ){
-            if( errno != EAGAIN ){
-                CloseAsynIo( host, asynIo );
+    ret = read( fd, buf, count );
+    if( ret < 0 ){
+        if( errno == EAGAIN ){
+        	asyncIo = host->osStruct.fdTable[ fd ];
+    	    CloneAsyncIo( asyncIo );
+    	    WaitEasyEvt( host, &asyncIo->inEvt );
+    	    err = asyncIo->err;
+    	    CloseAsyncIo( host, asyncIo );
+    	    if( err ){
+    	    	__DbgSetLastErr( host, err );
                 return -1;
-            }
+    	    }
+    	    ret = read( fd, buf, count );
+    	    if( ret < 0 ){
+    	    	__DbgSetLastErr( host, errno );
+    	    	return -1;
+    	    }
         }else{
-            readLen += ret;
-            leftLen -= ret;
-            NotifyFastEvt( host, &asynIo->inEvt, 0 );
-            if( ret == 0 || ret == leftLen ){
-                CloseAsynIo( host, asynIo );
-                return readLen;
-            }
+        	__DbgSetLastErr( host, errno );
+        	return -1;
         }
-    }while( isFile );
-    CloseAsynIo( host, asynIo );
-    return readLen;
+    }
+    __DbgSetLastErr( host, 0 );
+    return ret;
 }
 
 inline size_t Write( DzHost* host, int fd, const void* buf, size_t count )
 {
-    DzAsynIo* asynIo;
     int ret;
-    int writeLen = 0;
-    int leftLen = count;
-    assert( fd >= 0 && fd < host->osStruct.maxFd );
-    assert( host->osStruct.fdTable[ fd ] );
-    assert( host->osStruct.fdTable[ fd ]->outEvt.dzThread == NULL );
+    int err;
+	DzAsyncIo* asyncIo;
 
-    asynIo = host->osStruct.fdTable[ fd ];
-    while( 1 ){
-        WaitFastEvt( host, &asynIo->outEvt, -1 );
-        if( asynIo->sign & ASYNIO_SIGN_ERR_MASK ){
-            CloseAsynIo( host, asynIo );
-            return -1;
-        }
-        ret = write( fd, (char*)buf + writeLen, leftLen );
-        if( ret < 0 ){
-            if( errno != EAGAIN ){
-                CloseAsynIo( host, asynIo );
+	if( isfdtype( fd, S_IFSOCK ) > 0 ){
+		return (size_t)Send( host, fd, buf, (u_int)count, 0 );
+	}
+    ret = write( fd, buf, count );
+    if( ret < 0 ){
+        if( errno == EAGAIN ){
+        	asyncIo = host->osStruct.fdTable[ fd ];
+    	    CloneAsyncIo( asyncIo );
+    	    WaitEasyEvt( host, &asyncIo->outEvt );
+    	    err = asyncIo->err;
+    	    CloseAsyncIo( host, asyncIo );
+    	    if( err ){
+    	    	__DbgSetLastErr( host, err );
                 return -1;
-            }
-        }else if( ret == leftLen ){
-            NotifyFastEvt( host, &asynIo->outEvt, 0 );
-            CloseAsynIo( host, asynIo );
-            return count;
-        }else if( ret > 0 ){
-            writeLen += ret;
-            leftLen -= ret;
+    	    }
+    	    ret = write( fd, buf, count );
+    	    if( ret < 0 ){
+    	    	__DbgSetLastErr( host, errno );
+    	    	return -1;
+    	    }
         }else{
-            CloseAsynIo( host, asynIo );
-            return 0;
+        	__DbgSetLastErr( host, errno );
+        	return -1;
         }
     }
+    __DbgSetLastErr( host, 0 );
+    return ret;
 }
 
-inline size_t Seek( DzHost* host, int fd, size_t offset, int whence )
+inline size_t Seek( int fd, size_t offset, int whence )
 {
     return (size_t)lseek( fd, (off_t)offset, whence );
 }
 
-inline size_t FileSize( DzHost* host, int fd )
+inline size_t FileSize( int fd )
 {
     struct stat st;
 
     if( fstat( fd, &st ) < 0 ){
-        return 0;
+        return -1;
     }
     return (size_t)st.st_size;
 }
@@ -443,30 +531,32 @@ inline void IoMgrRoutine( DzHost* host )
     int i;
     int timeout;
     int listCount;
-    DzAsynIo* asynIo;
+    int notifyCount;
+    DzAsyncIo* asyncIo;
     struct epoll_event evtList[ EPOLL_EVT_LIST_SIZE ];
 
     timeout = NotifyMinTimers( host );
     while( host->threadCount ){
         listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
         if( listCount != 0 ){
+        	notifyCount = 0;
             for( i = 0; i < listCount; i++ ){
-                asynIo = (DzAsynIo*)evtList[i].data.ptr;
-                if( evtList[i].events & EPOLLERR ){
-                    asynIo->sign |= 1;
-                    NotifyFastEvt( host, &asynIo->inEvt, 0 );
-                    NotifyFastEvt( host, &asynIo->outEvt, 0 );
-                }else{
-                    if( evtList[i].events & EPOLLIN ){
-                        NotifyFastEvt( host, &asynIo->inEvt, 0 );
-                    }
-                    if( evtList[i].events & EPOLLOUT ){
-                        NotifyFastEvt( host, &asynIo->outEvt, 0 );
-                    }
-                }
+                asyncIo = (DzAsyncIo*)evtList[i].data.ptr;
+            	if( IsEasyEvtWaiting( &asyncIo->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
+                    NotifyEasyEvt( host, &asyncIo->inEvt );
+                    CleanEasyEvt( &asyncIo->inEvt );
+                    notifyCount++;
+            	}
+            	if( IsEasyEvtWaiting( &asyncIo->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
+                    NotifyEasyEvt( host, &asyncIo->outEvt );
+                    CleanEasyEvt( &asyncIo->outEvt );
+                    notifyCount++;
+            	}
             }
-            host->currPriority = CP_FIRST;
-            Schedule( host );
+            if( notifyCount ){
+                host->currPriority = CP_FIRST;
+                Schedule( host );
+            }
         }
         timeout = NotifyMinTimers( host );
     }

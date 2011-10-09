@@ -43,9 +43,6 @@ typedef long long int64;
 
 //linux specific constants
 #define EPOLL_EVT_LIST_SIZE     4096
-#define ASYNIO_SIGN_ERR_MASK    0x7fff
-#define ASYNIO_SIGN_ISFILE      0x8000
-
 
 //switchers
 //#define SWITCH_COT_FLOAT_SAFE

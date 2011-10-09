@@ -380,54 +380,6 @@ inline void InitTimeOut( DzFastEvt* timeout, int milSec, DzWaitHelper* helper )
     timeout->timerNode.index = -1;
 }
 
-inline void InitFastEvt( DzFastEvt* fastEvt )
-{
-    fastEvt->type = TYPE_FAST_EVT;
-    fastEvt->notified = FALSE;
-    fastEvt->timerNode.index = -1;
-}
-
-inline void NotifyFastEvt( DzHost* host, DzFastEvt* fastEvt, int status )
-{
-    if( !fastEvt->dzThread ){
-        fastEvt->notified = TRUE;
-        return;
-    }
-    DispatchThread( host, fastEvt->dzThread );
-    fastEvt->dzThread = NULL;
-    if( IsTimeNodeInHeap( &fastEvt->timerNode ) ){
-        RemoveTimer( host, &fastEvt->timerNode );
-    }
-    fastEvt->status = status;
-}
-
-inline int WaitFastEvt( DzHost* host, DzFastEvt* obj, int timeout )
-{
-    if( obj->notified ){
-        obj->notified = FALSE;
-        return 0;
-    }
-    if( timeout == 0 ){
-        return -1;
-    }
-    obj->dzThread = host->currThread;
-    if( timeout > 0 ){
-        obj->timerNode.repeat = 1;
-        obj->timerNode.timestamp = MilUnixTime() + timeout;
-        AddTimer( host, &obj->timerNode );
-    }
-    Schedule( host );
-    return obj->status;
-}
-
-inline void DelayCurrThread( DzHost* host, int milSec )
-{
-    DzFastEvt evt;
-
-    InitFastEvt( &evt );
-    WaitFastEvt( host, &evt, milSec );
-}
-
 inline int WaitSynObj( DzHost* host, DzSynObj* obj, int timeout )
 {
     DzWaitHelper helper;
@@ -503,6 +455,72 @@ inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** obj, BOOL waitAl
     }
     Schedule( host );
     return helper.checkIdx;
+}
+
+inline void InitFastEvt( DzFastEvt* fastEvt )
+{
+    fastEvt->type = TYPE_FAST_EVT;
+    fastEvt->notified = FALSE;
+    fastEvt->timerNode.index = -1;
+}
+
+inline void NotifyFastEvt( DzHost* host, DzFastEvt* fastEvt, int status )
+{
+    if( !fastEvt->dzThread ){
+        fastEvt->notified = TRUE;
+        return;
+    }
+    DispatchThread( host, fastEvt->dzThread );
+    fastEvt->dzThread = NULL;
+    if( IsTimeNodeInHeap( &fastEvt->timerNode ) ){
+        RemoveTimer( host, &fastEvt->timerNode );
+    }
+    fastEvt->status = status;
+}
+
+inline int WaitFastEvt( DzHost* host, DzFastEvt* fastEvt, int timeout )
+{
+    if( fastEvt->notified ){
+        fastEvt->notified = FALSE;
+        return 0;
+    }
+    fastEvt->dzThread = host->currThread;
+    if( timeout >= 0 ){
+        fastEvt->timerNode.repeat = 1;
+        fastEvt->timerNode.timestamp = MilUnixTime() + timeout;
+        AddTimer( host, &fastEvt->timerNode );
+    }
+    Schedule( host );
+    return fastEvt->status;
+}
+
+inline void CleanEasyEvt( DzEasyEvt* easyEvt )
+{
+    easyEvt->dzThread = NULL;
+}
+
+inline BOOL IsEasyEvtWaiting( DzEasyEvt* easyEvt )
+{
+    return easyEvt->dzThread != NULL;
+}
+
+inline void NotifyEasyEvt( DzHost* host, DzEasyEvt* easyEvt )
+{
+    DispatchThread( host, easyEvt->dzThread );
+}
+
+inline void WaitEasyEvt( DzHost* host, DzEasyEvt* easyEvt )
+{
+    easyEvt->dzThread = host->currThread;
+    Schedule( host );
+}
+
+inline void DelayCurrThread( DzHost* host, int milSec )
+{
+    DzFastEvt evt;
+
+    InitFastEvt( &evt );
+    WaitFastEvt( host, &evt, milSec );
 }
 
 #ifdef __cplusplus

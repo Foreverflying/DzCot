@@ -8,14 +8,17 @@
 #ifndef __DzStructsLnx_h__
 #define __DzStructsLnx_h__
 
+#include "../DzIncOs.h"
+#include "../DzDeclareStructs.h"
+#include "../DzStructsDebug.h"
 #include "../DzStructsList.h"
 
 struct _DzOsStruct
 {
     int             epollFd;
-    int             maxFd;
-    DzAsynIo**      fdTable;
-    DzLItr*         asynIoPool;
+    int             maxFdCount;
+    DzAsyncIo**      fdTable;
+    DzLItr*         asyncIoPool;
 };
 
 struct _DzThread
@@ -24,8 +27,9 @@ struct _DzThread
     void*           sp;
     char*           stack;
     int             sSize;
-    int             lastErr;
     int             priority;
+
+    __DBG_DATA_DEFINE( DzThread )
 };
 
 #endif // __DzStructsLnx_h__

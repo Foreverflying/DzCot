@@ -8,9 +8,9 @@
 int main(int argc, _TCHAR* argv[])
 {
     TestCompileInC();
-    char* av[] = {
+    const char* av[] = {
         "TestCot",
-        "--gtest_break_on_failure",
+        //"--gtest_break_on_failure",
         //"--gtest_filter=TestCotMechanism.*",
         //"--gtest_filter=TestSynObj.*",
         //"--gtest_filter=TestCallbackTimer.*",
@@ -19,18 +19,19 @@ int main(int argc, _TCHAR* argv[])
         //"--gtest_filter=TestUdpSocket.*",
         //"--gtest_filter=TestUdpSocket.MultiSendRecvNoConn",
         //"--gtest_filter=TestTcpSocket.*",
-        //"--gtest_filter=TestTcpSocket.RecvCloseValue",
-        //"--gtest_filter=TestTcpSocket.SendCloseValue",
         //"--gtest_filter=TestTcpSocket.Simple*",
         //"--gtest_filter=TestTcpSocket.SimpleSend",
         //"--gtest_filter=TestTcpSocket.SimpleRecv",
         //"--gtest_filter=TestTcpSocket.SendRecvSendRecv",
         //"--gtest_filter=TestTcpSocket.LargeBuffer",
+        //"--gtest_filter=TestTcpSocket.RecvOpCloseValue",
+        //"--gtest_filter=TestTcpSocket.SendOpCloseValue",
+        //"--gtest_filter=TestTcpSocket.SendRecvClose",
         //"--gtest_filter=TestTcpSocket.ConnectAcceptClose",
         ""
     };
     int ac = sizeof( av ) / sizeof( char* );
-    testing::InitGoogleTest( &ac, av );
+    testing::InitGoogleTest( &ac, (char**)av );
 
     //testing::InitGoogleTest( &argc, argv );
     int ret = RUN_ALL_TESTS();

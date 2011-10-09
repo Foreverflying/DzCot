@@ -94,8 +94,6 @@ void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
 #define DzSwitch DzSwitchFast
 #endif
 
-#define __DbgCheckCotStackOverflow( size )
-
 #ifdef __cplusplus
 };
 #endif
