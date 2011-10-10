@@ -741,7 +741,6 @@ void __stdcall TcpSvrRecvOpCloseRoutine( void* context )
 
 void __stdcall TcpCltRecvOpCloseRoutine( void* context )
 {
-    int idx = (int)context;
     int fd = -1;
     try{
         fd = DzSocket( gAddr->sa_family, SOCK_STREAM, 0 );

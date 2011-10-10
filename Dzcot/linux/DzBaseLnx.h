@@ -62,8 +62,8 @@ inline BOOL AllocTlsIndex()
         i--;
     }
     if( tlsKey != DZ_TLS_IDX ){
-        if( tlsArr[i] > 0 ){
-            pthread_key_delete( tlsArr[i] );
+        if( tlsKey > 0 ){
+            pthread_key_delete( tlsKey );
         }
         return FALSE;
     }else{
