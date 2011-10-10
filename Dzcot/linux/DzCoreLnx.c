@@ -74,32 +74,19 @@ BOOL AllocAsyncIoPool( DzHost* host )
     return TRUE;
 }
 
-// DzcotRoutine:
-// the real entry the co thread starts, it call the user entry
-// after that, the thread is finished, so put itself to the thread pool
-// schedule next thread
-#ifdef __i386
-void __stdcall DzcotRoutine(
-    DzRoutine entry,
-    void* context
+// DzcotEntry:
+// the real function entry the cot starts, it call the user entry
+// after that, when the cot is finished, put it into the thread pool
+// schedule next cot
+void __stdcall DzcotEntry(
+    volatile DzRoutine* entryPtr,
+    volatile intptr_t*  contextPtr
     )
-#elif defined __amd64
-void __stdcall DzcotRoutine(
-    void* unused1,
-    void* unused2,
-    void* unused3,
-    void* unused4,
-    void* unused5,
-    void* unused6,
-    DzRoutine entry,
-    void* context
-    )
-#endif
 {
     DzHost* host = GetHost();
     while(1){
         //call the entry
-        ( *(DzRoutine volatile *)(&entry) )( *(void* volatile *)(&context) );
+        ( *entryPtr )( *contextPtr );
 
         //free the thread
         host->threadCount--;

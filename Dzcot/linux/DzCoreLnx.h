@@ -16,6 +16,11 @@
 extern "C"{
 #endif
 
+void __stdcall CallDzcotEntry( void );
+void __stdcall DzcotEntry(
+    volatile DzRoutine* entryPtr,
+    volatile intptr_t*  contextPtr
+    );
 BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
 void DeleteOsStruct( DzHost* host, DzHost* parentHost );
 BOOL AllocAsyncIoPool( DzHost* host );
@@ -33,16 +38,10 @@ struct DzStackBottom
     void*       unusedEsi;
     void*       unusedEbx;
     void*       unusedEbp;
-    void*       routineEntry;
-    void*       unusedEip;
+    void*       ipEntry;
     DzRoutine   entry;
-    void*       context;
+    intptr_t    context;
 };
-
-void __stdcall DzcotRoutine(
-    DzRoutine   entry,
-    void*       context
-    );
 
 #elif defined( __amd64 )
 
@@ -54,32 +53,17 @@ struct DzStackBottom
     void*       unusedR12;
     void*       unusedRbx;
     void*       unusedRbp;
-    void*       routineEntry;
-    void*       unusedEip;
+    void*       ipEntry;
     DzRoutine   entry;
-    void*       context;
+    intptr_t    context;
 };
-
-void DzcotRoutine(
-    void*       unused1,
-    void*       unused2,
-    void*       unused3,
-    void*       unused4,
-    void*       unused5,
-    void*       unused6,
-    DzRoutine   entry,
-    void*       context
-    );
 
 #endif
 
-inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
+inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, intptr_t context )
 {
-    struct DzStackBottom* bottom;
-
-    bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
-    bottom->entry = entry;
-    bottom->context = context;
+    ( ( (struct DzStackBottom*)dzThread->stack ) - 1 )->entry = entry;
+    ( ( (struct DzStackBottom*)dzThread->stack ) - 1 )->context = context;
 }
 
 inline char* AllocStack( int size )
@@ -111,7 +95,7 @@ inline void InitCotStack( DzHost* host, DzThread* dzThread )
     struct DzStackBottom* bottom;
 
     bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
-    bottom->routineEntry = DzcotRoutine;
+    bottom->ipEntry = CallDzcotEntry;
     dzThread->sp = bottom;
 }
 

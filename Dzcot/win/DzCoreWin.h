@@ -16,9 +16,13 @@
 extern "C"{
 #endif
 
+void __stdcall CallDzcotEntry( void );
+void __stdcall DzcotEntry(
+    volatile DzRoutine* entryPtr,
+    volatile intptr_t*  contextPtr
+    );
 BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
 void DeleteOsStruct( DzHost* host, DzHost* parentHost );
-void __stdcall DzcotRoutine( DzRoutine entry, intptr_t context );
 
 inline void InitDzThread( DzThread* dzThread )
 {
@@ -36,13 +40,10 @@ struct DzStackBottom
     void*       unusedEsi;
     void*       unusedEbx;
     void*       unusedEbp;
-    void*       routineEntry;
-    void*       unusedEip;
+    void*       ipEntry;
     DzRoutine   entry;
     intptr_t    context;
 };
-
-#define DzcotRoutineEntry DzcotRoutine
 
 #elif defined( _M_AMD64 )
 
@@ -58,27 +59,17 @@ struct DzStackBottom
     void*       unusedRsi;
     void*       unusedRbx;
     void*       unusedRbp;
-    void*       routineEntry;
-    void*       unusedEip;
+    void*       ipEntry;
     DzRoutine   entry;
     intptr_t    context;
-    void*       unusedR8;
-    void*       unusedR9;
 };
-
-void CallDzcotRoutine();
-
-#define DzcotRoutineEntry CallDzcotRoutine
 
 #endif
 
 inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, intptr_t context )
 {
-    struct DzStackBottom* bottom;
-
-    bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
-    bottom->entry = entry;
-    bottom->context = context;
+    ( ( (struct DzStackBottom*)dzThread->stack ) - 1 )->entry = entry;
+    ( ( (struct DzStackBottom*)dzThread->stack ) - 1 )->context = context;
 }
 
 inline char* AllocStack( DzHost* host, int size )
@@ -131,7 +122,7 @@ inline void InitCotStack( DzHost* host, DzThread* dzThread )
     struct DzStackBottom* bottom;
 
     bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
-    bottom->routineEntry = DzcotRoutineEntry;
+    bottom->ipEntry = CallDzcotEntry;
 #ifdef _X86_
     bottom->exceptPtr = host->osStruct.originExceptPtr;
 #endif

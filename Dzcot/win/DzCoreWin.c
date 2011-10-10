@@ -130,17 +130,20 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 
 #endif // GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
-// DzcotRoutine:
-// the real entry the co thread starts, it call the user entry
-// after that, the thread is finished, so put itself to the thread pool
-// schedule next thread
-void __stdcall DzcotRoutine( DzRoutine entry, intptr_t context )
+// DzcotEntry:
+// the real function entry the cot starts, it call the user entry
+// after that, when the cot is finished, put it into the thread pool
+// schedule next cot
+void __stdcall DzcotEntry(
+    volatile DzRoutine* entryPtr,
+    volatile intptr_t*  contextPtr
+    )
 {
     DzHost* host = GetHost();
     __try{
         while(1){
             //call the entry
-            ( *(DzRoutine volatile *)(&entry) )( *(intptr_t volatile *)(&context) );
+            ( *entryPtr )( *contextPtr );
 
             //free the thread
             host->threadCount--;

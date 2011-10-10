@@ -104,8 +104,12 @@ typedef struct _DzBuf
 
 typedef void* DzHandle;
 
-#ifdef __linux__
+#if defined( __linux__ )
+#if defined( __i386 )
 #define __stdcall __attribute__((stdcall))
+#else
+#define __stdcall
+#endif
 #endif
 
 typedef void (__stdcall *DzRoutine)( intptr_t context );

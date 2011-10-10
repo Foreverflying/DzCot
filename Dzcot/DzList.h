@@ -15,7 +15,7 @@ extern "C"{
 #endif
 
 #define MEMBER_BASE( memAddr, type, mem )\
-    ( (type*)( (char*)(memAddr) - (int)(&((type*)0)->mem ) ) )
+    ( (type*)( (char*)(memAddr) - (size_t)(&((type*)0)->mem ) ) )
 
 inline void InitDList( DzDList* list )
 {

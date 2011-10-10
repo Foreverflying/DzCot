@@ -27,8 +27,13 @@
 #define inline static __inline
 #endif
 
+#if defined( __i386 )
 #define __stdcall   __attribute__((stdcall))
 #define __fastcall  __attribute__((fastcall))
+#else
+#define __stdcall
+#define __fastcall
+#endif
 
 typedef struct _DzBuf
 {

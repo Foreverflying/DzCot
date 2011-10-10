@@ -6,33 +6,43 @@
 #********************************************************************
 
 
-#PUBLIC @DzSwitch@8 PROC    ; DzSwitch
+#PUBLIC CallDzcotEntry PROC     ; CallDzcotEntry
+#PUBLIC DzSwitch PROC           ; DzSwitch
 
-        .text
+.extern DzcotEntry
 
+.text
+
+.globl CallDzcotEntry
 .globl DzSwitchFast
-        .type  DzSwitchFast, @function
+
+# void __stdcall CallDzcotEntry( void )
+CallDzcotEntry:
+    leaq    8(%rsp), %rsi
+    movq    %rsp, %rdi
+    call    DzcotEntry
+
 # void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
 # host$ = rdi
 # dzThread$ = rsi
 DzSwitchFast:
-        pushq   %rbp
-        pushq   %rbx
-        pushq   %r12
-        pushq   %r13
-        pushq   %r14
-        pushq   %r15
+    pushq   %rbp
+    pushq   %rbx
+    pushq   %r12
+    pushq   %r13
+    pushq   %r14
+    pushq   %r15
 
-        movl    (%rdi), %rax    #rax = host->currThread
-        movl    %rsp, 8(%rax)   #host->currThread->sp = rsp
-        movl    %rsi, (%rax)    #host->currThread = dzThread
-        movl    8(%rsi), %rsp   #rsp = dzThread.sp
+    movq    (%rdi), %rax    #rax = host->currThread
+    movq    %rsp, 8(%rax)   #host->currThread->sp = rsp
+    movq    %rsi, (%rdi)    #host->currThread = dzThread
+    movq    8(%rsi), %rsp   #rsp = dzThread.sp
 
-        popq    %r15
-        popq    %r14
-        popq    %r13
-        popq    %r12
-        popq    %rbx
-        popq    %rbp
+    popq    %r15
+    popq    %r14
+    popq    %r13
+    popq    %r12
+    popq    %rbx
+    popq    %rbp
 
-        ret
+    ret
