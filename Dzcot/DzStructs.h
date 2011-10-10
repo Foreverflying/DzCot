@@ -80,7 +80,7 @@ struct _DzSynObj
     union{
         struct{
             DzRoutine   routine;            //for CallbackTimer
-            void*       context;            //should reset the waitQ[ CP_HIGH ] and waitQ[ CP_NORMAL ]
+            intptr_t    context;            //should reset the waitQ[ CP_HIGH ] and waitQ[ CP_NORMAL ]
             int         priority;           //when release CallbackTimer
             int         sSize;
         };

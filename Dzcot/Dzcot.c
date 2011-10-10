@@ -18,7 +18,7 @@ int DzRunHost(
     int         defaultPri,
     int         defaultSSize,
     DzRoutine   firstEntry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -46,7 +46,7 @@ int DzRunHost(
 
 int DzStartCot(
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -68,7 +68,7 @@ int DzStartCot(
 
 int DzStartCotInstant(
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -91,7 +91,7 @@ int DzStartCotInstant(
 int DzEvtStartCot(
     DzSynObj*   evt,
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -337,7 +337,7 @@ DzHandle DzCreateCallbackTimer(
     u_int           milSec,
     u_int           repeat,
     DzRoutine       callback,
-    void*           context,
+    intptr_t        context,
     int             priority,
     int             sSize
     )

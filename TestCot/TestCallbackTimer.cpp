@@ -6,19 +6,19 @@
 static int gCount = 0;
 static int helpCalledCount = 0;
 
-void __stdcall CallbackTimerRoutine( void* context )
+void __stdcall CallbackTimerRoutine( intptr_t context )
 {
     gCount++;
 }
 
-void __stdcall HelpTestCallback( void* context )
+void __stdcall HelpTestCallback( intptr_t context )
 {
     DzHandle timer = (DzHandle)context;
 
     DzCloseCallbackTimer( timer );
 }
 
-void __stdcall TestFiveRepeatCallbackTimer( void* context )
+void __stdcall TestFiveRepeatCallbackTimer( intptr_t context )
 {
     gCount = 0;
     DzHandle timer = DzCreateCallbackTimer( 500, 5, CallbackTimerRoutine );
@@ -37,7 +37,7 @@ void __stdcall TestFiveRepeatCallbackTimer( void* context )
     DzCloseCallbackTimer( timer );
 }
 
-void __stdcall TestInfiniteRepeatCallbackTimer( void* context )
+void __stdcall TestInfiniteRepeatCallbackTimer( intptr_t context )
 {
     gCount = 0;
     DzHandle timer = DzCreateCallbackTimer( 500, 0, CallbackTimerRoutine );
@@ -59,7 +59,7 @@ void __stdcall TestInfiniteRepeatCallbackTimer( void* context )
     EXPECT_EQ( 6, gCount );
 }
 
-void __stdcall TestEnsureTimerCancelAfterClose( void* context )
+void __stdcall TestEnsureTimerCancelAfterClose( intptr_t context )
 {
     gCount = 0;
     DzHandle timer = DzCreateCallbackTimer( 500, 0, CallbackTimerRoutine, NULL, CP_NORMAL );
@@ -70,7 +70,7 @@ void __stdcall TestEnsureTimerCancelAfterClose( void* context )
     EXPECT_EQ( 2, gCount );
 
     helpCalledCount = 0;
-    DzHandle helpTimer = DzCreateCallbackTimer( 500, 1, HelpTestCallback, (void*)timer, CP_HIGH );
+    DzHandle helpTimer = DzCreateCallbackTimer( 500, 1, HelpTestCallback, (intptr_t)timer, CP_HIGH );
 
     DzSleep( 500 );
     EXPECT_EQ( 2, gCount );

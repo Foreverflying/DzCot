@@ -15,7 +15,7 @@
 #endif
 
 //predefine
-typedef void (__stdcall *DzRoutine)( void* context );
+typedef void (__stdcall *DzRoutine)( intptr_t context );
 
 #undef FALSE
 #undef TRUE

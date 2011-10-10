@@ -10,7 +10,7 @@ int main(int argc, _TCHAR* argv[])
     TestCompileInC();
     const char* av[] = {
         "TestCot",
-        //"--gtest_break_on_failure",
+        "--gtest_break_on_failure",
         //"--gtest_filter=TestCotMechanism.*",
         //"--gtest_filter=TestSynObj.*",
         //"--gtest_filter=TestCallbackTimer.*",
@@ -31,9 +31,9 @@ int main(int argc, _TCHAR* argv[])
         ""
     };
     int ac = sizeof( av ) / sizeof( char* );
-    testing::InitGoogleTest( &ac, (char**)av );
+    //testing::InitGoogleTest( &ac, (char**)av );
 
-    //testing::InitGoogleTest( &argc, argv );
+    testing::InitGoogleTest( &argc, argv );
     int ret = RUN_ALL_TESTS();
     getchar();
     return ret;

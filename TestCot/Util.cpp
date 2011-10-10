@@ -9,7 +9,7 @@
 #include "Util.h"
 //#include "../Dzcot/DzFastNewDel.h"
 
-void TestCot( DzRoutine entry, void* context )
+void TestCot( DzRoutine entry, intptr_t context )
 {
     int ret = DzRunHost( CP_LOW, CP_LOW, SS_64K, entry, context );
     EXPECT_EQ( DS_OK, ret );

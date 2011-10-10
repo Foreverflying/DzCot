@@ -191,7 +191,8 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
         __DbgSetLastErr( host, (int)WSAGetLastError() );
         return -1;
     }
-    setsockopt( s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&fd, sizeof( fd ) );
+    key = (ULONG_PTR)fd;
+    setsockopt( s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&key, sizeof( key ) );
     CreateIoCompletionPort( (HANDLE)s, host->osStruct.iocp, (ULONG_PTR)NULL, 0 );
     if( addr ){
         host->osStruct._GetAcceptExSockAddrs( buf, bytes, 32, 32, &lAddr, &lAddrLen, &rAddr, addrLen );

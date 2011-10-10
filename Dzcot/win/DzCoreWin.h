@@ -18,7 +18,7 @@ extern "C"{
 
 BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
 void DeleteOsStruct( DzHost* host, DzHost* parentHost );
-void __stdcall DzcotRoutine( DzRoutine entry, void* context );
+void __stdcall DzcotRoutine( DzRoutine entry, intptr_t context );
 
 inline void InitDzThread( DzThread* dzThread )
 {
@@ -39,7 +39,7 @@ struct DzStackBottom
     void*       routineEntry;
     void*       unusedEip;
     DzRoutine   entry;
-    void*       context;
+    intptr_t    context;
 };
 
 #define DzcotRoutineEntry DzcotRoutine
@@ -61,7 +61,7 @@ struct DzStackBottom
     void*       routineEntry;
     void*       unusedEip;
     DzRoutine   entry;
-    void*       context;
+    intptr_t    context;
     void*       unusedR8;
     void*       unusedR9;
 };
@@ -72,7 +72,7 @@ void CallDzcotRoutine();
 
 #endif
 
-inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, void* context )
+inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, intptr_t context )
 {
     struct DzStackBottom* bottom;
 

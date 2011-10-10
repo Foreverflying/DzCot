@@ -134,13 +134,13 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 // the real entry the co thread starts, it call the user entry
 // after that, the thread is finished, so put itself to the thread pool
 // schedule next thread
-void __stdcall DzcotRoutine( DzRoutine entry, void* context )
+void __stdcall DzcotRoutine( DzRoutine entry, intptr_t context )
 {
     DzHost* host = GetHost();
     __try{
         while(1){
             //call the entry
-            ( *(DzRoutine volatile *)(&entry) )( *(void* volatile *)(&context) );
+            ( *(DzRoutine volatile *)(&entry) )( *(intptr_t volatile *)(&context) );
 
             //free the thread
             host->threadCount--;

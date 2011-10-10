@@ -76,19 +76,15 @@ enum
 
 typedef struct _DzParamNode
 {
-    void*           context3;
-    void*           context2;
-    void*           context1;
-    void*           content;
+    intptr_t        context3;
+    intptr_t        context2;
+    intptr_t        context1;
+    intptr_t        content;
 }DzParamNode;
 
 #ifdef _WIN32
 
-#if defined( _X86_ )
-typedef int ssize_t;
-#elif defined( _AMD64_ )
-typedef long long ssize_t;
-#endif
+typedef intptr_t ssize_t;
 
 typedef struct _DzBuf
 {
@@ -112,7 +108,7 @@ typedef void* DzHandle;
 #define __stdcall __attribute__((stdcall))
 #endif
 
-typedef void (__stdcall *DzRoutine)( void* context );
+typedef void (__stdcall *DzRoutine)( intptr_t context );
 
 
 #define DZMAKEIPADDRESS( a1, a2, a3, a4 ) (\
@@ -147,33 +143,33 @@ int DzRunHost(
     int         defaultPri,
     int         defaultSSize,
     DzRoutine   firstEntry,
-    void*       context         __DZ_DFT_ARG( NULL ),
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzStartCot(
     DzRoutine   entry,
-    void*       context         __DZ_DFT_ARG( NULL ),
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzStartCotInstant(
     DzRoutine   entry,
-    void*       context         __DZ_DFT_ARG( NULL ),
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzEvtStartCot(
     DzHandle    evt,
     DzRoutine   entry,
-    void*       context         __DZ_DFT_ARG( NULL ),
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzEvtStartCotInstant(
     DzHandle    evt,
     DzRoutine   entry,
-    void*       context         __DZ_DFT_ARG( NULL ),
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
@@ -211,7 +207,7 @@ DzHandle DzCreateCallbackTimer(
     u_int       milSec,
     u_int       repeat,
     DzRoutine   callback,
-    void*       context         __DZ_DFT_ARG( NULL ),
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );

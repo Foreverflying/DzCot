@@ -37,15 +37,15 @@ struct _DzLNode
     union{
         struct{
             union{
-                DzLItr  lItr;
-                void*   context3;
+                DzLItr      lItr;
+                intptr_t    context3;
             };
-            void*       context2;
+            intptr_t        context2;
         };
-        DzDLItr         dlItr;
+        DzDLItr             dlItr;
     };
-    void*               context1;
-    void*               content;
+    intptr_t                context1;
+    intptr_t                content;
 };
 
 #endif // __DzStructsList_h__

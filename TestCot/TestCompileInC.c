@@ -3,7 +3,7 @@
 #include "TestCompileInC.h"
 
 
-void __stdcall TestCompileInCRoutine( void* context )
+void __stdcall TestCompileInCRoutine( intptr_t context )
 {
     DzSleep( 50 );
 }

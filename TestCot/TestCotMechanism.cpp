@@ -8,7 +8,7 @@
 static int gCount = 0;
 static DRandom* gRand = NULL;
 
-void __stdcall CotStackGrowRoutine( void* context )
+void __stdcall CotStackGrowRoutine( intptr_t context )
 {
     gCount++;
 
@@ -28,14 +28,14 @@ void __stdcall CotStackGrowRoutine( void* context )
     EXPECT_EQ( m, n );
 }
 
-void __stdcall TestCotStackGrow( void* context )
+void __stdcall TestCotStackGrow( intptr_t context )
 {
     gCount = 0;
     int count = (int)context;
     gRand = new DRandom( 542234 );
     DzHandle evt = DzCreateCountDownEvt( count );
     for( int i = 0; i < count; i++ ){
-        DzEvtStartCot( evt, CotStackGrowRoutine, (void*)32768 );
+        DzEvtStartCot( evt, CotStackGrowRoutine, (intptr_t)32768 );
     }
     DzWaitSynObj( evt );
     EXPECT_EQ( count, gCount );
@@ -45,5 +45,5 @@ void __stdcall TestCotStackGrow( void* context )
 
 TEST( TestCotMechanism, CotStackGrow )
 {
-    TestCot( TestCotStackGrow, (void*)2000 );
+    TestCot( TestCotStackGrow, (intptr_t)2000 );
 }

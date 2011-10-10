@@ -20,7 +20,7 @@ extern "C"{
 inline int StartCot(
     DzHost*     host,
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     );
@@ -270,7 +270,7 @@ inline DzSynObj* CreateCallbackTimer(
     int             milSec,
     unsigned short  repeat,
     DzRoutine       callback,
-    void*           context,
+    intptr_t        context,
     int             priority,
     int             sSize
     )
@@ -336,7 +336,7 @@ inline BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
     case TYPE_CALLBACK_TIMER:
         timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
         timer->ref++;
-        StartCot( host, CallbackTimerEntry, timer, timer->priority, timer->sSize );
+        StartCot( host, CallbackTimerEntry, (intptr_t)timer, timer->priority, timer->sSize );
         return TRUE;
 
     case TYPE_TIMEOUT:

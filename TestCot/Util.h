@@ -10,4 +10,4 @@
 #include "DzDbgTrace.h"
 #include "../Dzcot/Inc_Dzcot.h"
 
-void TestCot( DzRoutine entry, void* context = 0 );
+void TestCot( DzRoutine entry, intptr_t context = 0 );

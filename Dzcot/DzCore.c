@@ -8,7 +8,7 @@
 #include "DzIncOs.h"
 #include "DzCore.h"
 
-void __stdcall DelayFreeTheadRoutine( void* context )
+void __stdcall DelayFreeTheadRoutine( intptr_t context )
 {
     DzHost* host = GetHost();
     DzThread* dzThread = (DzThread*)context;
@@ -18,7 +18,7 @@ void __stdcall DelayFreeTheadRoutine( void* context )
     host->threadPool = &dzThread->lItr;
 }
 
-void __stdcall EventNotifyCotRoutine( void* context )
+void __stdcall EventNotifyCotRoutine( intptr_t context )
 {
     DzHost* host = GetHost();
     DzLNode* node = (DzLNode*)context;

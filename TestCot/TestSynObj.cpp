@@ -30,74 +30,74 @@ void ReleaseSynObj()
     DzCloseTimer( synTimer );
 }
 
-void __stdcall Wait1Evt1_Sem2( void *context )
+void __stdcall Wait1Evt1_Sem2( intptr_t context )
 {
     DzHandle obj[] = { synEvt1, synSem2 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE );
     ret[ retCount++ ] = 1 * 100 + n + 1;
 }
 
-void __stdcall Wait2Evt1_Evt2( void *context )
+void __stdcall Wait2Evt1_Evt2( intptr_t context )
 {
     DzHandle obj[] = { synEvt1, synEvt2 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE );
     ret[ retCount++ ] = 2 * 100 + n + 1;
 }
 
-void __stdcall Wait3Evt1_Timer( void *context )
+void __stdcall Wait3Evt1_Timer( intptr_t context )
 {
     DzHandle obj[] = { synEvt1, synTimer };
     int n = DzWaitMultiSynObj( 2, obj, FALSE );
     ret[ retCount++ ] = 3 * 100 + n + 1;
 }
 
-void __stdcall Wait4Sem1_Evt2( void *context )
+void __stdcall Wait4Sem1_Evt2( intptr_t context )
 {
     DzHandle obj[] = { synSem1, synEvt2 };
     int n = DzWaitMultiSynObj( 2, obj, FALSE );
     ret[ retCount++ ] = 4 * 100 + n + 1;
 }
 
-void __stdcall Wait5Sem2_Timer( void *context )
+void __stdcall Wait5Sem2_Timer( intptr_t context )
 {
     DzHandle obj[] = { synSem2, synTimer };
     int n = DzWaitMultiSynObj( 2, obj, TRUE );
     ret[ retCount++ ] = 5 * 100 + n + 1;
 }
 
-void __stdcall Wait6Evt1( void *context )
+void __stdcall Wait6Evt1( intptr_t context )
 {
     int n = DzWaitSynObj( synEvt1 );
     ret[ retCount++ ] = 6 * 100 + n + 1;
 }
 
-void __stdcall Wait7Evt1_Sem1_Timer( void *context )
+void __stdcall Wait7Evt1_Sem1_Timer( intptr_t context )
 {
     DzHandle obj[] = { synEvt1, synSem1, synTimer };
     int n = DzWaitMultiSynObj( 3, obj, TRUE );
     ret[ retCount++ ] = 7 * 100 + n + 1;
 }
 
-void __stdcall Wait8Evt2( void *context )
+void __stdcall Wait8Evt2( intptr_t context )
 {
     int n = DzWaitSynObj( synEvt2 );
     ret[ retCount++ ] = 8 * 100 + n + 1;
 }
 
-void __stdcall Wait9Sem2TimeOut( void *context )
+void __stdcall Wait9Sem2TimeOut( intptr_t context )
 {
     int n = DzWaitSynObj( synSem2, 2500 );
     ret[ retCount++ ] = 9 * 100 + n + 1;
 }
 
-void __stdcall Wait10Sem1Sem2TimeOut( void *context )
+void __stdcall Wait10Sem1Sem2TimeOut( intptr_t context )
 {
     DzHandle obj[] = { synSem1, synSem2 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE, 2500 );
     ret[ retCount++ ] = 10 * 100 + n + 1;
 }
 
-void __stdcall TestAllSynObj1( void* context )
+void __stdcall TestAllSynObj1( intptr_t context )
 {
     InitSynObj();
 
@@ -129,7 +129,7 @@ void __stdcall TestAllSynObj1( void* context )
     ReleaseSynObj();
 }
 
-void __stdcall TestAllSynObj2( void* context )
+void __stdcall TestAllSynObj2( intptr_t context )
 {
     InitSynObj();
 
@@ -189,7 +189,7 @@ void __stdcall TestAllSynObj2( void* context )
     ReleaseSynObj();
 }
 
-void __stdcall TestAllSynObj3( void* context )
+void __stdcall TestAllSynObj3( intptr_t context )
 {
     InitSynObj();
 
@@ -257,7 +257,7 @@ void __stdcall TestAllSynObj3( void* context )
     ReleaseSynObj();
 }
 
-void __stdcall TestAllSynObj4( void* context )
+void __stdcall TestAllSynObj4( intptr_t context )
 {
     InitSynObj();
 

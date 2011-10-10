@@ -46,7 +46,7 @@ void HandleCppExpFunc( int delay, TestExpData* data, int type )
     }
 }
 
-void __stdcall CppExpRoutine( void* context )
+void __stdcall CppExpRoutine( intptr_t context )
 {
     gCount++;
     int delay = (int)context;
@@ -83,7 +83,7 @@ void __stdcall CppExpRoutine( void* context )
     EXPECT_EQ( 4, data.y );
 }
 
-void __stdcall TestCppException( void* context )
+void __stdcall TestCppException( intptr_t context )
 {
     gCount = 0;
     int n = (int)context;
@@ -91,7 +91,7 @@ void __stdcall TestCppException( void* context )
     DzHandle evt[16];
     for( int i = 0; i < n; i++ ){
         evt[i] = DzCreateManualEvt( FALSE );
-        DzEvtStartCot( evt[i], CppExpRoutine, (void*)delay );
+        DzEvtStartCot( evt[i], CppExpRoutine, (intptr_t)delay );
         delay += 3;
     }
     DzWaitMultiSynObj( n, evt, TRUE );
@@ -103,7 +103,7 @@ void __stdcall TestCppException( void* context )
 
 TEST( TestException, CppException )
 {
-    TestCot( TestCppException, (void*)10 );
+    TestCot( TestCppException, (intptr_t)10 );
 }
 
 #ifdef _WIN32
@@ -137,7 +137,7 @@ void ContinueExpFunc( int delay, TestExpData* data )
     }
 }
 
-void __stdcall SehExpRoutine( void* context )
+void __stdcall SehExpRoutine( intptr_t context )
 {
     gCount++;
     int delay = (int)context;
@@ -161,7 +161,7 @@ void __stdcall SehExpRoutine( void* context )
     EXPECT_EQ( 104, data.y );
 }
 
-void __stdcall TestWinSehException( void* context )
+void __stdcall TestWinSehException( intptr_t context )
 {
     gCount = 0;
     int n = (int)context;
@@ -169,7 +169,7 @@ void __stdcall TestWinSehException( void* context )
     DzHandle evt[16];
     for( int i = 0; i < n; i++ ){
         evt[i] = DzCreateManualEvt( FALSE );
-        DzEvtStartCot( evt[i], SehExpRoutine, (void*)delay );
+        DzEvtStartCot( evt[i], SehExpRoutine, (intptr_t)delay );
         delay += 3;
     }
     DzWaitMultiSynObj( n, evt, TRUE );
@@ -181,7 +181,7 @@ void __stdcall TestWinSehException( void* context )
 
 TEST( TestException, WinSehException )
 {
-    TestCot( TestWinSehException, (void*)8 );
+    TestCot( TestWinSehException, (intptr_t)8 );
 }
 
 #endif

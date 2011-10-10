@@ -6,14 +6,14 @@
 
 static int gCheck = 0;
 
-void __stdcall HelpCheckAsynTimerEntry( void* context )
+void __stdcall HelpCheckAsynTimerEntry( intptr_t context )
 {
     gCheck++;
 }
 
 ssize_t ReadFileFull( int fd, char* buff, size_t count )
 {
-    int tmp = 0;
+    ssize_t tmp = 0;
     ssize_t ret = 0;
     do{
         ret += tmp;
@@ -24,7 +24,7 @@ ssize_t ReadFileFull( int fd, char* buff, size_t count )
 
 ssize_t WriteFileFull( int fd, const char* buff, size_t count )
 {
-    int tmp = 0;
+    ssize_t tmp = 0;
     ssize_t ret = 0;
     do{
         ret += tmp;
@@ -93,7 +93,7 @@ void ReadFileEntry( char* buff, size_t buffLen )
     DzCloseFile( fd );*/
 }
 
-void __stdcall TestReadFile( void* context )
+void __stdcall TestReadFile( intptr_t context )
 {
     gCheck = 0;
     DzHandle checkTimer = DzCreateCallbackTimer( 10, 0, HelpCheckAsynTimerEntry );
@@ -155,7 +155,7 @@ void WriteFileEntry( char* buff, size_t buffLen )
     unsigned char md5Ret[16];
     md5_context mc;
     md5_starts( &mc );
-    md5_update( &mc, (uint8*)buff, count );
+    md5_update( &mc, (uint8*)buff, (uint32)count );
     md5_finish( &mc, md5Ret );
     int ret = memcmp( md5Ret, md5, 16 );
     ASSERT_EQ( 0, ret );
@@ -163,7 +163,7 @@ void WriteFileEntry( char* buff, size_t buffLen )
     DzCloseFile( fd );
 }
 
-void __stdcall TestWriteFile( void* context )
+void __stdcall TestWriteFile( intptr_t context )
 {
     gCheck = 0;
     DzHandle checkTimer = DzCreateCallbackTimer( 10, 0, HelpCheckAsynTimerEntry );

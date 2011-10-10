@@ -19,8 +19,8 @@
 extern "C"{
 #endif
 
-void __stdcall DelayFreeTheadRoutine( void* context );
-void __stdcall EventNotifyCotRoutine( void* context );
+void __stdcall DelayFreeTheadRoutine( intptr_t context );
+void __stdcall EventNotifyCotRoutine( intptr_t context );
 
 inline void ReleaseAllPoolStack( DzHost* host )
 {
@@ -83,7 +83,7 @@ inline void FreeDzThread( DzHost* host, DzThread* dzThread )
             host->threadPool = &tmp->lItr;
         }else{
             //start a cot to free it later
-            StartCot( host, DelayFreeTheadRoutine, dzThread, host->lowestPriority, SS_FIRST );
+            StartCot( host, DelayFreeTheadRoutine, (intptr_t)dzThread, host->lowestPriority, SS_FIRST );
         }
     }
 }
@@ -93,7 +93,7 @@ inline void FreeDzThread( DzHost* host, DzThread* dzThread )
 inline int StartCot(
     DzHost*     host,
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -129,7 +129,7 @@ inline int StartCot(
 inline int StartCotInstant(
     DzHost*     host,
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -163,7 +163,7 @@ inline int EvtStartCot(
     DzHost*     host,
     DzSynObj*   evt,
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -172,10 +172,10 @@ inline int EvtStartCot(
     DzLNode* node;
 
     node = AllocLNode( host );
-    node->content = entry;
-    node->context1 = context;
-    node->context2 = CloneSynObj( evt );
-    ret = StartCot( host, EventNotifyCotRoutine, node, priority, sSize );
+    node->content = (intptr_t)entry;
+    node->context1 = (intptr_t)context;
+    node->context2 = (intptr_t)CloneSynObj( evt );
+    ret = StartCot( host, EventNotifyCotRoutine, (intptr_t)node, priority, sSize );
     if( ret != DS_OK ){
         CloseSynObj( host, (DzSynObj*)node->context2 );
         FreeLNode( host, node );
@@ -198,10 +198,10 @@ inline int EvtStartCotInstant(
     DzLNode* node;
 
     node = AllocLNode( host );
-    node->content = entry;
-    node->context1 = context;
-    node->context2 = CloneSynObj( evt );
-    ret = StartCot( host, EventNotifyCotRoutine, node, priority, sSize );
+    node->content = (intptr_t)entry;
+    node->context1 = (intptr_t)context;
+    node->context2 = (intptr_t)CloneSynObj( evt );
+    ret = StartCot( host, EventNotifyCotRoutine, (intptr_t)node, priority, sSize );
     if( ret != DS_OK ){
         CloseSynObj( host, (DzSynObj*)node->context2 );
         FreeLNode( host, node );
@@ -219,7 +219,7 @@ inline int RunHost(
     int         defaultPri,
     int         defaultSSize,
     DzRoutine   firstEntry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )

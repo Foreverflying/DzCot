@@ -119,7 +119,7 @@ void DeleteBuffArray()
 
 void CotStart(
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority = CP_DEFAULT,
     int         sSize = SS_DEFAULT
     )
@@ -137,7 +137,7 @@ void CotStop()
     }
 }
 
-void __stdcall SayHello( void* context )
+void __stdcall SayHello( intptr_t context )
 {
     int fd = -1;
     try{
@@ -161,7 +161,7 @@ void __stdcall SayHello( void* context )
     }
 }
 
-void __stdcall WaitHello( void* context )
+void __stdcall WaitHello( intptr_t context )
 {
     int lisFd = -1;
     int fd = -1;
@@ -398,7 +398,7 @@ void SetWriteFunc( FuncWrite writeFunc, BOOL loop = FALSE )
 void CltMain( DzRoutine cltRoutine, int count )
 {
     for( int i = 0; i < count; i++ ){
-        CotStart( cltRoutine, (void*)i );
+        CotStart( cltRoutine, (intptr_t)i );
     }
     CotStop();
 }
@@ -516,7 +516,7 @@ void TcpSvrMain( DzRoutine svrRoutine, int count )
             if( fd == -1 ){
                 throw (int)__LINE__;
             }
-            CotStart( svrRoutine, (void*)fd );
+            CotStart( svrRoutine, (intptr_t)fd );
             connCount--;
         }
     }catch( int line ){
@@ -569,7 +569,7 @@ void UdpSvrMain( DzRoutine svrRoutine, int count )
         int connCount = count;
         while( connCount ){
             int idx = UdpReadOneStream( GetReadFunc(), fd );
-            CotStart( svrRoutine, (void*)idx );
+            CotStart( svrRoutine, (intptr_t)idx );
             connCount--;
         }
     }catch( int line ){
@@ -591,13 +591,13 @@ void SocketTestFrame(
     InitParam();
 
 #ifdef DZ_TEST_SOCKET_SVR
-    CotStart( svrTstEntry, (void*)testCount );
+    CotStart( svrTstEntry, (intptr_t)testCount );
     n++;
 #endif
 
 #ifdef DZ_TEST_SOCKET_CLT
     DzSleep( gCltDelay );
-    CotStart( cltTstEntry, (void*)testCount );
+    CotStart( cltTstEntry, (intptr_t)testCount );
     n++;
 #endif
 
@@ -605,13 +605,13 @@ void SocketTestFrame(
     FreeParam();
 }
 
-void __stdcall HelpCloseSocket( void* context )
+void __stdcall HelpCloseSocket( intptr_t context )
 {
     int fd = (int)context;
     DzCloseSocket( fd );
 }
 
-void __stdcall TcpSvrRecvRoutine( void* context )
+void __stdcall TcpSvrRecvRoutine( intptr_t context )
 {
     int fd = (int)context;
     try{
@@ -623,7 +623,7 @@ void __stdcall TcpSvrRecvRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpCltSendRoutine( void* context )
+void __stdcall TcpCltSendRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -645,7 +645,7 @@ void __stdcall TcpCltSendRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpSvrSendRoutine( void* context )
+void __stdcall TcpSvrSendRoutine( intptr_t context )
 {
     int fd = (int)context;
     try{
@@ -657,7 +657,7 @@ void __stdcall TcpSvrSendRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpCltRecvRoutine( void* context )
+void __stdcall TcpCltRecvRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -679,7 +679,7 @@ void __stdcall TcpCltRecvRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpSvrRsrsRoutine( void* context )
+void __stdcall TcpSvrRsrsRoutine( intptr_t context )
 {
     int fd = (int)context;
     try{
@@ -695,7 +695,7 @@ void __stdcall TcpSvrRsrsRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpCltSrsrRoutine( void* context )
+void __stdcall TcpCltSrsrRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -722,7 +722,7 @@ void __stdcall TcpCltSrsrRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpSvrRecvOpCloseRoutine( void* context )
+void __stdcall TcpSvrRecvOpCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     int fd = (int)context;
@@ -739,7 +739,7 @@ void __stdcall TcpSvrRecvOpCloseRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpCltRecvOpCloseRoutine( void* context )
+void __stdcall TcpCltRecvOpCloseRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -764,7 +764,7 @@ void __stdcall TcpCltRecvOpCloseRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpSvrSendOpCloseRoutine( void* context )
+void __stdcall TcpSvrSendOpCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     int fd = (int)context;
@@ -786,7 +786,7 @@ void __stdcall TcpSvrSendOpCloseRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpCltSendOpCloseRoutine( void* context )
+void __stdcall TcpCltSendOpCloseRoutine( intptr_t context )
 {
     FuncWrite writeFunc = GetWriteFunc();
     int idx = (int)context;
@@ -817,7 +817,7 @@ void __stdcall TcpCltSendOpCloseRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpSvrRecvCloseRoutine( void* context )
+void __stdcall TcpSvrRecvCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     FuncWrite writeFunc = GetWriteFunc();
@@ -838,7 +838,7 @@ void __stdcall TcpSvrRecvCloseRoutine( void* context )
             EXPECT_EQ( sizeof( idx ), ret );
             DzCloseSocket( fd );
         }else if( type == 1 ){
-            DzHandle timer = DzCreateCallbackTimer( 2000, 1, HelpCloseSocket, (void*)fd );
+            DzHandle timer = DzCreateCallbackTimer( 2000, 1, HelpCloseSocket, (intptr_t)fd );
             unsigned long long start = DzMilUnixTime();
             ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
             unsigned long long stop = DzMilUnixTime();
@@ -858,7 +858,7 @@ void __stdcall TcpSvrRecvCloseRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpCltSendCloseRoutine( void* context )
+void __stdcall TcpCltSendCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     FuncWrite writeFunc = GetWriteFunc();
@@ -892,7 +892,7 @@ void __stdcall TcpCltSendCloseRoutine( void* context )
             DzSleep( 1000 );
             DzCloseSocket( fd );
         }else{
-            DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (void*)fd );
+            DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
             unsigned long long start = DzMilUnixTime();
             do{
                 ret = writeFunc( fd, buff, sizeof( buff ), NULL, NULL );
@@ -912,7 +912,7 @@ void __stdcall TcpCltSendCloseRoutine( void* context )
     CotStop();
 }
 
-void __stdcall UdpSvrRecvSendRoutine( void* context )
+void __stdcall UdpSvrRecvSendRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -939,7 +939,7 @@ void __stdcall UdpSvrRecvSendRoutine( void* context )
     CotStop();
 }
 
-void __stdcall UdpCltSendRecvRoutine( void* context )
+void __stdcall UdpCltSendRecvRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -984,7 +984,7 @@ void __stdcall UdpCltSendRecvRoutine( void* context )
     CotStop();
 }
 
-void __stdcall UdpSvrRecvSendNoConnRoutine( void* context )
+void __stdcall UdpSvrRecvSendNoConnRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -1017,7 +1017,7 @@ void __stdcall UdpSvrRecvSendNoConnRoutine( void* context )
     CotStop();
 }
 
-void __stdcall UdpCltSendRecvNoConnRoutine( void* context )
+void __stdcall UdpCltSendRecvNoConnRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -1054,67 +1054,67 @@ void __stdcall UdpCltSendRecvNoConnRoutine( void* context )
     CotStop();
 }
 
-void __stdcall TcpSvrRecvMain( void* context )
+void __stdcall TcpSvrRecvMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRecvRoutine, (int)context );
 }
 
-void __stdcall TcpCltSendMain( void* context )
+void __stdcall TcpCltSendMain( intptr_t context )
 {
     CltMain( TcpCltSendRoutine, (int)context );
 }
 
-void __stdcall TcpSvrSendMain( void* context )
+void __stdcall TcpSvrSendMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrSendRoutine, (int)context );
 }
 
-void __stdcall TcpCltRecvMain( void* context )
+void __stdcall TcpCltRecvMain( intptr_t context )
 {
     CltMain( TcpCltRecvRoutine, (int)context );
 }
 
-void __stdcall TcpSvrRsrsMain( void* context )
+void __stdcall TcpSvrRsrsMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRsrsRoutine, (int)context );
 }
 
-void __stdcall TcpCltSrsrMain( void* context )
+void __stdcall TcpCltSrsrMain( intptr_t context )
 {
     CltMain( TcpCltSrsrRoutine, (int)context );
 }
 
-void __stdcall TcpSvrRecvOpCloseMain( void* context )
+void __stdcall TcpSvrRecvOpCloseMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRecvOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpCltRecvOpCloseMain( void* context )
+void __stdcall TcpCltRecvOpCloseMain( intptr_t context )
 {
     CltMain( TcpCltRecvOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpSvrSendOpCloseMain( void* context )
+void __stdcall TcpSvrSendOpCloseMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrSendOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpCltSendOpCloseMain( void* context )
+void __stdcall TcpCltSendOpCloseMain( intptr_t context )
 {
     CltMain( TcpCltSendOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpSvrRecvCloseMain( void* context )
+void __stdcall TcpSvrRecvCloseMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRecvCloseRoutine, (int)context );
 }
 
-void __stdcall TcpCltSendCloseMain( void* context )
+void __stdcall TcpCltSendCloseMain( intptr_t context )
 {
     CltMain( TcpCltSendCloseRoutine, (int)context );
 }
 
-void __stdcall TcpSvrAcceptCloseMain( void* context )
+void __stdcall TcpSvrAcceptCloseMain( intptr_t context )
 {
     DzStartCot( WaitHello );
 
@@ -1137,7 +1137,7 @@ void __stdcall TcpSvrAcceptCloseMain( void* context )
             throw (int)__LINE__;
         }
 
-        DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (void*)lisFd );
+        DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)lisFd );
         sockaddr acptAddr;
         int acptAddrLen = sizeof( sockaddr );
         int fd = DzAccept( lisFd, &acptAddr, &acptAddrLen );
@@ -1153,7 +1153,7 @@ void __stdcall TcpSvrAcceptCloseMain( void* context )
     CotStop();
 }
 
-void __stdcall TcpCltConnectCloseMain( void* context )
+void __stdcall TcpCltConnectCloseMain( intptr_t context )
 {
     int fd = -1;
     try{
@@ -1161,7 +1161,7 @@ void __stdcall TcpCltConnectCloseMain( void* context )
         if( fd == -1 ){
             throw (int)__LINE__;
         }
-        DzHandle timer = DzCreateCallbackTimer( 5, 1, HelpCloseSocket, (void*)fd );
+        DzHandle timer = DzCreateCallbackTimer( 5, 1, HelpCloseSocket, (intptr_t)fd );
         int ret = DzConnect( fd, gAddr, gAddrLen );
         EXPECT_EQ( -1, ret );
         DzCloseCallbackTimer( timer );
@@ -1174,27 +1174,27 @@ void __stdcall TcpCltConnectCloseMain( void* context )
     CotStop();
 }
 
-void __stdcall UdpSvrRecvSendMain( void* context )
+void __stdcall UdpSvrRecvSendMain( intptr_t context )
 {
     UdpSvrMain( UdpSvrRecvSendRoutine, (int)context );
 }
 
-void __stdcall UdpCltSendRecvMain( void* context )
+void __stdcall UdpCltSendRecvMain( intptr_t context )
 {
     CltMain( UdpCltSendRecvRoutine, (int)context );
 }
 
-void __stdcall UdpSvrRecvSendNoConnMain( void* context )
+void __stdcall UdpSvrRecvSendNoConnMain( intptr_t context )
 {
     UdpSvrMain( UdpSvrRecvSendNoConnRoutine, (int)context );
 }
 
-void __stdcall UdpCltSendRecvNoConnMain( void* context )
+void __stdcall UdpCltSendRecvNoConnMain( intptr_t context )
 {
     CltMain( UdpCltSendRecvNoConnRoutine, (int)context );
 }
 
-void __stdcall TcpTestSimpleSend( void* context )
+void __stdcall TcpTestSimpleSend( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 2345135, cotCount, 1024, 0 );
@@ -1202,7 +1202,7 @@ void __stdcall TcpTestSimpleSend( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestSimpleRecv( void* context )
+void __stdcall TcpTestSimpleRecv( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 82534, cotCount, 1024, 0 );
@@ -1210,7 +1210,7 @@ void __stdcall TcpTestSimpleRecv( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestLargeBuffer( void* context )
+void __stdcall TcpTestLargeBuffer( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 9672122, cotCount, 64 * 1024 * 1024, 0 );
@@ -1218,7 +1218,7 @@ void __stdcall TcpTestLargeBuffer( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestSendRecvSendRecv( void* context )
+void __stdcall TcpTestSendRecvSendRecv( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 654752, cotCount + 3, 4* 1024 * 1024, 512 * 1024 );
@@ -1226,7 +1226,7 @@ void __stdcall TcpTestSendRecvSendRecv( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestMultiSendRecvSendRecv( void* context )
+void __stdcall TcpTestMultiSendRecvSendRecv( intptr_t context )
 {
     int cotCount = 100;
     InitBuffArray( 654752, cotCount + 3, 1024, 512 );
@@ -1234,7 +1234,7 @@ void __stdcall TcpTestMultiSendRecvSendRecv( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestHugeSendRecvSendRecv( void* context )
+void __stdcall TcpTestHugeSendRecvSendRecv( intptr_t context )
 {
     int cotCount = 500;
     InitBuffArray( 654752, cotCount + 3, 64, 32 );
@@ -1242,27 +1242,27 @@ void __stdcall TcpTestHugeSendRecvSendRecv( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestRecvOpCloseValue( void* context )
+void __stdcall TcpTestRecvOpCloseValue( intptr_t context )
 {
     SocketTestFrame( TcpSvrRecvOpCloseMain, TcpCltRecvOpCloseMain, 5 );
 }
 
-void __stdcall TcpTestSendOpCloseValue( void* context )
+void __stdcall TcpTestSendOpCloseValue( intptr_t context )
 {
     SocketTestFrame( TcpSvrSendOpCloseMain, TcpCltSendOpCloseMain, 5 );
 }
 
-void __stdcall TcpTestSendRecvClose( void* context )
+void __stdcall TcpTestSendRecvClose( intptr_t context )
 {
     SocketTestFrame( TcpSvrRecvCloseMain, TcpCltSendCloseMain, 15 );
 }
 
-void __stdcall TcpTestConnectAcceptClose( void* context )
+void __stdcall TcpTestConnectAcceptClose( intptr_t context )
 {
     SocketTestFrame( TcpSvrAcceptCloseMain, TcpCltConnectCloseMain, 0 );
 }
 
-void __stdcall UdpTestSendRecv( void* context )
+void __stdcall UdpTestSendRecv( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 2546257, cotCount + 1, 1024, 256 );
@@ -1270,7 +1270,7 @@ void __stdcall UdpTestSendRecv( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall UdpTestMultiSendRecv( void* context )
+void __stdcall UdpTestMultiSendRecv( intptr_t context )
 {
     int cotCount = 100;
     InitBuffArray( 342553, cotCount + 1, 1024, 256 );
@@ -1278,7 +1278,7 @@ void __stdcall UdpTestMultiSendRecv( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall UdpTestSendRecvNoConn( void* context )
+void __stdcall UdpTestSendRecvNoConn( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 2546257, cotCount + 1, 1024, 256 );
@@ -1286,7 +1286,7 @@ void __stdcall UdpTestSendRecvNoConn( void* context )
     DeleteBuffArray();
 }
 
-void __stdcall UdpTestMultiSendRecvNoConn( void* context )
+void __stdcall UdpTestMultiSendRecvNoConn( intptr_t context )
 {
     int cotCount = 100;
     InitBuffArray( 342553, cotCount + 1, 1024, 256 );

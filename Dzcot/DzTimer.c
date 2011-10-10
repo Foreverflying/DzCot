@@ -50,7 +50,7 @@ int NotifyMinTimers( DzHost* host )
     return -1;
 }
 
-void __stdcall CallbackTimerEntry( void* context )
+void __stdcall CallbackTimerEntry( intptr_t context )
 {
     DzSynObj* timer = (DzSynObj*)context;
 
