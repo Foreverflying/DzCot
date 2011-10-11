@@ -73,7 +73,7 @@ enum
 #define DZ_STACK_UNIT_SIZE          ( 4096 )
 #define DZ_STACK_SIZE_STEP          ( 2 )
 #define DZ_MAX_PERSIST_STACK_SIZE   ( SS_16K )
-#define DZ_MAX_COT_POOL_DEPTH       ( 0x3fffffff )
+#define DZ_MAX_COT_POOL_DEPTH       ( 1024 * 1024 * 1024 )
 #define MEMERY_POOL_GROW_SIZE       ( 16 * 1024 * 1024 )
 #define OBJ_POOL_GROW_COUNT         ( PAGE_SIZE / sizeof( int ) )
 #define TIME_HEAP_SIZE              ( 1024 * 1024 )

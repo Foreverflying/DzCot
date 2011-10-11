@@ -14,7 +14,7 @@
 .text
 
 .globl CallDzcotEntry
-.globl DzSwitchFast
+.globl DzSwitch
 
 # void __stdcall CallDzcotEntry( void )
 CallDzcotEntry:
@@ -25,7 +25,7 @@ CallDzcotEntry:
 # void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
 # host$ = rdi
 # dzThread$ = rsi
-DzSwitchFast:
+DzSwitch:
     pushq   %rbp
     pushq   %rbx
     pushq   %r12

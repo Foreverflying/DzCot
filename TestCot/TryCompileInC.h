@@ -3,7 +3,7 @@
 extern "C"{
 #endif
 
-void TestCompileInC();
+void TryCompileInC();
 
 #ifdef __cplusplus
 };

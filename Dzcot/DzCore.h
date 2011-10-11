@@ -45,7 +45,7 @@ inline DzThread* AllocDzThread( DzHost* host, int sSize )
     if( host->cotPools[ sSize ] ){
         dzThread = MEMBER_BASE( host->cotPools[ sSize ], DzThread, lItr );
         host->cotPools[ sSize ] = host->cotPools[ sSize ]->next;
-        host->cotPoolDepth[ sSize ] ++;
+        host->cotPoolNowDepth[ sSize ] ++;
     }else{
         if( !host->threadPool ){
             if( !AllocDzThreadPool( host ) ){
@@ -66,10 +66,10 @@ inline void FreeDzThread( DzHost* host, DzThread* dzThread )
 {
     DzThread* tmp;
 
-    if( host->cotPoolDepth[ dzThread->sSize ] > 0 ){
+    if( host->cotPoolNowDepth[ dzThread->sSize ] > 0 ){
         dzThread->lItr.next = host->cotPools[ dzThread->sSize ];
         host->cotPools[ dzThread->sSize ] = &dzThread->lItr;
-        host->cotPoolDepth[ dzThread->sSize ] --;
+        host->cotPoolNowDepth[ dzThread->sSize ] --;
     }else{
         //can not FreeCotStack( dzThread ) here!!
         //the stack is still in use before switch
@@ -110,9 +110,6 @@ inline int StartCot(
     }
 
     host->threadCount++;
-    if( host->threadCount > host->maxThreadCount ){
-        host->maxThreadCount++;
-    }
     dzThread->priority = priority == CP_DEFAULT ? host->defaultPri : priority;
     SetThreadEntry( dzThread, entry, context );
 
@@ -146,9 +143,6 @@ inline int StartCotInstant(
     }
 
     host->threadCount++;
-    if( host->threadCount > host->maxThreadCount ){
-        host->maxThreadCount++;
-    }
     dzThread->priority = priority == CP_DEFAULT ? host->defaultPri : priority;
     SetThreadEntry( dzThread, entry, context );
 
@@ -258,14 +252,15 @@ inline int RunHost(
     host.threadPool = NULL;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host.cotPools[i] = NULL;
-        host.cotPoolDepth[i] = DZ_MAX_COT_POOL_DEPTH;
+        host.cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
+        host.cotPoolSetDepth[i] = DZ_MAX_COT_POOL_DEPTH;
     }
     for( ; i < STACK_SIZE_COUNT; i++ ){
         host.cotPools[i] = NULL;
-        host.cotPoolDepth[i] = 0;
+        host.cotPoolNowDepth[i] = 0;
+        host.cotPoolSetDepth[i] = 0;
     }
     host.threadCount = 0;
-    host.maxThreadCount = 0;
     host.timerCount = 0;
     host.timerHeapSize = 0;
     host.timerHeap = timerHeap;
@@ -317,26 +312,23 @@ inline int SetCurrCotPriority( DzHost* host, int priority )
     return ret;
 }
 
-inline BOOL GrowCotPoolDepth( DzHost* host, int sSize, int deta )
+inline int SetCotPoolDepth( DzHost* host, int sSize, int depth )
 {
-    host->cotPoolDepth[ sSize ] += deta;
-    return TRUE;
+    int deta;
+    int ret;
+
+    ret = host->cotPoolSetDepth[ sSize ];
+    if( depth >= 0 && sSize > DZ_MAX_PERSIST_STACK_SIZE ){
+        deta = depth - host->cotPoolSetDepth[ sSize ];
+        host->cotPoolNowDepth[ sSize ] += deta;
+        host->cotPoolSetDepth[ sSize ] = depth;
+    }
+    return ret;
 }
 
 inline int GetCotCount( DzHost* host )
 {
     return host->threadCount;
-}
-
-inline int GetMaxCotCount( DzHost* host, BOOL reset )
-{
-    int ret;
-
-    ret = host->maxThreadCount;
-    if( reset ){
-        host->maxThreadCount = host->threadCount;
-    }
-    return ret;
 }
 
 inline void* Malloc( DzHost* host, size_t size )

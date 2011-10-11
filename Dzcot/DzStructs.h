@@ -127,12 +127,11 @@ struct _DzHost
     //DzThread struct pool
     DzLItr*         threadPool;
     DzLItr*         cotPools[ STACK_SIZE_COUNT ];
-    int             cotPoolDepth[ STACK_SIZE_COUNT ];
+    int             cotPoolNowDepth[ STACK_SIZE_COUNT ];
+    int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
 
-    //statistic for different stack size thread
-    //poolCotCount only accumulate the thread reserved virtual address space
+    //current thread count
     int             threadCount;
-    int             maxThreadCount;
 
     //Os struct
     DzOsStruct      osStruct;

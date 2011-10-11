@@ -55,7 +55,6 @@ typedef long long int64;
 
 //switchers
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
-//#define SWITCH_COT_FLOAT_SAFE
 //#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
 

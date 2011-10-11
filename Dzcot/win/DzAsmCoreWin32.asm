@@ -8,7 +8,7 @@
     .386
 
 ;PUBLIC _CallDzcotEntry@0 PROC  ; CallDzcotEntry
-;PUBLIC @DzSwitchFast@8 PROC    ; DzSwitchFast
+;PUBLIC @DzSwitch@8 PROC        ; DzSwitch
 
 EXTRN   _DzcotEntry@8 : PROC
 
@@ -23,10 +23,10 @@ _CallDzcotEntry@0 PROC  ;CallDzcotEntry
     call    _DzcotEntry@8
 _CallDzcotEntry@0 ENDP  ;CallDzcotEntry
 
-; void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
+; void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
 ; host$ = ecx
 ; dzThread$ = edx
-@DzSwitchFast@8 PROC    ; DzSwitchFast
+@DzSwitch@8 PROC        ; DzSwitch
     push    ebp
     push    ebx
     push    esi
@@ -37,9 +37,9 @@ _CallDzcotEntry@0 ENDP  ;CallDzcotEntry
     push    dword ptr fs:[8]
 
     mov     esi, [ecx]      ;esi = host->currThread
-    mov     [esi+4], esp    ;host->currThread->esp = esp
+    mov     [esi+4], esp    ;host->currThread->sp = esp
     mov     [ecx], edx      ;host->currThread = dzThread
-    mov     esp, [edx+4]    ;esp = dzThread.esp
+    mov     esp, [edx+4]    ;esp = dzThread.sp
 
     pop     dword ptr fs:[8]
     pop     dword ptr fs:[4]
@@ -51,7 +51,7 @@ _CallDzcotEntry@0 ENDP  ;CallDzcotEntry
     pop     ebp
 
     ret
-@DzSwitchFast@8 ENDP    ; DzSwitchFast
+@DzSwitch@8 ENDP        ; DzSwitch
 
 _TEXT   ENDS
 END

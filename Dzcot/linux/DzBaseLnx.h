@@ -14,6 +14,8 @@
 extern "C"{
 #endif
 
+void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
+
 inline void* PageAlloc( size_t size )
 {
     return mmap( NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
@@ -85,14 +87,6 @@ inline void SetHost( DzHost* host )
 {
     pthread_setspecific( DZ_TLS_IDX, host );
 }
-
-#ifdef SWITCH_COT_FLOAT_SAFE
-void __fastcall DzSwitchFloatSafe( DzHost* host, DzThread* dzThread );
-#define DzSwitch DzSwitchFloatSafe
-#else
-void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
-#define DzSwitch DzSwitchFast
-#endif
 
 #ifdef __cplusplus
 };

@@ -1,7 +1,5 @@
 
-#include "stdafx.h"
-#include <gtest/gtest.h>
-#include "Util.h"
+#include "CotTestUtil.h"
 #include "DRandom.h"
 
 
@@ -843,7 +841,7 @@ void __stdcall TcpSvrRecvCloseRoutine( intptr_t context )
             ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
             unsigned long long stop = DzMilUnixTime();
             EXPECT_EQ( 0, ret );
-            EXPECT_LE( 195, stop - start );
+            EXPECT_LE( 190, stop - start );
             DzCloseCallbackTimer( timer );
         }else{
             DzSleep( 1000 );
@@ -900,7 +898,7 @@ void __stdcall TcpCltSendCloseRoutine( intptr_t context )
             }while( ret > 0 );
             unsigned long long stop = DzMilUnixTime();
             EXPECT_EQ( -1, ret );
-            EXPECT_LE( 195, stop - start );
+            EXPECT_LE( 190, stop - start );
             DzCloseCallbackTimer( timer );
         }
     }catch( int line ){
@@ -1294,6 +1292,42 @@ void __stdcall UdpTestMultiSendRecvNoConn( intptr_t context )
     DeleteBuffArray();
 }
 
+void __stdcall UdpTestRecvClose( intptr_t context )
+{
+    InitParam();
+    int count = (int)context;
+    int fd = -1;
+    try{
+        while( count ){
+            fd = DzSocket( gAddr->sa_family, SOCK_DGRAM, 0 );
+            if( fd == -1 ){
+                throw (int)__LINE__;
+            }
+            if( DzBind( fd, gAddr, gAddrLen ) != 0 ){
+                throw (int)__LINE__;
+            }
+
+            FuncRead readFunc = GetReadFunc();
+            char buff[32];
+            DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
+            unsigned long long start = DzMilUnixTime();
+            int ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
+            unsigned long long stop = DzMilUnixTime();
+            EXPECT_EQ( -1, ret );
+            EXPECT_LT( 190, stop - start );
+            EXPECT_GT( 300, stop - start );
+            DzCloseCallbackTimer( timer );
+            count--;
+        }
+    }catch( int line ){
+        ADD_FAILURE() << "socket error, line : " << line;
+    }
+    if( fd != -1 ){
+        DzCloseSocket( fd );
+    }
+    FreeParam();
+}
+
 TEST( TestTcpSocket, SimpleSend )
 {
     SetReadFunc( RecvFunc );
@@ -1388,4 +1422,10 @@ TEST( TestUdpSocket, MultiSendRecvNoConn )
     SetReadFunc( RecvFromFunc );
     SetWriteFunc( SendToExFunc );
     TestCot( UdpTestMultiSendRecvNoConn );
+}
+
+TEST( TestUdpSocket, RecvClose )
+{
+    SetReadFunc( RecvFromFunc, TRUE );
+    TestCot( UdpTestRecvClose, 5 );
 }

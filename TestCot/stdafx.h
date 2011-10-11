@@ -15,4 +15,7 @@
 #define _T( str )   str
 #endif
 
+//open the switch if just want run try
+#define TEST_COT_JUST_RUN_TRY
+
 // TODO: reference additional headers your program requires here

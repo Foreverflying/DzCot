@@ -6,7 +6,7 @@
 ;********************************************************************
 
 ;PUBLIC CallDzcotEntry PROC     ; CallDzcotEntry
-;PUBLIC DzSwitchFast PROC       ; DzSwitchFast
+;PUBLIC DzSwitch PROC           ; DzSwitch
 
 EXTRN   DzcotEntry : PROC
 
@@ -20,10 +20,10 @@ CallDzcotEntry PROC     ;CallDzcotEntry
     call    DzcotEntry
 CallDzcotEntry ENDP     ;CallDzcotEntry
 
-; void DzSwitchFast( DzHost* host, DzThread* dzThread );
+; void DzSwitch( DzHost* host, DzThread* dzThread );
 ; host$ = rcx
 ; dzThread$ = rdx
-DzSwitchFast PROC       ; DzSwitchFast
+DzSwitch PROC           ; DzSwitch
     push    rbp
     push    rbx
     push    rsi
@@ -55,7 +55,7 @@ DzSwitchFast PROC       ; DzSwitchFast
     pop     rbp
 
     ret
-DzSwitchFast ENDP       ; DzSwitchFast
+DzSwitch ENDP           ; DzSwitch
 
 _TEXT   ENDS
 END

@@ -178,11 +178,8 @@ int DzEvtStartCotInstant(
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzGetCotCount();
-int DzGetMaxCotCount(
-    BOOL reset                  __DZ_DFT_ARG( FALSE )
-    );
 int DzChangePriority( int priority );
-BOOL DzGrowCotPoolDepth( int sSize, int deta );
+int DzSetCotPoolDepth( int sSize, int depth );
 
 int DzWaitSynObj(
     DzHandle    obj,

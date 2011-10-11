@@ -1,7 +1,5 @@
 
-#include "stdafx.h"
-#include <gtest/gtest.h>
-#include "Util.h"
+#include "CotTestUtil.h"
 #include "md5.h"
 
 static int gCheck = 0;

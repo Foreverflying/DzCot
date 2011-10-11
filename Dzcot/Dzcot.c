@@ -146,14 +146,6 @@ int DzGetCotCount()
     return GetCotCount( host );
 }
 
-int DzGetMaxCotCount( BOOL reset )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return GetMaxCotCount( host, reset );
-}
-
 int DzChangePriority( int priority )
 {
     DzHost* host = GetHost();
@@ -163,15 +155,13 @@ int DzChangePriority( int priority )
     return SetCurrCotPriority( host, priority );
 }
 
-BOOL DzGrowCotPoolDepth( int sSize, int deta )
+int DzSetCotPoolDepth( int sSize, int depth )
 {
     DzHost* host = GetHost();
-    assert( sSize > DZ_MAX_PERSIST_STACK_SIZE && sSize <= STACK_SIZE_COUNT );
-    assert( deta < DZ_MAX_COT_POOL_DEPTH && deta >= - DZ_MAX_COT_POOL_DEPTH );
-    assert( host->cotPoolDepth[ sSize ] + deta <= DZ_MAX_COT_POOL_DEPTH );
-    assert( host->cotPoolDepth[ sSize ] + deta >= DZ_MAX_COT_POOL_DEPTH );
+    assert( sSize >= SS_FIRST && sSize <= STACK_SIZE_COUNT );
+    assert( depth <= DZ_MAX_COT_POOL_DEPTH );
 
-    return GrowCotPoolDepth( host, sSize, deta );
+    return SetCotPoolDepth( host, sSize, depth );
 }
 
 int DzWaitSynObj( DzHandle obj, int timeout )

@@ -50,7 +50,6 @@ typedef long long int64;
 #define EPOLL_EVT_LIST_SIZE     4096
 
 //switchers
-//#define SWITCH_COT_FLOAT_SAFE
 
 //debug switchers
 

@@ -7,9 +7,8 @@ EXPORTS
     DzEvtStartCot
     DzEvtStartCotInstant
     DzGetCotCount
-    DzGetMaxCotCount
     DzChangePriority
-    DzGrowCotPoolDepth
+    DzSetCotPoolDepth
     DzWaitSynObj
     DzWaitMultiSynObj
     DzCreateMtx

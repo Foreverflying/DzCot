@@ -1,7 +1,5 @@
 
-#include "stdafx.h"
-#include <gtest/gtest.h>
-#include "Util.h"
+#include "CotTestUtil.h"
 
 static int gCount = 0;
 

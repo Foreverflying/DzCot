@@ -98,7 +98,7 @@ inline void AddTimer( DzHost* host, DzTimerNode* timerNode )
         PageCommit( host->timerHeap + host->timerHeapSize, PAGE_SIZE );
         host->timerHeapSize += PAGE_SIZE / sizeof(DzTimerNode*);
     }
-    while( curr != 0 && LessThanNode(  timerNode, host->timerHeap[ ParentNodeIdx( curr ) ] ) ){
+    while( curr != 0 && LessThanNode( timerNode, host->timerHeap[ ParentNodeIdx( curr ) ] ) ){
         SetTimerNode( host->timerHeap, curr, host->timerHeap[ ParentNodeIdx( curr ) ] );
         curr = ParentNodeIdx( curr );
     }

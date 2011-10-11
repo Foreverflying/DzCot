@@ -14,6 +14,8 @@
 extern "C"{
 #endif
 
+void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
+
 inline void* PageAlloc( size_t size )
 {
     return VirtualAlloc( NULL, size, MEM_COMMIT, PAGE_READWRITE );
@@ -34,11 +36,47 @@ inline void PageFree( void* p, size_t size )
     VirtualFree( p, 0, MEM_RELEASE );
 }
 
+#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
+
 inline BOOL AllocTlsIndex()
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
     return TRUE;
+}
+
+inline void FreeTlsIndex()
+{
+}
+
+#if defined( _X86_ )
+
+inline DzHost* GetHost()
+{
+    return (DzHost*)__readfsdword( 20 );
+}
+
+inline void SetHost( DzHost* host )
+{
+    __writefsdword( 20, (DWORD)host );
+}
+
+#elif defined( _M_AMD64 )
+
+inline DzHost* GetHost()
+{
+    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
+}
+
+inline void SetHost( DzHost* host )
+{
+    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
+}
+
+#endif
+
 #else
+
+inline BOOL AllocTlsIndex()
+{
     int i;
     DWORD tlsIndex;
     DWORD tlsArr[ DZ_TLS_IDX * 2 ];
@@ -61,59 +99,41 @@ inline BOOL AllocTlsIndex()
     }else{
         return TRUE;
     }
-#endif
 }
 
 inline void FreeTlsIndex()
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#else
     TlsFree( DZ_TLS_IDX );
-#endif
 }
 
 inline DzHost* GetHost()
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#if defined( _X86_ )
-    return (DzHost*)__readfsdword( 20 );
-#elif defined( _M_AMD64 )
-    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
-#endif
-#else
     return (DzHost*)TlsGetValue( DZ_TLS_IDX );
-#endif
 }
 
 inline void SetHost( DzHost* host )
 {
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-#if defined( _X86_ )
-    __writefsdword( 20, (DWORD)host );
-#elif defined( _M_AMD64 )
-    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
-#endif
-#else
     TlsSetValue( DZ_TLS_IDX, host );
-#endif
 }
+
+#endif  //STORE_HOST_IN_ARBITRARY_USER_POINTER
+
+#if defined( _X86_ )
 
 inline void* GetExceptPtr()
 {
-#if defined( _X86_ )
     return (void*)__readfsdword( 0 );
-#elif defined( _M_AMD64 )
-    return NULL;
-#endif
 }
 
-#ifdef SWITCH_COT_FLOAT_SAFE
-void __fastcall DzSwitchFloatSafe( DzHost* host, DzThread* dzThread );
-#define DzSwitch DzSwitchFloatSafe
-#else
-void __fastcall DzSwitchFast( DzHost* host, DzThread* dzThread );
-#define DzSwitch DzSwitchFast
+#elif defined( _M_AMD64 )
+
+inline void* GetExceptPtr()
+{
+    return NULL;
+}
+
 #endif
+
 
 #ifdef __cplusplus
 };

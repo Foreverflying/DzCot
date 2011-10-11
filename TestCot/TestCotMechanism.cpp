@@ -1,7 +1,5 @@
 
-#include "stdafx.h"
-#include <gtest/gtest.h>
-#include "Util.h"
+#include "CotTestUtil.h"
 #include "DRandom.h"
 #include <malloc.h>
 
