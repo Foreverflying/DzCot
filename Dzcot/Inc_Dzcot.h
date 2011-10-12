@@ -63,6 +63,7 @@ enum
 #define DZ_SHUT_BOTH    2
 
 #define DZ_MAX_IOV      64
+#define DZ_MAX_HOST     16
 
 typedef struct _DzParamNode
 {
@@ -175,6 +176,36 @@ int DzEvtStartCotInstant(
 int DzGetCotCount();
 int DzChangePriority( int priority );
 int DzSetCotPoolDepth( int sSize, int depth );
+
+int DzStartWorkerHost(
+    int         hostId,
+    int         lowestPriority,
+    int         defaultPri,
+    int         defaultSSize
+    );
+int DzStopWorkerHost( int hostId );
+int DzStartWorkerCot(
+    int         hostId,
+    DzRoutine   entry,
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
+    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
+    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    );
+int DzEvtStartWorkerCot(
+    int         hostId,
+    DzHandle    evt,
+    DzRoutine   entry,
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
+    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
+    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    );
+int DzRunWorkerCot(
+    int         hostId,
+    DzRoutine   entry,
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
+    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
+    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    );
 
 int DzWaitSynObj(
     DzHandle    obj,

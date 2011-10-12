@@ -9,6 +9,11 @@ EXPORTS
     DzGetCotCount
     DzChangePriority
     DzSetCotPoolDepth
+    DzStartWorkerHost
+    DzStopWorkerHost
+    DzStartWorkerCot
+    DzEvtStartWorkerCot
+    DzRunWorkerCot
     DzWaitSynObj
     DzWaitMultiSynObj
     DzCreateMtx

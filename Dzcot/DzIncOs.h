@@ -30,6 +30,8 @@
 #define TIME_HEAP_SIZE              ( 1024 * 1024 )
 #define MIN_TIME_INTERVAL           ( 5 )
 #define DZ_MAX_IOV                  ( 64 )
+#define DZ_MAX_HOST                 ( 16 )
+#define RQST_CHECK_SLEEP_SIGN       ( 1 << 30 )
 
 //predefine
 typedef void (__stdcall *DzRoutine)( intptr_t context );

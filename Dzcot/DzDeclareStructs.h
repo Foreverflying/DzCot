@@ -28,7 +28,10 @@ struct _DzFastEvt;
 struct _DzSynObj;
 struct _DzWaitNode;
 struct _DzWaitHelper;
+struct _DzRqstNode;
+struct _DzRqstQueue;
 struct _DzHost;
+struct _DzHostsMgr;
 
 typedef struct _DzTimerNode     DzTimerNode;
 typedef struct _DzEasyEvt       DzEasyEvt;
@@ -36,7 +39,10 @@ typedef struct _DzFastEvt       DzFastEvt;
 typedef struct _DzSynObj        DzSynObj;
 typedef struct _DzWaitNode      DzWaitNode;
 typedef struct _DzWaitHelper    DzWaitHelper;
+typedef struct _DzRqstNode      DzRqstNode;
+typedef struct _DzRqstQueue     DzRqstQueue;
 typedef struct _DzHost          DzHost;
+typedef struct _DzHostsMgr      DzHostsMgr;
 
 //define in DzStructsOs.h
 struct _DzOsStruct;

@@ -79,9 +79,9 @@ struct _DzSynObj
     int                 ref;
     union{
         struct{
-            DzRoutine   routine;            //for CallbackTimer
-            intptr_t    context;            //should reset the waitQ[ CP_HIGH ] and waitQ[ CP_NORMAL ]
-            int         priority;           //when release CallbackTimer
+            DzRoutine   routine;    //for CallbackTimer, must reset
+            intptr_t    context;    //the waitQ[ CP_HIGH ] and waitQ[ CP_NORMAL ]
+            int         priority;   //when release CallbackTimer
             int         sSize;
         };
         struct{
@@ -109,6 +109,26 @@ struct _DzWaitHelper
     DzFastEvt       timeout;
 };
 
+struct _DzRqstNode
+{
+    DzLItr*         lItr;
+    DzRoutine       entry;
+    intptr_t        context;
+    short           priority;
+    short           sSize;
+};
+
+struct _DzRqstQueue
+{
+    int             readPos;
+    int             writePos;
+    int             rqstCount;
+    int             freeNodeCount;
+    DzRqstNode**    rqstArr;
+    DzSList         pendingRqsts;
+    DzSList         freeNodeArr;
+};
+
 struct _DzHost
 {
     //running co thread
@@ -128,10 +148,12 @@ struct _DzHost
     DzLItr*         threadPool;
     DzLItr*         cotPools[ STACK_SIZE_COUNT ];
     int             cotPoolNowDepth[ STACK_SIZE_COUNT ];
-    int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
 
     //current thread count
     int             threadCount;
+
+    //host's id
+    int             hostId;
 
     //Os struct
     DzOsStruct      osStruct;
@@ -156,9 +178,31 @@ struct _DzHost
     char*           memPoolPos;
     char*           memPoolEnd;
 
-    //default co thread value
+    //default cot thread value
     int             defaultPri;
     int             defaultSSize;
+
+    //parent host
+    DzHost*         parentHost;
+
+    //multi hosts manager
+    DzHostsMgr*     hostsMgr;
+
+    //remote request check sign's pointer
+    volatile int*   rqstSignPtr;
+
+    //remote request queues
+    DzRqstQueue*    rqstCheckArr[ DZ_MAX_HOST ];
+    DzRqstQueue     rqstQueues[ DZ_MAX_HOST ];
+
+    //configure data
+    int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
+};
+
+struct _DzHostsMgr
+{
+    DzHost*         hostArr[ DZ_MAX_HOST ];
+    volatile int    rqstSign[ DZ_MAX_HOST ];
 };
 
 #endif // __DzStructs_h__

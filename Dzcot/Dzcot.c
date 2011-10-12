@@ -23,6 +23,7 @@ int DzRunHost(
     int         sSize
     )
 {
+    assert( !GetHost() );
     assert(
         lowestPriority >= CP_HIGH &&
         lowestPriority < COT_PRIORITY_COUNT
@@ -35,11 +36,10 @@ int DzRunHost(
         defaultSSize >= SS_FIRST &&
         defaultSSize < STACK_SIZE_COUNT
         );
-    assert( !GetHost() );
     assert( firstEntry );
 
     return RunHost(
-        NULL, lowestPriority, defaultPri, defaultSSize,
+        NULL, 0, lowestPriority, defaultPri, defaultSSize,
         firstEntry, context, priority, sSize
         );
 }
@@ -162,6 +162,125 @@ int DzSetCotPoolDepth( int sSize, int depth )
     assert( depth <= DZ_MAX_COT_POOL_DEPTH );
 
     return SetCotPoolDepth( host, sSize, depth );
+}
+
+int DzStartWorkerHost(
+    int         hostId,
+    int         lowestPriority,
+    int         defaultPri,
+    int         defaultSSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( hostId > 0 && hostId < DZ_MAX_HOST );
+    assert( !host->hostsMgr->hostArr[ hostId ] );
+    assert(
+        lowestPriority >= CP_HIGH &&
+        lowestPriority < COT_PRIORITY_COUNT
+        );
+    assert(
+        defaultPri >= CP_HIGH &&
+        defaultPri <= lowestPriority
+        );
+    assert(
+        defaultSSize >= SS_FIRST &&
+        defaultSSize < STACK_SIZE_COUNT
+        );
+
+    return StartWorkerHost( host, hostId, lowestPriority, defaultPri, defaultSSize );
+}
+
+int DzStopWorkerHost( int hostId )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( hostId > 0 && hostId < DZ_MAX_HOST );
+    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
+
+    return StopWorkerHost( host, hostId );
+}
+
+int DzStartWorkerCot(
+    int         hostId,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( hostId > 0 && hostId < DZ_MAX_HOST );
+    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
+    assert( entry );
+    assert(
+        priority == CP_DEFAULT || (
+            priority >= CP_FIRST &&
+            priority <= host->hostsMgr->hostArr[ hostId ]->lowestPriority
+            )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return StartWorkerCot( host, hostId, entry, context, priority, sSize );
+}
+
+int DzEvtStartWorkerCot(
+    int         hostId,
+    DzHandle    evt,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( hostId > 0 && hostId < DZ_MAX_HOST );
+    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
+    assert( entry );
+    assert(
+        priority == CP_DEFAULT || (
+            priority >= CP_FIRST &&
+            priority <= host->hostsMgr->hostArr[ hostId ]->lowestPriority
+            )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return EvtStartWorkerCot( host, hostId, evt, entry, context, priority, sSize );
+}
+
+int DzRunWorkerCot(
+    int         hostId,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( hostId > 0 && hostId < DZ_MAX_HOST );
+    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
+    assert( entry );
+    assert(
+        priority == CP_DEFAULT || (
+            priority >= CP_FIRST &&
+            priority <= host->hostsMgr->hostArr[ hostId ]->lowestPriority
+            )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return RunWorkerCot( host, hostId, entry, context, priority, sSize );
 }
 
 int DzWaitSynObj( DzHandle obj, int timeout )
