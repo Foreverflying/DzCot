@@ -1,7 +1,6 @@
 
 #include "CotTestUtil.h"
 #include "DRandom.h"
-#include <malloc.h>
 
 static int gCount = 0;
 static DRandom* gRand = NULL;

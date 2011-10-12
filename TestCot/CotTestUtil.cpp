@@ -15,7 +15,7 @@
 
 int MainEntry( int argc, _TCHAR* argv[] )
 {
-    return DzRunHost( CP_LOW, CP_LOW, SS_64K, DzcotEntry, 0 );
+    return DzRunHost( CP_LOW, CP_LOW, SS_64K, TestCotTryEntry, 0 );
 }
 
 #else

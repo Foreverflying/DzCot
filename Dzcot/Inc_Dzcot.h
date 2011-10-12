@@ -15,16 +15,6 @@
 #include <netinet/in.h>
 #endif
 
-#undef FALSE
-#undef TRUE
-#undef NULL
-
-#define FALSE   0
-#define TRUE    1
-#define NULL    0
-
-typedef int BOOL;
-
 enum
 {
     DS_OK,
@@ -99,6 +89,11 @@ typedef struct _DzBuf
     void*           buf;
     size_t          len;
 }DzBuf;
+
+typedef enum{
+    FALSE,
+    TRUE
+}BOOL;
 
 #endif
 

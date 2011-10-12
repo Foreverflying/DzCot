@@ -3,7 +3,7 @@
 extern "C"{
 #endif
 
-void __stdcall DzcotEntry( intptr_t context );
+void __stdcall TestCotTryEntry( intptr_t context );
 
 #ifdef __cplusplus
 };

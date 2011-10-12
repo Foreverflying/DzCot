@@ -32,14 +32,14 @@ ssize_t WriteFileFull( int fd, const char* buff, size_t count )
 }
 
 void ReadFileEntry( char* buff, size_t buffLen )
-{/*
+{
     unsigned char md5Ret[16];
     md5_context mc;
 
     int fd = DzOpenFile( _T( "../../test/Sailing.mp3" ), DZ_O_RD );
     ASSERT_NE( -1, fd );
     size_t n = DzGetFileSize( fd );
-    ASSERT_EQ( (size_t)3678906, n );
+    ASSERT_EQ( 3678906, n );
     ASSERT_GE( buffLen, n );
 
     unsigned char md5a[] = {
@@ -50,7 +50,7 @@ void ReadFileEntry( char* buff, size_t buffLen )
     ASSERT_EQ( n, count );
 
     md5_starts( &mc );
-    md5_update( &mc, (uint8*)buff, count );
+    md5_update( &mc, (uint8*)buff, (uint32)count );
     md5_finish( &mc, md5Ret );
     int ret = memcmp( md5Ret, md5a, 16 );
     ASSERT_EQ( 0, ret );
@@ -65,10 +65,10 @@ void ReadFileEntry( char* buff, size_t buffLen )
     size_t seekRet = DzSeekFile( fd, seekHead, DZ_SEEK_SET );
     ASSERT_EQ( seekHead, seekRet );
     count = ReadFileFull( fd, buff, seekLen );
-    ASSERT_EQ( (size_t)seekLen, count );
+    ASSERT_EQ( seekLen, count );
 
     md5_starts( &mc );
-    md5_update( &mc, (uint8*)buff, count );
+    md5_update( &mc, (uint8*)buff, (uint32)count );
     md5_finish( &mc, md5Ret );
     ret = memcmp( md5Ret, md5b, 16 );
     ASSERT_EQ( 0, ret );
@@ -84,11 +84,11 @@ void ReadFileEntry( char* buff, size_t buffLen )
     seekLen = n - seekHead;
     seekRet = DzSeekFile( fd, - seekLen, DZ_SEEK_END );
     count = ReadFileFull( fd, buff, 16 );
-    ASSERT_EQ( (size_t)16, count );
+    ASSERT_EQ( 16, count );
     ret = memcmp( buff, content, 16 );
     ASSERT_EQ( 0, ret );
 
-    DzCloseFile( fd );*/
+    DzCloseFile( fd );
 }
 
 void __stdcall TestReadFile( intptr_t context )
