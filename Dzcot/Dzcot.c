@@ -8,28 +8,30 @@
 #include "DzIncOs.h"
 #include "DzSynObj.h"
 #include "DzCore.h"
+#include "DzIoOs.h"
+#include "DzRmtCore.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-int DzRunHost(
+int DzRunHosts(
+    int         hostCount,
     int         lowestPriority,
     int         defaultPri,
     int         defaultSSize,
     DzRoutine   firstEntry,
-    intptr_t    context,
-    int         priority,
-    int         sSize
+    intptr_t    context
     )
 {
     assert( !GetHost() );
+    assert( hostCount > 0 && hostCount < DZ_MAX_HOST );
     assert(
-        lowestPriority >= CP_HIGH &&
+        lowestPriority >= CP_FIRST &&
         lowestPriority < COT_PRIORITY_COUNT
         );
     assert(
-        defaultPri >= CP_HIGH &&
+        defaultPri >= CP_FIRST &&
         defaultPri <= lowestPriority
         );
     assert(
@@ -38,9 +40,9 @@ int DzRunHost(
         );
     assert( firstEntry );
 
-    return RunHost(
-        NULL, 0, lowestPriority, defaultPri, defaultSSize,
-        firstEntry, context, priority, sSize
+    return RunHosts(
+        hostCount, lowestPriority, defaultPri, defaultSSize,
+        firstEntry, context
         );
 }
 
@@ -78,7 +80,7 @@ int DzStartCotInstant(
     assert( entry );
     assert(
         priority >= CP_FIRST &&
-        priority <= COT_PRIORITY_COUNT
+        ( priority >= CP_FIRST && priority <= host->lowestPriority )
         );
     assert(
         sSize >= SS_FIRST &&
@@ -127,8 +129,8 @@ int DzEvtStartCotInstant(
     assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( entry );
     assert(
-        priority >= CP_FIRST &&
-        priority <= COT_PRIORITY_COUNT
+        priority == CP_DEFAULT ||
+        ( priority >= CP_FIRST && priority <= host->lowestPriority )
         );
     assert(
         sSize >= SS_FIRST &&
@@ -136,6 +138,88 @@ int DzEvtStartCotInstant(
         );
 
     return EvtStartCotInstant( host, evt, entry, context, priority, sSize );
+}
+
+int DzStartRemoteCot(
+    int         rmtId,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( rmtId >= 0 && rmtId < host->hostsMgr->hostCount );
+    assert( host->hostId != rmtId );
+    assert( entry );
+    assert(
+        priority == CP_DEFAULT || (
+            priority >= CP_FIRST &&
+            priority <= host->hostsMgr->hostArr[ rmtId ]->lowestPriority
+            )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return StartRemoteCot( host, rmtId, entry, context, priority, sSize );
+}
+
+int DzEvtStartRemoteCot(
+    int         rmtId,
+    DzHandle    evt,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( rmtId >= 0 && rmtId < host->hostsMgr->hostCount );
+    assert( host->hostId != rmtId );
+    assert( entry );
+    assert(
+        priority == CP_DEFAULT || (
+            priority >= CP_FIRST &&
+            priority <= host->hostsMgr->hostArr[ rmtId ]->lowestPriority
+            )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return EvtStartRemoteCot( host, rmtId, evt, entry, context, priority, sSize );
+}
+
+int DzRunRemoteCot(
+    int         rmtId,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( rmtId >= 0 && rmtId < host->hostsMgr->hostCount );
+    assert( host->hostId != rmtId );
+    assert( entry );
+    assert(
+        priority == CP_DEFAULT || (
+            priority >= CP_FIRST &&
+            priority <= host->hostsMgr->hostArr[ rmtId ]->lowestPriority
+            )
+        );
+    assert(
+        sSize >= SS_FIRST &&
+        sSize <= STACK_SIZE_COUNT
+        );
+
+    return RunRemoteCot( host, rmtId, entry, context, priority, sSize );
 }
 
 int DzGetCotCount()
@@ -146,11 +230,11 @@ int DzGetCotCount()
     return GetCotCount( host );
 }
 
-int DzChangePriority( int priority )
+int DzSetPriority( int priority )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( priority >= CP_FIRST && priority <= host->lowestPriority );
+    assert( priority <= host->lowestPriority );
 
     return SetCurrCotPriority( host, priority );
 }
@@ -158,29 +242,23 @@ int DzChangePriority( int priority )
 int DzSetCotPoolDepth( int sSize, int depth )
 {
     DzHost* host = GetHost();
+    assert( host );
     assert( sSize >= SS_FIRST && sSize <= STACK_SIZE_COUNT );
     assert( depth <= DZ_MAX_COT_POOL_DEPTH );
 
     return SetCotPoolDepth( host, sSize, depth );
 }
 
-int DzStartWorkerHost(
-    int         hostId,
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize
-    )
+int DzSetHostParam( int lowestPriority, int defaultPri, int defaultSSize )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( hostId > 0 && hostId < DZ_MAX_HOST );
-    assert( !host->hostsMgr->hostArr[ hostId ] );
     assert(
-        lowestPriority >= CP_HIGH &&
+        lowestPriority >= CP_FIRST &&
         lowestPriority < COT_PRIORITY_COUNT
         );
     assert(
-        defaultPri >= CP_HIGH &&
+        defaultPri >= CP_FIRST &&
         defaultPri <= lowestPriority
         );
     assert(
@@ -188,99 +266,7 @@ int DzStartWorkerHost(
         defaultSSize < STACK_SIZE_COUNT
         );
 
-    return StartWorkerHost( host, hostId, lowestPriority, defaultPri, defaultSSize );
-}
-
-int DzStopWorkerHost( int hostId )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( hostId > 0 && hostId < DZ_MAX_HOST );
-    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
-
-    return StopWorkerHost( host, hostId );
-}
-
-int DzStartWorkerCot(
-    int         hostId,
-    DzRoutine   entry,
-    intptr_t    context,
-    int         priority,
-    int         sSize
-    )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( hostId > 0 && hostId < DZ_MAX_HOST );
-    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
-    assert( entry );
-    assert(
-        priority == CP_DEFAULT || (
-            priority >= CP_FIRST &&
-            priority <= host->hostsMgr->hostArr[ hostId ]->lowestPriority
-            )
-        );
-    assert(
-        sSize >= SS_FIRST &&
-        sSize <= STACK_SIZE_COUNT
-        );
-
-    return StartWorkerCot( host, hostId, entry, context, priority, sSize );
-}
-
-int DzEvtStartWorkerCot(
-    int         hostId,
-    DzHandle    evt,
-    DzRoutine   entry,
-    intptr_t    context,
-    int         priority,
-    int         sSize
-    )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( hostId > 0 && hostId < DZ_MAX_HOST );
-    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
-    assert( entry );
-    assert(
-        priority == CP_DEFAULT || (
-            priority >= CP_FIRST &&
-            priority <= host->hostsMgr->hostArr[ hostId ]->lowestPriority
-            )
-        );
-    assert(
-        sSize >= SS_FIRST &&
-        sSize <= STACK_SIZE_COUNT
-        );
-
-    return EvtStartWorkerCot( host, hostId, evt, entry, context, priority, sSize );
-}
-
-int DzRunWorkerCot(
-    int         hostId,
-    DzRoutine   entry,
-    intptr_t    context,
-    int         priority,
-    int         sSize
-    )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( hostId > 0 && hostId < DZ_MAX_HOST );
-    assert( (intptr_t)host->hostsMgr->hostArr[ hostId ] > 1 );
-    assert( entry );
-    assert(
-        priority == CP_DEFAULT || (
-            priority >= CP_FIRST &&
-            priority <= host->hostsMgr->hostArr[ hostId ]->lowestPriority
-            )
-        );
-    assert(
-        sSize >= SS_FIRST &&
-        sSize <= STACK_SIZE_COUNT
-        );
-
-    return RunWorkerCot( host, hostId, entry, context, priority, sSize );
+    return SetHostParam( host, lowestPriority, defaultPri, defaultSSize );
 }
 
 int DzWaitSynObj( DzHandle obj, int timeout )

@@ -23,6 +23,7 @@ void __stdcall DzcotEntry(
     );
 BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
 void DeleteOsStruct( DzHost* host, DzHost* parentHost );
+void CotScheduleCenter( DzHost* host );
 
 inline void InitDzThread( DzThread* dzThread )
 {

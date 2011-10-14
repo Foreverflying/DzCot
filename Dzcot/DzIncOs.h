@@ -29,17 +29,25 @@
 #define OBJ_POOL_GROW_COUNT         ( PAGE_SIZE / sizeof( int ) )
 #define TIME_HEAP_SIZE              ( 1024 * 1024 )
 #define MIN_TIME_INTERVAL           ( 5 )
+#define DFT_SSIZE_POOL_DEPTH        ( 64 )
 #define DZ_MAX_IOV                  ( 64 )
 #define DZ_MAX_HOST                 ( 16 )
-#define RQST_CHECK_SLEEP_SIGN       ( 1 << 30 )
+#define RMT_CHECK_SLEEP_SIGN        ( 1 << 30 )
+#define RMT_CALL_FIFO_SIZE          ( 256 )
 
 //predefine
 typedef void (__stdcall *DzRoutine)( intptr_t context );
 
+enum{
+    RMT_PKG_SYNOBJ_EVT,
+    RMT_PKG_EASY_EVT
+};
+
 enum
 {
     DS_OK,
-    DS_NO_MEMORY
+    DS_NO_MEMORY,
+    DS_ALREADY_EXISTS
 };
 
 enum

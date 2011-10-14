@@ -24,6 +24,7 @@
 #include <sys/timeb.h>
 #include <MSWSock.h>
 #include <windows.h>
+#include <process.h>
 #include <malloc.h>
 #include <assert.h>
 
@@ -51,7 +52,7 @@ typedef long long int64;
 
 
 //windows specific constants
-
+#define MIN_STACK_SIZE          ( 64 * 1024 )
 
 //switchers
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER

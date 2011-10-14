@@ -523,45 +523,6 @@ inline size_t FileSize( int fd )
     return (size_t)st.st_size;
 }
 
-// DzIoMgrRoutine:
-// the IO mgr thread uses the host's origin thread's stack
-// manager all kernel objects that may cause real block
-inline void IoMgrRoutine( DzHost* host )
-{
-    int i;
-    int timeout;
-    int listCount;
-    int notifyCount;
-    DzAsyncIo* asyncIo;
-    struct epoll_event evtList[ EPOLL_EVT_LIST_SIZE ];
-
-    timeout = NotifyMinTimers( host );
-    while( host->threadCount ){
-        listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
-        if( listCount != 0 ){
-            notifyCount = 0;
-            for( i = 0; i < listCount; i++ ){
-                asyncIo = (DzAsyncIo*)evtList[i].data.ptr;
-                if( IsEasyEvtWaiting( &asyncIo->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
-                    NotifyEasyEvt( host, &asyncIo->inEvt );
-                    CleanEasyEvt( &asyncIo->inEvt );
-                    notifyCount++;
-                }
-                if( IsEasyEvtWaiting( &asyncIo->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
-                    NotifyEasyEvt( host, &asyncIo->outEvt );
-                    CleanEasyEvt( &asyncIo->outEvt );
-                    notifyCount++;
-                }
-            }
-            if( notifyCount ){
-                host->currPriority = CP_FIRST;
-                Schedule( host );
-            }
-        }
-        timeout = NotifyMinTimers( host );
-    }
-}
-
 #ifdef __cplusplus
 };
 #endif

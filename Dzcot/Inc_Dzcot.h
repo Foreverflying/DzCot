@@ -18,7 +18,8 @@
 enum
 {
     DS_OK,
-    DS_NO_MEMORY
+    DS_NO_MEMORY,
+    DS_ALREADY_EXISTS
 };
 
 enum
@@ -138,14 +139,13 @@ typedef void (__stdcall *DzRoutine)( intptr_t context );
 extern "C"{
 #endif
 
-int DzRunHost(
+int DzRunHosts(
+    int         hostCount,
     int         lowestPriority,
     int         defaultPri,
     int         defaultSSize,
     DzRoutine   firstEntry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG( 0 )
     );
 int DzStartCot(
     DzRoutine   entry,
@@ -173,39 +173,32 @@ int DzEvtStartCotInstant(
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
-int DzGetCotCount();
-int DzChangePriority( int priority );
-int DzSetCotPoolDepth( int sSize, int depth );
-
-int DzStartWorkerHost(
-    int         hostId,
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize
-    );
-int DzStopWorkerHost( int hostId );
-int DzStartWorkerCot(
-    int         hostId,
+int DzStartRemoteCot(
+    int         rmtId,
     DzRoutine   entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
-int DzEvtStartWorkerCot(
-    int         hostId,
+int DzEvtStartRemoteCot(
+    int         rmtId,
     DzHandle    evt,
     DzRoutine   entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
-int DzRunWorkerCot(
-    int         hostId,
+int DzRunRemoteCot(
+    int         rmtId,
     DzRoutine   entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
+int DzGetCotCount();
+int DzSetPriority( int priority );
+int DzSetCotPoolDepth( int sSize, int depth );
+int DzSetHostParam( int lowestPriority, int defaultPri, int defaultSSize );
 
 int DzWaitSynObj(
     DzHandle    obj,

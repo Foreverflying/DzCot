@@ -6,41 +6,13 @@
 *********************************************************************/
 
 #include "../DzIncOs.h"
-#include "../DzCoreOs.h"
 #include "../DzCore.h"
 
-BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
+void* SysThreadEntry( void* context )
 {
-    struct rlimit fdLimit;
-
-    if( parentHost ){
-        host->osStruct.maxFdCount = parentHost->osStruct.maxFdCount;
-    }else{
-        if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
-            return FALSE;
-        }
-        host->osStruct.maxFdCount = fdLimit.rlim_cur;
-    }
-    host->osStruct.epollFd = epoll_create( host->osStruct.maxFdCount );
-    host->osStruct.fdTable =
-        ( DzAsyncIo** )PageAlloc( sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
-    if( host->osStruct.epollFd < 0 || !host->osStruct.fdTable ){
-        if( host->osStruct.epollFd >= 0 ){
-            close( host->osStruct.epollFd );
-        }
-        if( host->osStruct.fdTable ){
-            PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFdCount );
-        }
-        return FALSE;
-    }
-    host->osStruct.asyncIoPool = NULL;
-    return TRUE;
-}
-
-void DeleteOsStruct( DzHost* host, DzHost* parentHost )
-{
-    PageFree( host->osStruct.fdTable, sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
-    close( host->osStruct.epollFd );
+    DzSysParam* param = (DzSysParam*)context;
+    param->threadEntry( (intptr_t)param );
+	return NULL;
 }
 
 BOOL AllocAsyncIoPool( DzHost* host )
@@ -96,3 +68,77 @@ void __stdcall DzcotEntry(
         Schedule( host );
     }
 }
+
+BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
+{
+    struct rlimit fdLimit;
+
+    if( parentHost ){
+        host->osStruct.maxFdCount = parentHost->osStruct.maxFdCount;
+    }else{
+        if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
+            return FALSE;
+        }
+        host->osStruct.maxFdCount = fdLimit.rlim_cur;
+    }
+    host->osStruct.epollFd = epoll_create( host->osStruct.maxFdCount );
+    host->osStruct.fdTable =
+        ( DzAsyncIo** )PageAlloc( sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
+    if( host->osStruct.epollFd < 0 || !host->osStruct.fdTable ){
+        if( host->osStruct.epollFd >= 0 ){
+            close( host->osStruct.epollFd );
+        }
+        if( host->osStruct.fdTable ){
+            PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFdCount );
+        }
+        return FALSE;
+    }
+    host->osStruct.asyncIoPool = NULL;
+    return TRUE;
+}
+
+void DeleteOsStruct( DzHost* host, DzHost* parentHost )
+{
+    PageFree( host->osStruct.fdTable, sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
+    close( host->osStruct.epollFd );
+}
+
+// CotScheduleCenter:
+// the Cot Schedule Center thread uses the host's origin thread's stack
+// manager all kernel objects that may cause real block
+void CotScheduleCenter( DzHost* host )
+{
+    int i;
+    int timeout;
+    int listCount;
+    int notifyCount;
+    DzAsyncIo* asyncIo;
+    struct epoll_event evtList[ EPOLL_EVT_LIST_SIZE ];
+
+    timeout = NotifyMinTimersAndRmtCalls( host );
+    while( host->threadCount ){
+        listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
+        if( listCount != 0 ){
+            notifyCount = 0;
+            for( i = 0; i < listCount; i++ ){
+                asyncIo = (DzAsyncIo*)evtList[i].data.ptr;
+                if( IsEasyEvtWaiting( &asyncIo->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
+                    NotifyEasyEvt( host, &asyncIo->inEvt );
+                    CleanEasyEvt( &asyncIo->inEvt );
+                    notifyCount++;
+                }
+                if( IsEasyEvtWaiting( &asyncIo->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
+                    NotifyEasyEvt( host, &asyncIo->outEvt );
+                    CleanEasyEvt( &asyncIo->outEvt );
+                    notifyCount++;
+                }
+            }
+            if( notifyCount ){
+                host->currPriority = CP_FIRST;
+                Schedule( host );
+            }
+        }
+        timeout = NotifyMinTimersAndRmtCalls( host );
+    }
+}
+

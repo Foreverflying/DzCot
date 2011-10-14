@@ -11,7 +11,6 @@
 #include "../DzStructs.h"
 #include "../DzStructsOs.h"
 #include "../DzBaseOs.h"
-#include "../DzBase.h"
 #include "../DzResourceMgr.h"
 #include "../DzCoreOs.h"
 #include "../DzSynObj.h"
@@ -694,33 +693,6 @@ inline size_t FileSize( int fd )
 #endif
 
     return ret;
-}
-
-// IoMgrRoutine:
-// the IO mgr thread uses the host's origin thread's stack
-// manager all kernel objects that may cause real block
-inline void IoMgrRoutine( DzHost* host )
-{
-    ULONG_PTR key;
-    DWORD bytes;
-    OVERLAPPED* overlapped;
-    DzAsyncIo* asyncIo;
-    DWORD timeout;
-
-    timeout = (DWORD)NotifyMinTimers( host );
-    while( host->threadCount ){
-        GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeout );
-        if( overlapped != NULL ){
-            do{
-                asyncIo = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
-                NotifyEasyEvt( host, &asyncIo->easyEvt );
-                GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != NULL );
-            host->currPriority = CP_FIRST;
-            Schedule( host );
-        }
-        timeout = (DWORD)NotifyMinTimers( host );
-    }
 }
 
 #ifdef __cplusplus

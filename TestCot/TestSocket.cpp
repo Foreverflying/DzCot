@@ -551,7 +551,7 @@ void UdpWriteOneStream( FuncWrite writeFunc, int fd, int idx, const sockaddr* to
 
 void UdpSvrMain( DzRoutine svrRoutine, int count )
 {
-    DzChangePriority( CP_HIGH );
+    DzSetPriority( CP_HIGH );
     DzStartCot( WaitHello );
 
     int fd = -1;

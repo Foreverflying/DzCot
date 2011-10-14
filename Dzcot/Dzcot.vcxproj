@@ -521,7 +521,7 @@
     </ClCompile>
     <ClCompile Include="DzCore.c" />
     <ClCompile Include="DzDebug.c" />
-    <ClCompile Include="DzTimer.c" />
+    <ClCompile Include="DzRmtCore.c" />
     <ClCompile Include="win\DzCoreWin.c" />
     <ClCompile Include="Dzcot.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>
@@ -535,10 +535,10 @@
   <ItemGroup>
     <ClInclude Include="dlconfig.h" />
     <ClInclude Include="dlmalloc.h" />
-    <ClInclude Include="DzBase.h" />
     <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
+    <ClInclude Include="DzRmtCore.h" />
     <ClInclude Include="DzStructsDebug.h" />
     <ClInclude Include="DzDeclareStructs.h" />
     <ClInclude Include="Inc_DzFastNewDel.h" />

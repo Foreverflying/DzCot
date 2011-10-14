@@ -10,5 +10,5 @@ void __stdcall TryCompileInCRoutine( intptr_t context )
 
 void TryCompileInC()
 {
-    DzRunHost( CP_LOW, CP_LOW, SS_64K, TryCompileInCRoutine, 0, CP_DEFAULT, CP_DEFAULT );
+    DzRunHosts( 1, CP_LOW, CP_LOW, SS_64K, TryCompileInCRoutine, 0 );
 }

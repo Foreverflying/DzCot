@@ -16,6 +16,7 @@
 extern "C"{
 #endif
 
+BOOL AllocAsyncIoPool( DzHost* host );
 void __stdcall CallDzcotEntry( void );
 void __stdcall DzcotEntry(
     volatile DzRoutine* entryPtr,
@@ -23,7 +24,7 @@ void __stdcall DzcotEntry(
     );
 BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
 void DeleteOsStruct( DzHost* host, DzHost* parentHost );
-BOOL AllocAsyncIoPool( DzHost* host );
+void CotScheduleCenter( DzHost* host );
 
 inline void InitDzThread( DzThread* dzThread )
 {

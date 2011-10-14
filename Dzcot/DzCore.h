@@ -12,15 +12,16 @@
 #include "DzBaseOs.h"
 #include "DzResourceMgr.h"
 #include "DzSchedule.h"
-#include "DzIoOs.h"
+#include "DzCoreOs.h"
+#include "DzRmtCore.h"
 #include "dlmalloc.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-void __stdcall DelayFreeTheadRoutine( intptr_t context );
-void __stdcall EventNotifyCotRoutine( intptr_t context );
+void __stdcall DelayFreeTheadEntry( intptr_t context );
+void __stdcall EventNotifyCotEntry( intptr_t context );
 
 inline void ReleaseAllPoolStack( DzHost* host )
 {
@@ -83,7 +84,7 @@ inline void FreeDzThread( DzHost* host, DzThread* dzThread )
             host->threadPool = &tmp->lItr;
         }else{
             //start a cot to free it later
-            StartCot( host, DelayFreeTheadRoutine, (intptr_t)dzThread, host->lowestPriority, SS_FIRST );
+            StartCot( host, DelayFreeTheadEntry, (intptr_t)dzThread, host->lowestPriority, SS_FIRST );
         }
     }
 }
@@ -169,7 +170,7 @@ inline int EvtStartCot(
     node->content = (intptr_t)entry;
     node->context1 = (intptr_t)context;
     node->context2 = (intptr_t)CloneSynObj( evt );
-    ret = StartCot( host, EventNotifyCotRoutine, (intptr_t)node, priority, sSize );
+    ret = StartCot( host, EventNotifyCotEntry, (intptr_t)node, priority, sSize );
     if( ret != DS_OK ){
         CloseSynObj( host, (DzSynObj*)node->context2 );
         FreeLNode( host, node );
@@ -195,7 +196,7 @@ inline int EvtStartCotInstant(
     node->content = (intptr_t)entry;
     node->context1 = (intptr_t)context;
     node->context2 = (intptr_t)CloneSynObj( evt );
-    ret = StartCot( host, EventNotifyCotRoutine, (intptr_t)node, priority, sSize );
+    ret = StartCot( host, EventNotifyCotEntry, (intptr_t)node, priority, sSize );
     if( ret != DS_OK ){
         CloseSynObj( host, (DzSynObj*)node->context2 );
         FreeLNode( host, node );
@@ -203,44 +204,73 @@ inline int EvtStartCotInstant(
     return ret;
 }
 
-// RunHost:
-// Initial and start the cot host
-// the function will block while there are cots running
-// after all cots exit, the host will stop and the block ends
-inline int RunHost(
-    DzHost*     parentHost,
-    int         hostId,
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize,
-    DzRoutine   firstEntry,
+inline int StartRemoteCot(
+    DzHost*     host,
+    int         rmtId,
+    DzRoutine   entry,
     intptr_t    context,
     int         priority,
     int         sSize
     )
 {
+    return 0;
+}
+
+inline int EvtStartRemoteCot(
+    DzHost*     host,
+    int         rmtId,
+    DzHandle    evt,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    return 0;
+}
+
+inline int RunRemoteCot(
+    DzHost*     host,
+    int         rmtId,
+    DzRoutine   entry,
+    intptr_t    context,
+    int         priority,
+    int         sSize
+    )
+{
+    return 0;
+}
+
+// RunHost:
+// Initial and start the cot host
+// the function will block while there are cots running
+// after all cots exit, the host will stop and the block ends
+inline int RunHost(
+    DzHostsMgr* hostMgr,
+    int         hostId,
+    int         lowestPriority,
+    int         defaultPri,
+    int         defaultSSize,
+    DzRoutine   firstEntry,
+    intptr_t    context
+    )
+{
     int i;
     int ret;
-    BOOL tlsOk;
     void* mallocSpace;
     DzTimerNode** timerHeap;
     DzHost host;
-    DzHostsMgr hostsMgr;
+    DzRmtCallFifo* fifo;
 
-    tlsOk = parentHost ? TRUE : AllocTlsIndex();
     timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+    if( !timerHeap ){
+        PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+        return DS_NO_MEMORY;
+    }
     mallocSpace = create_mspace( 0, 0 );
-
-    if( ! ( tlsOk && timerHeap && mallocSpace ) ){
-        if( mallocSpace ){
-            destroy_mspace( mallocSpace );
-        }
-        if( timerHeap ){
-            PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
-        }
-        if( tlsOk && !parentHost ){
-            FreeTlsIndex();
-        }
+    if( !mallocSpace ){
+        destroy_mspace( mallocSpace );
+        PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
         return DS_NO_MEMORY;
     }
 
@@ -261,51 +291,63 @@ inline int RunHost(
         host.cotPoolNowDepth[i] = 0;
     }
     host.threadCount = 0;
+    host.hostId = hostId;
     host.timerCount = 0;
     host.timerHeapSize = 0;
     host.timerHeap = timerHeap;
+    host.defaultPri = defaultPri;
+    host.defaultSSize = defaultSSize;
     host.mallocSpace = mallocSpace;
     host.synObjPool = NULL;
     host.lNodePool = NULL;
-    host.poolGrowList = NULL;
+    host.hostsMgr = hostMgr;
+    host.checkSignPtr = hostMgr->checkSignRes + hostId;
+    host.checkFifo = NULL;
+    host.rmtFifoArr = hostMgr->rmtFifoRes + hostMgr->hostCount * hostId;
+    for( i = 0; i < hostMgr->hostCount; i++ ){
+        if( i != hostId ){
+            if( !host.checkFifo ){
+                host.checkFifo = host.rmtFifoArr + i;
+                fifo = host.checkFifo;
+            }else{
+                fifo->next = host.rmtFifoArr + i;
+                fifo = fifo->next;
+            }
+            fifo->callPkgArr = (DzRmtCallPkg*)
+                AllocChunk( &host, sizeof( DzRmtCallPkg ) * RMT_CALL_FIFO_SIZE );
+        }
+    }
+    if( host.checkFifo ){
+        fifo->next = host.checkFifo;
+    }
+    host.pendingPkgs = hostMgr->pendingPkgRes + hostMgr->hostCount * hostId;
     host.memPoolPos = NULL;
     host.memPoolEnd = NULL;
-    host.defaultPri = defaultPri == CP_DEFAULT ? host.lowestPriority : defaultPri;
-    host.defaultSSize = defaultSSize;
-    host.parentHost = parentHost;
-    if( parentHost ){
-        host.hostsMgr = parentHost->hostsMgr;
-    }else{
-        for( i = 0; i < DZ_MAX_HOST; i++ ){
-            hostsMgr.hostArr[i] = NULL;
-            hostsMgr.rqstSign[i] = 0;
-        }
-        host.hostsMgr = &hostsMgr;
-    }
+    host.poolGrowList = NULL;
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){
         host.cotPoolSetDepth[i] = 0;
     }
-    host.rqstSignPtr = host.hostsMgr->rqstSign + hostId;
-    for( i = 0; i < DZ_MAX_HOST; i++ ){
-        host.rqstCheckArr[i] = NULL;
-        host.rqstQueues[i].rqstArr = NULL;
+    if( defaultSSize > DZ_MAX_PERSIST_STACK_SIZE ){
+        host.cotPoolNowDepth[ defaultSSize ] = DFT_SSIZE_POOL_DEPTH;
+        host.cotPoolSetDepth[ defaultSSize ] = DFT_SSIZE_POOL_DEPTH;
     }
 
-    if( InitOsStruct( &host, parentHost ) ){
+    if( InitOsStruct( &host, hostMgr->hostArr[0] ) ){
+        AtomOrInt( &host.hostsMgr->exitSign, 1 << hostId );
         SetHost( &host );
         host.hostsMgr->hostArr[ hostId ] = &host;
 
-        ret = StartCot( &host, firstEntry, context, priority, sSize );
+        ret = StartCot( &host, firstEntry, context, defaultPri, defaultSSize );
         if( ret == DS_OK ){
             Schedule( &host );
         }
-        IoMgrRoutine( &host );
+        CotScheduleCenter( &host );
 
         //after all cot finished, IoMgrRoutine will return.
         //so cleanup the host struct
         host.hostsMgr->hostArr[ hostId ] = NULL;
         SetHost( NULL );
-        DeleteOsStruct( &host, parentHost );
+        DeleteOsStruct( &host, hostMgr->hostArr[0] );
     }else{
         ret = DS_NO_MEMORY;
     }
@@ -314,11 +356,76 @@ inline int RunHost(
     PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     ReleaseMemoryPool( &host );
     destroy_mspace( host.mallocSpace );
-    if( !parentHost ){
-        FreeTlsIndex();
-    }
 
     return ret;
+}
+
+inline int RunHosts(
+    int         hostCount,
+    int         lowestPriority,
+    int         defaultPri,
+    int         defaultSSize,
+    DzRoutine   firstEntry,
+    intptr_t    context
+    )
+{
+    int i;
+    int ret;
+    DzSysParam param;
+    DzHostsMgr hostMgr;
+    DzHostsMgr* hostMgrPtr;
+
+    if( !AllocTlsIndex() ){
+        return DS_NO_MEMORY;
+    }
+    hostMgr.hostArr = (DzHost**)
+        alloca( sizeof( DzHost* ) * hostCount );
+    for( i = 0; i < hostCount; i++ ){
+        hostMgr.hostArr[i] = NULL;
+    }
+    hostMgr.checkSignRes = (volatile int*)
+        alloca( sizeof( volatile int ) * hostCount );
+    for( i = 0; i < hostCount; i++ ){
+        hostMgr.checkSignRes[i] = 0;
+    }
+    hostMgr.rmtFifoRes = (DzRmtCallFifo*)
+        alloca( sizeof( DzRmtCallFifo ) * hostCount * hostCount );
+    for( i = 0; i < hostCount * hostCount; i++ ){
+        hostMgr.rmtFifoRes[i].readPos = 0;
+        hostMgr.rmtFifoRes[i].writePos = 0;
+        hostMgr.rmtFifoRes[i].callPkgArr = NULL;
+    }
+    hostMgr.pendingPkgRes = (DzSList*)
+        alloca( sizeof( DzSList ) * hostCount * hostCount );
+    for( i = 0; i < hostCount * hostCount; i++ ){
+        InitSList( hostMgr.pendingPkgRes + i );
+    }
+    hostMgrPtr = (DzHostsMgr*)alloca( sizeof( DzHostsMgr ) );
+    hostMgrPtr->hostArr = hostMgr.hostArr;
+    hostMgrPtr->checkSignRes = hostMgr.checkSignRes;
+    hostMgrPtr->rmtFifoRes = hostMgr.rmtFifoRes;
+    hostMgrPtr->pendingPkgRes = hostMgr.pendingPkgRes;
+    hostMgrPtr->hostCount = hostCount;
+    hostMgrPtr->exitSign = 0;
+
+    param.result = DS_OK;
+    if( hostCount > 1 ){
+        param.cotStart.entry = firstEntry;
+        param.cotStart.context = context;
+        firstEntry = MainHostEntry;
+        context = (intptr_t)&param;
+    }
+    ret = RunHost(
+        hostMgrPtr, 0, lowestPriority, defaultPri, defaultSSize,
+        firstEntry, context
+        );
+    FreeTlsIndex();
+    return ret == DS_OK ? param.result : ret;;
+}
+
+inline int GetCotCount( DzHost* host )
+{
+    return host->threadCount;
 }
 
 inline int SetCurrCotPriority( DzHost* host, int priority )
@@ -326,9 +433,11 @@ inline int SetCurrCotPriority( DzHost* host, int priority )
     int ret;
 
     ret = host->currThread->priority;
-    host->currThread->priority = priority;
-    if( priority < ret ){
-        host->currPriority = priority;
+    if( priority >= CP_FIRST ){
+        host->currThread->priority = priority;
+        if( priority < ret ){
+            host->currPriority = priority;
+        }
     }
     return ret;
 }
@@ -347,62 +456,26 @@ inline int SetCotPoolDepth( DzHost* host, int sSize, int depth )
     return ret;
 }
 
-inline int GetCotCount( DzHost* host )
-{
-    return host->threadCount;
-}
-
-inline int StartWorkerHost(
+inline int SetHostParam(
     DzHost*     host,
-    int         hostId,
     int         lowestPriority,
     int         defaultPri,
     int         defaultSSize
     )
 {
-    return 0;
-}
+    int ret;
 
-inline int StopWorkerHost( DzHost* host, int hostId )
-{
-    return 0;
-}
+    ret = host->lowestPriority;
+    if( lowestPriority > host->lowestPriority ){
+        host->lowestPriority = lowestPriority;
+    }
+    host->defaultPri = defaultPri;
+    host->defaultSSize = defaultSSize;
+    if( host->cotPoolSetDepth[ defaultSSize ] < DFT_SSIZE_POOL_DEPTH ){
+        SetCotPoolDepth( host, defaultSSize, DFT_SSIZE_POOL_DEPTH );
+    }
 
-inline int StartWorkerCot(
-    DzHost*     host,
-    int         hostId,
-    DzRoutine   entry,
-    intptr_t    context,
-    int         priority,
-    int         sSize
-    )
-{
-    return 0;
-}
-
-inline int EvtStartWorkerCot(
-    DzHost*     host,
-    int         hostId,
-    DzHandle    evt,
-    DzRoutine   entry,
-    intptr_t    context,
-    int         priority,
-    int         sSize
-    )
-{
-    return 0;
-}
-
-inline int RunWorkerCot(
-    DzHost*     host,
-    int         hostId,
-    DzRoutine   entry,
-    intptr_t    context,
-    int         priority,
-    int         sSize
-    )
-{
-    return 0;
+    return ret;
 }
 
 inline void* Malloc( DzHost* host, size_t size )

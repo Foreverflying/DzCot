@@ -109,24 +109,38 @@ struct _DzWaitHelper
     DzFastEvt       timeout;
 };
 
-struct _DzRqstNode
+struct _DzRmtCallPkg
 {
-    DzLItr*         lItr;
+    union{
+        struct{
+            char    priority;
+            char    sSize;
+            char    hostId;
+            char    sign;
+        };
+        intptr_t    params;
+    };
     DzRoutine       entry;
     intptr_t        context;
-    short           priority;
-    short           sSize;
+    DzSynObj*       evt;
 };
 
-struct _DzRqstQueue
+struct _DzRmtCallFifo
 {
+    DzRmtCallFifo*  next;
     int             readPos;
     int             writePos;
-    int             rqstCount;
-    int             freeNodeCount;
-    DzRqstNode**    rqstArr;
-    DzSList         pendingRqsts;
-    DzSList         freeNodeArr;
+    DzRmtCallPkg*   callPkgArr;
+};
+
+struct _DzHostsMgr
+{
+    DzHost**        hostArr;
+    volatile int*   checkSignRes;
+    DzRmtCallFifo*  rmtFifoRes;
+    DzSList*        pendingPkgRes;
+    int             hostCount;
+    volatile int    exitSign;
 };
 
 struct _DzHost
@@ -163,6 +177,10 @@ struct _DzHost
     int             timerCount;
     int             timerHeapSize;
 
+    //default cot thread value
+    int             defaultPri;
+    int             defaultSSize;
+
     //dlmalloc heap
     void*           mallocSpace;
 
@@ -172,37 +190,50 @@ struct _DzHost
     //DzDqNode struct pool
     DzLItr*         lNodePool;
 
-    //record pool alloc history
-    DzLItr*         poolGrowList;
-
-    char*           memPoolPos;
-    char*           memPoolEnd;
-
-    //default cot thread value
-    int             defaultPri;
-    int             defaultSSize;
-
-    //parent host
-    DzHost*         parentHost;
-
     //multi hosts manager
     DzHostsMgr*     hostsMgr;
 
-    //remote request check sign's pointer
-    volatile int*   rqstSignPtr;
+    //remote call FIFO check sign pointer
+    volatile int*   checkSignPtr;
 
-    //remote request queues
-    DzRqstQueue*    rqstCheckArr[ DZ_MAX_HOST ];
-    DzRqstQueue     rqstQueues[ DZ_MAX_HOST ];
+    //checking FIFO chain
+    DzRmtCallFifo*  checkFifo;
+
+    //remote call FIFOs
+    DzRmtCallFifo*  rmtFifoArr;
+
+    //pending remote call packages
+    DzSList*        pendingPkgs;
+
+    //memory chunk pool
+    char*           memPoolPos;
+    char*           memPoolEnd;
+
+    //record pool alloc history
+    DzLItr*         poolGrowList;
 
     //configure data
     int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
 };
 
-struct _DzHostsMgr
+struct _DzSysParam
 {
-    DzHost*         hostArr[ DZ_MAX_HOST ];
-    volatile int    rqstSign[ DZ_MAX_HOST ];
+    DzRoutine           threadEntry;
+    int                 result;
+    union{
+        struct{
+            DzHandle    evt;
+            DzHostsMgr* hostMgr;
+            int         hostId;
+            int         lowestPriority;
+            int         defaultPri;
+            int         defaultSSize;
+        } hostStart;
+        struct{
+            DzRoutine   entry;
+            intptr_t    context;
+        } cotStart;
+    };
 };
 
 #endif // __DzStructs_h__

@@ -1,19 +1,17 @@
 
 LIBRARY Dzcot
 EXPORTS
-    DzRunHost
+    DzRunHosts
     DzStartCot
     DzStartCotInstant
     DzEvtStartCot
     DzEvtStartCotInstant
+    DzStartRemoteCot
+    DzEvtStartRemoteCot
+    DzRunRemoteCot
     DzGetCotCount
-    DzChangePriority
+    DzSetPriority
     DzSetCotPoolDepth
-    DzStartWorkerHost
-    DzStopWorkerHost
-    DzStartWorkerCot
-    DzEvtStartWorkerCot
-    DzRunWorkerCot
     DzWaitSynObj
     DzWaitMultiSynObj
     DzCreateMtx

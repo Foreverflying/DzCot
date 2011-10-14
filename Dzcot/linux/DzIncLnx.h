@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <limits.h>
 #include <sys/timeb.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
