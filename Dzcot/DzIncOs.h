@@ -32,7 +32,7 @@
 #define DFT_SSIZE_POOL_DEPTH        ( 64 )
 #define DZ_MAX_IOV                  ( 64 )
 #define DZ_MAX_HOST                 ( 16 )
-#define RMT_CHECK_SLEEP_SIGN        ( 1 << 30 )
+#define RMT_CHECK_SLEEP_SIGN        ( 1 << 31 )
 #define RMT_CALL_FIFO_SIZE          ( 256 )
 
 //predefine
@@ -46,8 +46,7 @@ enum{
 enum
 {
     DS_OK,
-    DS_NO_MEMORY,
-    DS_ALREADY_EXISTS
+    DS_NO_MEMORY
 };
 
 enum

@@ -20,11 +20,6 @@ void __stdcall MainHostEntry( intptr_t context );
 void __stdcall SendFifoWritableEntry( intptr_t context );
 void __stdcall FeedRmtCallEntry( intptr_t context );
 
-inline void AwakeRemoteHostCheck( DzHost* rmtHost )
-{
-    AtomOrInt( &rmtHost->hostsMgr->exitSign, 1 << rmtHost->hostId );
-}
-
 inline void CopyRmtCallPkg( DzRmtCallPkg* src, DzRmtCallPkg* dst )
 {
     dst->params = src->params;
@@ -44,9 +39,10 @@ inline void NotifyRmtCall( DzHost* rmtHost, int* writePos, int addVal )
         newPos -= RMT_CALL_FIFO_SIZE;
     }
     *writePos = newPos;
-    nowCheck = AtomAddInt( rmtHost->checkSignPtr, addVal );
+    nowCheck = AtomAddInt( &rmtHost->checkRmtSign, addVal );
     if( nowCheck == RMT_CHECK_SLEEP_SIGN ){
-        AwakeRemoteHostCheck( rmtHost );
+        AtomOrInt( &rmtHost->hostMgr->exitSign, rmtHost->hostMask );
+        AwakeRemoteHost( rmtHost );
     }
 }
 
@@ -62,7 +58,7 @@ inline DzRmtCallPkg* PendingRmtCall( DzHost* host, int rmtId )
 
 inline void SendRmtCall(
     DzHost*         host,
-    DzHost*         rmtHost,
+    int             rmtId,
     BOOL            emergency,
     DzRmtCallPkg*   srcPkg
     )
@@ -70,29 +66,31 @@ inline void SendRmtCall(
     int empty;
     int addVal;
     int writePos;
+    DzHost* rmtHost;
     DzRmtCallFifo* fifo;
     DzRmtCallPkg* pkg;
 
+    rmtHost = host->hostMgr->hostArr[ rmtId ];
     addVal = 0;
-    if( host->pendingPkgs[ rmtHost->hostId ].tail ){
-        pkg = PendingRmtCall( host, rmtHost->hostId );
+    if( host->pendingPkgs[ rmtId ].tail ){
+        pkg = PendingRmtCall( host, rmtId );
     }else{
         fifo = rmtHost->rmtFifoArr + host->hostId;
-        empty = fifo->readPos - fifo->writePos;
+        empty = AtomReadInt( &fifo->readPos ) - fifo->writePos;
         if( empty <= 0 ){
             empty += RMT_CALL_FIFO_SIZE;
         }
         writePos = fifo->writePos;
         pkg = fifo->callPkgArr + writePos;
+        addVal++;
         if( empty == 2 ){
             pkg->evt = 0;
             pkg->priority = CP_FIRST;
             pkg->sSize = SS_FIRST;
             pkg->entry = SendFifoWritableEntry;
             pkg->context = host->hostId;
-            addVal++;
             if( !emergency ){
-                pkg = PendingRmtCall( host, rmtHost->hostId );
+                pkg = PendingRmtCall( host, rmtId );
             }else{
                 writePos++;
                 if( writePos == RMT_CALL_FIFO_SIZE ){

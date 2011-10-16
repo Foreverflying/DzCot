@@ -9,8 +9,11 @@
 #define __Inc_Dzcot_h__
 
 #if defined( _WIN32 )
+#include <stdarg.h>
 #include <WinSock2.h>
 #elif defined( __linux__ )
+#include <stddef.h>
+#include <stdarg.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
@@ -18,8 +21,7 @@
 enum
 {
     DS_OK,
-    DS_NO_MEMORY,
-    DS_ALREADY_EXISTS
+    DS_NO_MEMORY
 };
 
 enum
@@ -139,8 +141,31 @@ typedef void (__stdcall *DzRoutine)( intptr_t context );
 extern "C"{
 #endif
 
+static int __DzMakeServMask__( BOOL notServ, ... )
+{
+    va_list ap;
+    int ret;
+    int op;
+
+    ret = notServ ? -1 : 0;
+    va_start( ap, notServ );
+    for( op = va_arg( ap, int ); op != -1; op = va_arg( ap, int ) ){
+        if( notServ ){
+            ret &= ~( 1 << op );
+        }else{
+            ret |= ( 1 << op );
+        }
+    }
+    va_end( ap );
+    return ret;
+}
+
+#define DzMakeServMask( notServ, ... )\
+    __DzMakeServMask__( notServ, ##__VA_ARGS__, -1 )
+
 int DzRunHosts(
     int         hostCount,
+    int*        servMask,
     int         lowestPriority,
     int         defaultPri,
     int         defaultSSize,
@@ -181,8 +206,8 @@ int DzStartRemoteCot(
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzEvtStartRemoteCot(
-    int         rmtId,
     DzHandle    evt,
+    int         rmtId,
     DzRoutine   entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),

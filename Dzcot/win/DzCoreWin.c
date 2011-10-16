@@ -126,16 +126,16 @@ BOOL SockCleanup()
     return WSACleanup() == 0;
 }
 
-BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
+BOOL InitOsStruct( DzHost* host, DzHost* firstHost )
 {
-    if( !parentHost ){
+    if( !firstHost ){
         if( !SockStartup( &host->osStruct ) ){
             return FALSE;
         }
     }else{
-        host->osStruct._AcceptEx = parentHost->osStruct._AcceptEx;
-        host->osStruct._ConnectEx = parentHost->osStruct._ConnectEx;
-        host->osStruct._GetAcceptExSockAddrs = parentHost->osStruct._GetAcceptExSockAddrs;
+        host->osStruct._AcceptEx = firstHost->osStruct._AcceptEx;
+        host->osStruct._ConnectEx = firstHost->osStruct._ConnectEx;
+        host->osStruct._GetAcceptExSockAddrs = firstHost->osStruct._GetAcceptExSockAddrs;
     }
     host->osStruct.iocp = CreateIoCompletionPort(
         INVALID_HANDLE_VALUE,
@@ -149,10 +149,10 @@ BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
     return host->osStruct.iocp != NULL;
 }
 
-void DeleteOsStruct( DzHost* host, DzHost* parentHost )
+void DeleteOsStruct( DzHost* host, DzHost* firstHost )
 {
     CloseHandle( host->osStruct.iocp );
-    if( !parentHost ){
+    if( !firstHost ){
         SockCleanup();
     }
 }
@@ -163,24 +163,41 @@ void DeleteOsStruct( DzHost* host, DzHost* parentHost )
 void CotScheduleCenter( DzHost* host )
 {
     ULONG_PTR key;
-    DWORD bytes;
+    int n;
     OVERLAPPED* overlapped;
     DzAsyncIo* asyncIo;
     DWORD timeout;
 
-    timeout = (DWORD)NotifyMinTimersAndRmtCalls( host );
-    while( host->threadCount ){
-        GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, timeout );
-        if( overlapped != NULL ){
-            do{
-                asyncIo = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
-                NotifyEasyEvt( host, &asyncIo->easyEvt );
-                GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
-            }while( overlapped != NULL );
-            host->currPriority = CP_FIRST;
-            Schedule( host );
-        }
+    while( 1 ){
         timeout = (DWORD)NotifyMinTimersAndRmtCalls( host );
+        while( host->threadCount ){
+            GetQueuedCompletionStatus( host->osStruct.iocp, (LPDWORD)&n, &key, &overlapped, timeout );
+            AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
+            if( overlapped != NULL ){
+                do{
+                    asyncIo = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                    NotifyEasyEvt( host, &asyncIo->easyEvt );
+                    GetQueuedCompletionStatus( host->osStruct.iocp, &n, &key, &overlapped, 0 );
+                }while( overlapped != NULL );
+                host->currPriority = CP_FIRST;
+                Schedule( host );
+            }
+            timeout = (DWORD)NotifyMinTimersAndRmtCalls( host );
+        }
+        if( AtomAndInt( &host->hostMgr->exitSign, ~host->hostMask ) != host->hostMask ){
+            GetQueuedCompletionStatus( host->osStruct.iocp, (LPDWORD)&n, &key, &overlapped, -1 );
+            if( AtomReadInt( &host->hostMgr->exitSign ) ){
+                AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
+                continue;
+            }
+        }else{
+            //be sure quit id 0 host at the end, for hostMgr is in id 0 host's stack
+            for( n = host->hostMgr->hostCount - 1; n >= 0; n-- ){
+                if( n != host->hostId ){
+                    AwakeRemoteHost( host->hostMgr->hostArr[ n ] );
+                }
+            }
+        }
+        break;
     }
 }
-

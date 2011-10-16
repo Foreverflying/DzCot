@@ -21,8 +21,8 @@ void __stdcall DzcotEntry(
     volatile DzRoutine* entryPtr,
     volatile intptr_t*  contextPtr
     );
-BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
-void DeleteOsStruct( DzHost* host, DzHost* parentHost );
+BOOL InitOsStruct( DzHost* host, DzHost* firstHost );
+void DeleteOsStruct( DzHost* host, DzHost* firstHost );
 void CotScheduleCenter( DzHost* host );
 
 inline void InitDzThread( DzThread* dzThread )

@@ -1,10 +1,38 @@
 
 #include "stdafx.h"
 #include "../Dzcot/Inc_Dzcot.h"
-//#include "../Dzcot/DzStructs.h"
 #include "TryCot.h"
 
-int gHostCount = 2;
+namespace Inner{
+#undef DZ_MAX_IOV
+#undef DZ_MAX_HOST
+#include "../Dzcot/DzStructs.h"
+#include "../Dzcot/DzBaseOs.h"
+}
+
+int gHostCount = 8;
+int gServMask[] = {
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE ),
+    DzMakeServMask( TRUE )
+};
 
 //*
 void __stdcall CotTryEntry( intptr_t context )
@@ -28,9 +56,35 @@ void TryCotPool()
 }
 //*/
 
+void __stdcall TestRemoteCot( intptr_t context )
+{
+    printf( "======Cot in host %d\r\n", Inner::GetHost()->hostId );
+    printf( "TestRemoteCot run!\r\n" );
+}
+
 void __stdcall TestCotTryEntry( intptr_t context )
 {
     //TryCotPool();
-    //printf( "Host size is %d\r\n", (int)sizeof( DzHost ) );
-    printf( "Here ! wo cao\r\n" );
+    printf( "Host size is %d\r\n", (int)sizeof( Inner::DzHost ) );
+    for( int i = 1; i < gHostCount; i++ ){
+        DzStartRemoteCot( i, TestRemoteCot, NULL );
+    }
+    printf( "hahhha, i am sleep now1!\r\n" );
+    DzSleep( 1500 );
+    printf( "well, awake1\r\n\r\n" );
+
+    printf( "hahhha, i am sleep now2!\r\n" );
+    DzHandle evt = DzCreateCountDownEvt( gHostCount - 1 );
+    for( int i = 1; i < gHostCount; i++ ){
+        DzEvtStartRemoteCot( evt, i, TestRemoteCot, NULL );
+    }
+    DzWaitSynObj( evt );
+    printf( "well, awake2\r\n\r\n" );
+    DzCloneSynObj( evt );
+
+    printf( "hahhha, i am sleep now3!\r\n" );
+    for( int i = 1; i < gHostCount; i++ ){
+        DzRunRemoteCot( i, TestRemoteCot, NULL );
+    }
+    printf( "well, awake3\r\n\r\n" );
 }

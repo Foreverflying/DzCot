@@ -213,20 +213,37 @@ inline int StartRemoteCot(
     int         sSize
     )
 {
-    return 0;
+    DzRmtCallPkg pkg;
+
+    pkg.entry = entry;
+    pkg.context = context;
+    pkg.priority = priority;
+    pkg.sSize = sSize;
+    pkg.evt = NULL;
+    SendRmtCall( host, rmtId, FALSE, &pkg );
+    return DS_OK;
 }
 
 inline int EvtStartRemoteCot(
     DzHost*     host,
-    int         rmtId,
     DzHandle    evt,
+    int         rmtId,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
     int         sSize
     )
 {
-    return 0;
+    DzRmtCallPkg pkg;
+
+    pkg.entry = entry;
+    pkg.context = context;
+    pkg.priority = priority;
+    pkg.sSize = sSize;
+    pkg.evt = CloneSynObj( evt );
+    pkg.hostId = host->hostId;
+    SendRmtCall( host, rmtId, FALSE, &pkg );
+    return DS_OK;
 }
 
 inline int RunRemoteCot(
@@ -238,7 +255,20 @@ inline int RunRemoteCot(
     int         sSize
     )
 {
-    return 0;
+    DzSynObj* evt;
+    DzRmtCallPkg pkg;
+
+    evt = CreateManualEvt( host, FALSE );
+    pkg.entry = entry;
+    pkg.context = context;
+    pkg.priority = priority;
+    pkg.sSize = sSize;
+    pkg.evt = CloneSynObj( evt );
+    pkg.hostId = host->hostId;
+    SendRmtCall( host, rmtId, FALSE, &pkg );
+    WaitSynObj( host, pkg.evt, -1 );
+    CloseSynObj( host, pkg.evt );
+    return DS_OK;
 }
 
 // RunHost:
@@ -260,7 +290,6 @@ inline int RunHost(
     void* mallocSpace;
     DzTimerNode** timerHeap;
     DzHost host;
-    DzRmtCallFifo* fifo;
 
     timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     if( !timerHeap ){
@@ -300,26 +329,11 @@ inline int RunHost(
     host.mallocSpace = mallocSpace;
     host.synObjPool = NULL;
     host.lNodePool = NULL;
-    host.hostsMgr = hostMgr;
-    host.checkSignPtr = hostMgr->checkSignRes + hostId;
+    host.hostMgr = hostMgr;
+    host.checkRmtSign = 0;
+    host.hostMask = 1 << hostId;
     host.checkFifo = NULL;
     host.rmtFifoArr = hostMgr->rmtFifoRes + hostMgr->hostCount * hostId;
-    for( i = 0; i < hostMgr->hostCount; i++ ){
-        if( i != hostId ){
-            if( !host.checkFifo ){
-                host.checkFifo = host.rmtFifoArr + i;
-                fifo = host.checkFifo;
-            }else{
-                fifo->next = host.rmtFifoArr + i;
-                fifo = fifo->next;
-            }
-            fifo->callPkgArr = (DzRmtCallPkg*)
-                AllocChunk( &host, sizeof( DzRmtCallPkg ) * RMT_CALL_FIFO_SIZE );
-        }
-    }
-    if( host.checkFifo ){
-        fifo->next = host.checkFifo;
-    }
     host.pendingPkgs = hostMgr->pendingPkgRes + hostMgr->hostCount * hostId;
     host.memPoolPos = NULL;
     host.memPoolEnd = NULL;
@@ -333,9 +347,9 @@ inline int RunHost(
     }
 
     if( InitOsStruct( &host, hostMgr->hostArr[0] ) ){
-        AtomOrInt( &host.hostsMgr->exitSign, 1 << hostId );
+        AtomOrInt( &host.hostMgr->exitSign, 1 << hostId );
         SetHost( &host );
-        host.hostsMgr->hostArr[ hostId ] = &host;
+        host.hostMgr->hostArr[ hostId ] = &host;
 
         ret = StartCot( &host, firstEntry, context, defaultPri, defaultSSize );
         if( ret == DS_OK ){
@@ -345,7 +359,7 @@ inline int RunHost(
 
         //after all cot finished, IoMgrRoutine will return.
         //so cleanup the host struct
-        host.hostsMgr->hostArr[ hostId ] = NULL;
+        host.hostMgr->hostArr[ hostId ] = NULL;
         SetHost( NULL );
         DeleteOsStruct( &host, hostMgr->hostArr[0] );
     }else{
@@ -362,6 +376,7 @@ inline int RunHost(
 
 inline int RunHosts(
     int         hostCount,
+    int*        servMask,
     int         lowestPriority,
     int         defaultPri,
     int         defaultSSize,
@@ -383,11 +398,6 @@ inline int RunHosts(
     for( i = 0; i < hostCount; i++ ){
         hostMgr.hostArr[i] = NULL;
     }
-    hostMgr.checkSignRes = (volatile int*)
-        alloca( sizeof( volatile int ) * hostCount );
-    for( i = 0; i < hostCount; i++ ){
-        hostMgr.checkSignRes[i] = 0;
-    }
     hostMgr.rmtFifoRes = (DzRmtCallFifo*)
         alloca( sizeof( DzRmtCallFifo ) * hostCount * hostCount );
     for( i = 0; i < hostCount * hostCount; i++ ){
@@ -402,9 +412,9 @@ inline int RunHosts(
     }
     hostMgrPtr = (DzHostsMgr*)alloca( sizeof( DzHostsMgr ) );
     hostMgrPtr->hostArr = hostMgr.hostArr;
-    hostMgrPtr->checkSignRes = hostMgr.checkSignRes;
     hostMgrPtr->rmtFifoRes = hostMgr.rmtFifoRes;
     hostMgrPtr->pendingPkgRes = hostMgr.pendingPkgRes;
+    hostMgrPtr->servMask = servMask;
     hostMgrPtr->hostCount = hostCount;
     hostMgrPtr->exitSign = 0;
 

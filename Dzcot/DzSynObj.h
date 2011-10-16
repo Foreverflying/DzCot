@@ -291,6 +291,7 @@ inline DzSynObj* CreateCallbackTimer(
     obj->priority = priority;
     obj->sSize = sSize;
     obj->ref++;
+    host->threadCount++;
 
     AddTimer( host, &obj->timerNode );
     return obj;
@@ -301,6 +302,7 @@ inline void CloseCallbackTimer( DzHost* host, DzSynObj* timer )
     if( IsTimeNodeInHeap( &timer->timerNode ) ){
         RemoveTimer( host, &timer->timerNode );
     }
+    host->threadCount--;
     timer->routine = NULL;
     timer->ref--;
     if( timer->ref == 0 ){

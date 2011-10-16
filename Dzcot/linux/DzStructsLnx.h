@@ -17,8 +17,10 @@ struct _DzOsStruct
 {
     int             epollFd;
     int             maxFdCount;
-    DzAsyncIo**      fdTable;
+    int             pipe[2];
+    DzAsyncIo**     fdTable;
     DzLItr*         asyncIoPool;
+    DzAsyncIo*      pipeAsyncIo;
 };
 
 struct _DzThread

@@ -17,6 +17,7 @@ extern "C"{
 
 int DzRunHosts(
     int         hostCount,
+    int*        servMask,
     int         lowestPriority,
     int         defaultPri,
     int         defaultSSize,
@@ -41,7 +42,7 @@ int DzRunHosts(
     assert( firstEntry );
 
     return RunHosts(
-        hostCount, lowestPriority, defaultPri, defaultSSize,
+        hostCount, servMask, lowestPriority, defaultPri, defaultSSize,
         firstEntry, context
         );
 }
@@ -150,13 +151,14 @@ int DzStartRemoteCot(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( rmtId >= 0 && rmtId < host->hostsMgr->hostCount );
+    assert( rmtId >= 0 && rmtId < host->hostMgr->hostCount );
     assert( host->hostId != rmtId );
+    assert( host->hostMgr->servMask[ rmtId ] & ( 1 << host->hostId ) );
     assert( entry );
     assert(
         priority == CP_DEFAULT || (
             priority >= CP_FIRST &&
-            priority <= host->hostsMgr->hostArr[ rmtId ]->lowestPriority
+            priority <= host->hostMgr->hostArr[ rmtId ]->lowestPriority
             )
         );
     assert(
@@ -168,8 +170,8 @@ int DzStartRemoteCot(
 }
 
 int DzEvtStartRemoteCot(
-    int         rmtId,
     DzHandle    evt,
+    int         rmtId,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
@@ -178,13 +180,16 @@ int DzEvtStartRemoteCot(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( rmtId >= 0 && rmtId < host->hostsMgr->hostCount );
+    assert( evt );
+    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
+    assert( rmtId >= 0 && rmtId < host->hostMgr->hostCount );
     assert( host->hostId != rmtId );
+    assert( host->hostMgr->servMask[ rmtId ] & host->hostMask );
     assert( entry );
     assert(
         priority == CP_DEFAULT || (
             priority >= CP_FIRST &&
-            priority <= host->hostsMgr->hostArr[ rmtId ]->lowestPriority
+            priority <= host->hostMgr->hostArr[ rmtId ]->lowestPriority
             )
         );
     assert(
@@ -192,7 +197,7 @@ int DzEvtStartRemoteCot(
         sSize <= STACK_SIZE_COUNT
         );
 
-    return EvtStartRemoteCot( host, rmtId, evt, entry, context, priority, sSize );
+    return EvtStartRemoteCot( host, evt, rmtId, entry, context, priority, sSize );
 }
 
 int DzRunRemoteCot(
@@ -205,13 +210,14 @@ int DzRunRemoteCot(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( rmtId >= 0 && rmtId < host->hostsMgr->hostCount );
+    assert( rmtId >= 0 && rmtId < host->hostMgr->hostCount );
     assert( host->hostId != rmtId );
+    assert( host->hostMgr->servMask[ rmtId ] & host->hostMask );
     assert( entry );
     assert(
         priority == CP_DEFAULT || (
             priority >= CP_FIRST &&
-            priority <= host->hostsMgr->hostArr[ rmtId ]->lowestPriority
+            priority <= host->hostMgr->hostArr[ rmtId ]->lowestPriority
             )
         );
     assert(

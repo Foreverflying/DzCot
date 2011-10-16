@@ -12,7 +12,7 @@ void* SysThreadEntry( void* context )
 {
     DzSysParam* param = (DzSysParam*)context;
     param->threadEntry( (intptr_t)param );
-	return NULL;
+    return NULL;
 }
 
 BOOL AllocAsyncIoPool( DzHost* host )
@@ -69,12 +69,14 @@ void __stdcall DzcotEntry(
     }
 }
 
-BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
+BOOL InitOsStruct( DzHost* host, DzHost* firstHost )
 {
+    int flag;
     struct rlimit fdLimit;
+    struct epoll_event evt;
 
-    if( parentHost ){
-        host->osStruct.maxFdCount = parentHost->osStruct.maxFdCount;
+    if( firstHost ){
+        host->osStruct.maxFdCount = firstHost->osStruct.maxFdCount;
     }else{
         if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
             return FALSE;
@@ -82,24 +84,39 @@ BOOL InitOsStruct( DzHost* host, DzHost* parentHost )
         host->osStruct.maxFdCount = fdLimit.rlim_cur;
     }
     host->osStruct.epollFd = epoll_create( host->osStruct.maxFdCount );
+    if( host->osStruct.epollFd < 0 ){
+        return FALSE;
+    }
+    if( pipe( host->osStruct.pipe ) != 0 ){
+        close( host->osStruct.epollFd );
+        return FALSE;
+    }
     host->osStruct.fdTable =
         ( DzAsyncIo** )PageAlloc( sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
-    if( host->osStruct.epollFd < 0 || !host->osStruct.fdTable ){
-        if( host->osStruct.epollFd >= 0 ){
-            close( host->osStruct.epollFd );
-        }
-        if( host->osStruct.fdTable ){
-            PageFree( host->osStruct.fdTable, sizeof(int) * host->osStruct.maxFdCount );
-        }
+    if( !host->osStruct.fdTable ){
+        close( host->osStruct.pipe[1] );
+        close( host->osStruct.pipe[0] );
+        close( host->osStruct.epollFd );
         return FALSE;
     }
     host->osStruct.asyncIoPool = NULL;
+    host->osStruct.pipeAsyncIo = CreateAsyncIo( host );
+    evt.data.ptr = host->osStruct.pipeAsyncIo;
+    evt.events = EPOLLIN;
+    flag = fcntl( host->osStruct.pipe[0], F_GETFL, 0 );
+    fcntl( host->osStruct.pipe[0], F_SETFL, flag | O_NONBLOCK );
+    flag = fcntl( host->osStruct.pipe[1], F_GETFL, 0 );
+    fcntl( host->osStruct.pipe[1], F_SETFL, flag | O_NONBLOCK );
+    epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_ADD, host->osStruct.pipe[0], &evt );
     return TRUE;
 }
 
-void DeleteOsStruct( DzHost* host, DzHost* parentHost )
+void DeleteOsStruct( DzHost* host, DzHost* firstHost )
 {
+    CloseAsyncIo( host, host->osStruct.pipeAsyncIo );
     PageFree( host->osStruct.fdTable, sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
+    close( host->osStruct.pipe[1] );
+    close( host->osStruct.pipe[0] );
     close( host->osStruct.epollFd );
 }
 
@@ -111,34 +128,61 @@ void CotScheduleCenter( DzHost* host )
     int i;
     int timeout;
     int listCount;
-    int notifyCount;
+    int n;
     DzAsyncIo* asyncIo;
-    struct epoll_event evtList[ EPOLL_EVT_LIST_SIZE ];
+    struct epoll_event *evtList;
 
-    timeout = NotifyMinTimersAndRmtCalls( host );
-    while( host->threadCount ){
-        listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
-        if( listCount != 0 ){
-            notifyCount = 0;
-            for( i = 0; i < listCount; i++ ){
-                asyncIo = (DzAsyncIo*)evtList[i].data.ptr;
-                if( IsEasyEvtWaiting( &asyncIo->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
-                    NotifyEasyEvt( host, &asyncIo->inEvt );
-                    CleanEasyEvt( &asyncIo->inEvt );
-                    notifyCount++;
+    evtList = (struct epoll_event*)AllocChunk( host, sizeof( struct epoll_event ) * EPOLL_EVT_LIST_SIZE );
+    while( 1 ){
+        timeout = NotifyMinTimersAndRmtCalls( host );
+        while( host->threadCount ){
+            listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
+            AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
+            if( listCount != 0 ){
+                n = 0;
+                while( 1 ){
+                    for( i = 0; i < listCount; i++ ){
+                        asyncIo = (DzAsyncIo*)evtList[i].data.ptr;
+                        if( IsEasyEvtWaiting( &asyncIo->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
+                            NotifyEasyEvt( host, &asyncIo->inEvt );
+                            CleanEasyEvt( &asyncIo->inEvt );
+                            n++;
+                        }
+                        if( IsEasyEvtWaiting( &asyncIo->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
+                            NotifyEasyEvt( host, &asyncIo->outEvt );
+                            CleanEasyEvt( &asyncIo->outEvt );
+                            n++;
+                        }
+                    }
+                    if( listCount == EPOLL_EVT_LIST_SIZE ){
+                        listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, 0 );
+                        continue;
+                    }
+                    break;
                 }
-                if( IsEasyEvtWaiting( &asyncIo->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
-                    NotifyEasyEvt( host, &asyncIo->outEvt );
-                    CleanEasyEvt( &asyncIo->outEvt );
-                    notifyCount++;
+                read( host->osStruct.pipe[0], evtList, 2048 );
+                if( n ){
+                    host->currPriority = CP_FIRST;
+                    Schedule( host );
                 }
             }
-            if( notifyCount ){
-                host->currPriority = CP_FIRST;
-                Schedule( host );
+            timeout = NotifyMinTimersAndRmtCalls( host );
+        }
+        if( AtomAndInt( &host->hostMgr->exitSign, ~host->hostMask ) != host->hostMask ){
+            listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, -1 );
+            if( AtomReadInt( &host->hostMgr->exitSign ) ){
+                AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
+                read( host->osStruct.pipe[0], evtList, 2048 );
+                continue;
+            }
+        }else{
+            //be sure quit id 0 host at the end, for hostMgr is in id 0 host's stack
+            for( n = host->hostMgr->hostCount - 1; n >= 0; n-- ){
+                if( n != host->hostId ){
+                    AwakeRemoteHost( host->hostMgr->hostArr[ n ] );
+                }
             }
         }
-        timeout = NotifyMinTimersAndRmtCalls( host );
+        break;
     }
 }
-

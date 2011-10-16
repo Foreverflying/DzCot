@@ -25,6 +25,7 @@
 #include <MSWSock.h>
 #include <windows.h>
 #include <process.h>
+#include <intrin.h>
 #include <malloc.h>
 #include <assert.h>
 

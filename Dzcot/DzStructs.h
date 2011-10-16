@@ -136,9 +136,9 @@ struct _DzRmtCallFifo
 struct _DzHostsMgr
 {
     DzHost**        hostArr;
-    volatile int*   checkSignRes;
     DzRmtCallFifo*  rmtFifoRes;
     DzSList*        pendingPkgRes;
+    int*            servMask;
     int             hostCount;
     volatile int    exitSign;
 };
@@ -191,10 +191,13 @@ struct _DzHost
     DzLItr*         lNodePool;
 
     //multi hosts manager
-    DzHostsMgr*     hostsMgr;
+    DzHostsMgr*     hostMgr;
 
-    //remote call FIFO check sign pointer
-    volatile int*   checkSignPtr;
+    //remote call FIFO check sign
+    volatile int    checkRmtSign;
+
+    //host mask
+    int             hostMask;
 
     //checking FIFO chain
     DzRmtCallFifo*  checkFifo;

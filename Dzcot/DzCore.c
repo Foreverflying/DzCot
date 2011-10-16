@@ -131,16 +131,16 @@ inline BOOL DispatchRmtCall( DzHost* host, BOOL sleep )
     DzRmtCallPkg* newPkg;
 
     if( sleep ){
-        nowCount = AtomCasInt( host->checkSignPtr, 0, RMT_CHECK_SLEEP_SIGN );
+        nowCount = AtomCasInt( &host->checkRmtSign, 0, RMT_CHECK_SLEEP_SIGN );
     }else{
-        nowCount = *host->checkSignPtr;
+        nowCount = AtomReadInt( &host->checkRmtSign );
     }
     if( nowCount == 0 ){
         return FALSE;
     }
     count = nowCount;
     while( 1 ){
-        writePos = *(volatile int*)&host->checkFifo->writePos;
+        writePos = AtomReadInt( &host->checkFifo->writePos );
         while( host->checkFifo->readPos != writePos ){
             pkg = host->checkFifo->callPkgArr + host->checkFifo->readPos;
             if( pkg->entry ){
@@ -158,6 +158,7 @@ inline BOOL DispatchRmtCall( DzHost* host, BOOL sleep )
                 }
             }else{
                 SetEvt( host, pkg->evt );
+                CloseSynObj( host, pkg->evt );
             }
             host->checkFifo->readPos++;
             if( host->checkFifo->readPos == RMT_CALL_FIFO_SIZE ){
@@ -165,19 +166,10 @@ inline BOOL DispatchRmtCall( DzHost* host, BOOL sleep )
             }
             nowCount--;
             if( nowCount == 0 ){
-                nowCount = AtomSubInt( host->checkSignPtr, count );
+                nowCount = AtomSubInt( &host->checkRmtSign, count );
                 nowCount -= count;
                 if( nowCount == 0 ){
-                    if( sleep ){
-                        nowCount = AtomCasInt(
-                            host->checkSignPtr, 0, RMT_CHECK_SLEEP_SIGN
-                            );
-                        if( nowCount == 0 ){
-                            return TRUE;
-                        }
-                    }else{
-                        return TRUE;
-                    }
+                    return TRUE;
                 }
                 count = nowCount;
             }

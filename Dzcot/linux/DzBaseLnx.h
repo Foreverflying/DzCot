@@ -50,6 +50,17 @@ inline void StartSystemThread( DzSysParam* param )
     pthread_attr_destroy( &attr );
 }
 
+inline void AwakeRemoteHost( DzHost* dstHost )
+{
+    char n = 0;
+    write( dstHost->osStruct.pipe[1], &n, sizeof( n ) );
+}
+
+inline int AtomReadInt( volatile int* val )
+{
+    return *val;
+}
+
 inline int AtomIncInt( volatile int* val )
 {
     return __sync_fetch_and_add( val, 1 );

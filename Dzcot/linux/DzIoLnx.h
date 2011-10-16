@@ -11,7 +11,6 @@
 #include "../DzStructs.h"
 #include "../DzStructsOs.h"
 #include "../DzBaseOs.h"
-#include "../DzBase.h"
 #include "../DzResourceMgr.h"
 #include "../DzCoreOs.h"
 #include "../DzSynObj.h"
@@ -20,36 +19,6 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-
-inline DzAsyncIo* CreateAsyncIo( DzHost* host )
-{
-    DzAsyncIo* asyncIo;
-
-    if( !host->osStruct.asyncIoPool ){
-        if( !AllocAsyncIoPool( host ) ){
-            return NULL;
-        }
-    }
-    asyncIo = MEMBER_BASE( host->osStruct.asyncIoPool, DzAsyncIo, lItr );
-    host->osStruct.asyncIoPool = host->osStruct.asyncIoPool->next;
-    asyncIo->err = 0;
-    asyncIo->ref++;
-    return asyncIo;
-}
-
-inline void CloneAsyncIo( DzAsyncIo* asyncIo )
-{
-    asyncIo->ref++;
-}
-
-inline void CloseAsyncIo( DzHost* host, DzAsyncIo* asyncIo )
-{
-    asyncIo->ref--;
-    if( asyncIo->ref == 0 ){
-        asyncIo->lItr.next = host->osStruct.asyncIoPool;
-        host->osStruct.asyncIoPool = &asyncIo->lItr;
-    }
-}
 
 inline int Socket( DzHost* host, int domain, int type, int protocol )
 {

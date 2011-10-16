@@ -22,13 +22,43 @@ void __stdcall DzcotEntry(
     volatile DzRoutine* entryPtr,
     volatile intptr_t*  contextPtr
     );
-BOOL InitOsStruct( DzHost* host, DzHost* parentHost );
-void DeleteOsStruct( DzHost* host, DzHost* parentHost );
+BOOL InitOsStruct( DzHost* host, DzHost* firstHost );
+void DeleteOsStruct( DzHost* host, DzHost* firstHost );
 void CotScheduleCenter( DzHost* host );
 
 inline void InitDzThread( DzThread* dzThread )
 {
     __DBG_INIT_INFO( DzThread, NULL, dzThread );
+}
+
+inline DzAsyncIo* CreateAsyncIo( DzHost* host )
+{
+    DzAsyncIo* asyncIo;
+
+    if( !host->osStruct.asyncIoPool ){
+        if( !AllocAsyncIoPool( host ) ){
+            return NULL;
+        }
+    }
+    asyncIo = MEMBER_BASE( host->osStruct.asyncIoPool, DzAsyncIo, lItr );
+    host->osStruct.asyncIoPool = host->osStruct.asyncIoPool->next;
+    asyncIo->err = 0;
+    asyncIo->ref++;
+    return asyncIo;
+}
+
+inline void CloneAsyncIo( DzAsyncIo* asyncIo )
+{
+    asyncIo->ref++;
+}
+
+inline void CloseAsyncIo( DzHost* host, DzAsyncIo* asyncIo )
+{
+    asyncIo->ref--;
+    if( asyncIo->ref == 0 ){
+        asyncIo->lItr.next = host->osStruct.asyncIoPool;
+        host->osStruct.asyncIoPool = &asyncIo->lItr;
+    }
 }
 
 #if defined( __i386 )

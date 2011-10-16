@@ -14,6 +14,7 @@
 extern "C"{
 #endif
 
+void AwakeRemoteHost( DzHost* dstHost );
 void __cdecl SysThreadEntry( void* context );
 void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
 
@@ -40,6 +41,16 @@ inline void PageFree( void* p, size_t size )
 inline void StartSystemThread( DzSysParam* param )
 {
     _beginthread( SysThreadEntry, MIN_STACK_SIZE, param );
+}
+
+inline void AwakeRemoteHost( DzHost* dstHost )
+{
+    PostQueuedCompletionStatus( dstHost->osStruct.iocp, 0, 0, NULL );
+}
+
+inline int AtomReadInt( volatile int* val )
+{
+    return *val;
 }
 
 inline int AtomIncInt( volatile int* val )
