@@ -18,25 +18,27 @@
 
 # void __stdcall CallDzcotEntry( void )
 CallDzcotEntry:
+    movl    8(%esp), %ecx
     leal    4(%esp), %eax
     movl    %esp, %edx
     pushl   %eax
     pushl   %edx
+    pushl   %ecx
     call    DzcotEntry
 
-# void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
+# void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 # host$ = ecx
-# dzThread$ = edx
+# dzCot$ = edx
 DzSwitch:
     pushl   %ebp
     pushl   %ebx
     pushl   %esi
     pushl   %edi
 
-    movl    (%ecx), %esi    #esi = host->currThread
-    movl    %esp, 4(%esi)   #host->currThread->sp = esp
-    movl    %edx, (%ecx)    #host->currThread = dzThread
-    movl    4(%edx), %esp   #esp = dzThread.sp
+    movl    (%ecx), %esi    #esi = host->currCot
+    movl    %esp, 4(%esi)   #host->currCot->sp = esp
+    movl    %edx, (%ecx)    #host->currCot = dzCot
+    movl    4(%edx), %esp   #esp = dzCot.sp
 
     popl    %edi
     popl    %esi

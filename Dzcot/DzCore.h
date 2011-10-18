@@ -20,77 +20,77 @@
 extern "C"{
 #endif
 
-void __stdcall DelayFreeTheadEntry( intptr_t context );
+void __stdcall DelayFreeCotHelper( intptr_t context );
 void __stdcall EventNotifyCotEntry( intptr_t context );
 
 inline void ReleaseAllPoolStack( DzHost* host )
 {
     DzLItr* lItr;
-    DzThread* dzThread;
+    DzCot* dzCot;
     int i;
 
-    for( i = DZ_MAX_PERSIST_STACK_SIZE + 1; i <= host->lowestPriority; i++ ){
+    for( i = DZ_MAX_PERSIST_STACK_SIZE + 1; i <= host->lowestPri; i++ ){
         lItr = host->cotPools[i];
         while( lItr ){
-            dzThread = MEMBER_BASE( lItr, DzThread, lItr );
-            FreeCotStack( dzThread );
+            dzCot = MEMBER_BASE( lItr, DzCot, lItr );
+            FreeCotStack( dzCot );
             lItr = lItr->next;
         }
     }
 }
 
-inline DzThread* AllocDzThread( DzHost* host, int sSize )
+inline DzCot* AllocDzCot( DzHost* host, int sSize )
 {
-    DzThread* dzThread;
+    DzCot* dzCot;
 
     if( host->cotPools[ sSize ] ){
-        dzThread = MEMBER_BASE( host->cotPools[ sSize ], DzThread, lItr );
+        dzCot = MEMBER_BASE( host->cotPools[ sSize ], DzCot, lItr );
         host->cotPools[ sSize ] = host->cotPools[ sSize ]->next;
         host->cotPoolNowDepth[ sSize ] ++;
     }else{
-        if( !host->threadPool ){
-            if( !AllocDzThreadPool( host ) ){
+        if( !host->cotPool ){
+            if( !AllocDzCotPool( host ) ){
                 return NULL;
             }
         }
-        dzThread = MEMBER_BASE( host->threadPool, DzThread, lItr );
-        if( InitCot( host, dzThread, sSize ) ){
-            host->threadPool = host->threadPool->next;
+        dzCot = MEMBER_BASE( host->cotPool, DzCot, lItr );
+        if( InitCot( host, dzCot, sSize ) ){
+            host->cotPool = host->cotPool->next;
         }else{
             return NULL;
         }
     }
-    return dzThread;
+    return dzCot;
 }
 
-inline void FreeDzThread( DzHost* host, DzThread* dzThread )
+inline void FreeDzCot( DzHost* host, DzCot* dzCot )
 {
-    DzThread* tmp;
+    DzCot* tmp;
 
-    if( host->cotPoolNowDepth[ dzThread->sSize ] > 0 ){
-        dzThread->lItr.next = host->cotPools[ dzThread->sSize ];
-        host->cotPools[ dzThread->sSize ] = &dzThread->lItr;
-        host->cotPoolNowDepth[ dzThread->sSize ] --;
+    if( host->cotPoolNowDepth[ dzCot->sSize ] > 0 ){
+        dzCot->lItr.next = host->cotPools[ dzCot->sSize ];
+        host->cotPools[ dzCot->sSize ] = &dzCot->lItr;
+        host->cotPoolNowDepth[ dzCot->sSize ] --;
     }else{
-        //can not FreeCotStack( dzThread ) here!!
+        //can not FreeCotStack( dzCot ) here!!
         //the stack is still in use before switch
-        if( host->cotPools[ dzThread->sSize ] ){
+        if( host->cotPools[ dzCot->sSize ] ){
             //if the cotPool is not empty swap and free the head
-            tmp = MEMBER_BASE( host->cotPools[ dzThread->sSize ], DzThread, lItr );
-            dzThread->lItr.next = tmp->lItr.next;
-            host->cotPools[ dzThread->sSize ] = &dzThread->lItr;
+            tmp = MEMBER_BASE( host->cotPools[ dzCot->sSize ], DzCot, lItr );
+            dzCot->lItr.next = tmp->lItr.next;
+            host->cotPools[ dzCot->sSize ] = &dzCot->lItr;
             FreeCotStack( tmp );
-            tmp->lItr.next = host->threadPool;
-            host->threadPool = &tmp->lItr;
+            tmp->lItr.next = host->cotPool;
+            host->cotPool = &tmp->lItr;
         }else{
-            //start a cot to free it later
-            StartCot( host, DelayFreeTheadEntry, (intptr_t)dzThread, host->lowestPriority, SS_FIRST );
+            //switch to a helper cot to free it
+            StartCot( host, DelayFreeCotHelper, (intptr_t)dzCot, host->lowestPri, SS_FIRST );
         }
     }
 }
 
 // StartCot:
-// create a new co thread
+// create a new cot
 inline int StartCot(
     DzHost*     host,
     DzRoutine   entry,
@@ -99,31 +99,25 @@ inline int StartCot(
     int         sSize
     )
 {
-    DzThread* dzThread;
+    DzCot* dzCot;
 
-    if( sSize == SS_DEFAULT ){
-        sSize = host->defaultSSize;
-    }
-
-    dzThread = AllocDzThread( host, sSize );
-    if( !dzThread ){
+    dzCot = AllocDzCot( host, sSize );
+    if( !dzCot ){
         return DS_NO_MEMORY;
     }
-
-    host->threadCount++;
-    dzThread->priority = priority == CP_DEFAULT ? host->defaultPri : priority;
-    SetThreadEntry( dzThread, entry, context );
-
-    if( dzThread->priority < host->currPriority ){
-        host->currPriority = dzThread->priority;
+    dzCot->priority = priority;
+    if( priority < host->currPri ){
+        host->currPri = priority;
     }
-    DispatchThread( host, dzThread );
+    host->cotCount++;
+    SetCotEntry( dzCot, entry, context );
+    DispatchCot( host, dzCot );
     return DS_OK;
 }
 
 // StartCotInstant:
-// create a new co thread and run it at once
-// current co thread is paused and will continue at next schedule
+// create a new cot and run it at once
+// current cot is paused and will continue at next schedule
 inline int StartCotInstant(
     DzHost*     host,
     DzRoutine   entry,
@@ -132,23 +126,18 @@ inline int StartCotInstant(
     int         sSize
     )
 {
-    DzThread* dzThread;
+    DzCot* dzCot;
 
-    if( sSize == SS_DEFAULT ){
-        sSize = host->defaultSSize;
-    }
-
-    dzThread = AllocDzThread( host, sSize );
-    if( !dzThread ){
+    dzCot = AllocDzCot( host, sSize );
+    if( !dzCot ){
         return DS_NO_MEMORY;
     }
-
-    host->threadCount++;
-    dzThread->priority = priority == CP_DEFAULT ? host->defaultPri : priority;
-    SetThreadEntry( dzThread, entry, context );
-
-    TemporaryPushThread( host, host->currThread );
-    SwitchToCot( host, dzThread );
+    dzCot->priority = priority;
+    host->cotCount++;
+    host->scheduleCd++;
+    SetCotEntry( dzCot, entry, context );
+    TemporaryPushCot( host, host->currCot );
+    SwitchToCot( host, dzCot );
     return DS_OK;
 }
 
@@ -213,14 +202,21 @@ inline int StartRemoteCot(
     int         sSize
     )
 {
-    DzRmtCallPkg pkg;
+    DzRmtCotParam* param;
+    DzCot* dzCot;
 
-    pkg.entry = entry;
-    pkg.context = context;
-    pkg.priority = priority;
-    pkg.sSize = sSize;
-    pkg.evt = NULL;
-    SendRmtCall( host, rmtId, FALSE, &pkg );
+    dzCot = AllocDzCot( host, sSize );
+    if( !dzCot ){
+        return DS_NO_MEMORY;
+    }
+    param = (DzRmtCotParam*)AllocLNode( host );
+    param->hostId = host->hostId;
+    param->entry = entry;
+    param->context = context;
+    param->type = 0;
+    dzCot->priority = priority;
+    SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
+    DispatchRmtCot( host, rmtId, FALSE, dzCot );
     return DS_OK;
 }
 
@@ -234,15 +230,23 @@ inline int EvtStartRemoteCot(
     int         sSize
     )
 {
-    DzRmtCallPkg pkg;
+    DzRmtCotParam* param;
+    DzCot* dzCot;
 
-    pkg.entry = entry;
-    pkg.context = context;
-    pkg.priority = priority;
-    pkg.sSize = sSize;
-    pkg.evt = CloneSynObj( evt );
-    pkg.hostId = host->hostId;
-    SendRmtCall( host, rmtId, FALSE, &pkg );
+    dzCot = AllocDzCot( host, sSize );
+    if( !dzCot ){
+        return DS_NO_MEMORY;
+    }
+    param = (DzRmtCotParam*)AllocLNode( host );
+    param->hostId = host->hostId;
+    param->entry = entry;
+    param->context = context;
+    param->type = 1;
+    param->evtType = 0;
+    param->evt = CloneSynObj( evt );
+    dzCot->priority = priority;
+    SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
+    DispatchRmtCot( host, rmtId, FALSE, dzCot );
     return DS_OK;
 }
 
@@ -255,19 +259,25 @@ inline int RunRemoteCot(
     int         sSize
     )
 {
-    DzSynObj* evt;
-    DzRmtCallPkg pkg;
+    DzRmtCotParam* param;
+    DzCot* dzCot;
+    DzEasyEvt easyEvt;
 
-    evt = CreateManualEvt( host, FALSE );
-    pkg.entry = entry;
-    pkg.context = context;
-    pkg.priority = priority;
-    pkg.sSize = sSize;
-    pkg.evt = CloneSynObj( evt );
-    pkg.hostId = host->hostId;
-    SendRmtCall( host, rmtId, FALSE, &pkg );
-    WaitSynObj( host, pkg.evt, -1 );
-    CloseSynObj( host, pkg.evt );
+    dzCot = AllocDzCot( host, sSize );
+    if( !dzCot ){
+        return DS_NO_MEMORY;
+    }
+    param = (DzRmtCotParam*)AllocLNode( host );
+    param->hostId = host->hostId;
+    param->entry = entry;
+    param->context = context;
+    param->type = 1;
+    param->evtType = 1;
+    param->easyEvt = &easyEvt;
+    dzCot->priority = priority;
+    SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
+    DispatchRmtCot( host, rmtId, FALSE, dzCot );
+    WaitEasyEvt( host, &easyEvt );
     return DS_OK;
 }
 
@@ -278,9 +288,9 @@ inline int RunRemoteCot(
 inline int RunHost(
     DzHostsMgr* hostMgr,
     int         hostId,
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize,
+    int         lowestPri,
+    int         dftPri,
+    int         dftSSize,
     DzRoutine   firstEntry,
     intptr_t    context
     )
@@ -303,14 +313,18 @@ inline int RunHost(
         return DS_NO_MEMORY;
     }
 
-    host.originThread.sSize = SS_DEFAULT;
-    host.currThread = &host.originThread;
-    host.lowestPriority = lowestPriority;
-    host.currPriority = lowestPriority + 1;
-    for( i = 0; i <= lowestPriority; i++ ){
+    host.currCot = &host.centerCot;
+    host.lowestPri = lowestPri;
+    host.currPri = lowestPri + 1;
+    for( i = 0; i <= lowestPri; i++ ){
         InitSList( &host.taskLs[i] );
     }
-    host.threadPool = NULL;
+    host.hostId = hostId;
+    host.checkRmtSign = 0;
+    host.hostMask = 1 << hostId;
+    host.cotCount = 0;
+    host.scheduleCd = SCHEDULE_COUNTDOWN;
+    host.cotPool = NULL;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host.cotPools[i] = NULL;
         host.cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
@@ -319,31 +333,27 @@ inline int RunHost(
         host.cotPools[i] = NULL;
         host.cotPoolNowDepth[i] = 0;
     }
-    host.threadCount = 0;
-    host.hostId = hostId;
     host.timerCount = 0;
     host.timerHeapSize = 0;
     host.timerHeap = timerHeap;
-    host.defaultPri = defaultPri;
-    host.defaultSSize = defaultSSize;
+    host.dftPri = dftPri;
+    host.dftSSize = dftSSize;
     host.mallocSpace = mallocSpace;
     host.synObjPool = NULL;
     host.lNodePool = NULL;
     host.hostMgr = hostMgr;
-    host.checkRmtSign = 0;
-    host.hostMask = 1 << hostId;
     host.checkFifo = NULL;
     host.rmtFifoArr = hostMgr->rmtFifoRes + hostMgr->hostCount * hostId;
-    host.pendingPkgs = hostMgr->pendingPkgRes + hostMgr->hostCount * hostId;
+    host.pendRmtCot = hostMgr->pendRmtCotRes + hostMgr->hostCount * hostId;
     host.memPoolPos = NULL;
     host.memPoolEnd = NULL;
     host.poolGrowList = NULL;
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){
         host.cotPoolSetDepth[i] = 0;
     }
-    if( defaultSSize > DZ_MAX_PERSIST_STACK_SIZE ){
-        host.cotPoolNowDepth[ defaultSSize ] = DFT_SSIZE_POOL_DEPTH;
-        host.cotPoolSetDepth[ defaultSSize ] = DFT_SSIZE_POOL_DEPTH;
+    if( dftSSize > DZ_MAX_PERSIST_STACK_SIZE ){
+        host.cotPoolNowDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
+        host.cotPoolSetDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
     }
 
     if( InitOsStruct( &host, hostMgr->hostArr[0] ) ){
@@ -351,7 +361,7 @@ inline int RunHost(
         SetHost( &host );
         host.hostMgr->hostArr[ hostId ] = &host;
 
-        ret = StartCot( &host, firstEntry, context, defaultPri, defaultSSize );
+        ret = StartCot( &host, firstEntry, context, dftPri, dftSSize );
         if( ret == DS_OK ){
             Schedule( &host );
         }
@@ -377,9 +387,9 @@ inline int RunHost(
 inline int RunHosts(
     int         hostCount,
     int*        servMask,
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize,
+    int         lowestPri,
+    int         dftPri,
+    int         dftSSize,
     DzRoutine   firstEntry,
     intptr_t    context
     )
@@ -398,26 +408,33 @@ inline int RunHosts(
     for( i = 0; i < hostCount; i++ ){
         hostMgr.hostArr[i] = NULL;
     }
-    hostMgr.rmtFifoRes = (DzRmtCallFifo*)
-        alloca( sizeof( DzRmtCallFifo ) * hostCount * hostCount );
+    hostMgr.rmtFifoRes = (DzRmtCotFifo*)
+        alloca( sizeof( DzRmtCotFifo ) * hostCount * hostCount );
     for( i = 0; i < hostCount * hostCount; i++ ){
         hostMgr.rmtFifoRes[i].readPos = 0;
         hostMgr.rmtFifoRes[i].writePos = 0;
-        hostMgr.rmtFifoRes[i].callPkgArr = NULL;
+        hostMgr.rmtFifoRes[i].rmtCotArr = NULL;
     }
-    hostMgr.pendingPkgRes = (DzSList*)
+    hostMgr.pendRmtCotRes = (DzSList*)
         alloca( sizeof( DzSList ) * hostCount * hostCount );
     for( i = 0; i < hostCount * hostCount; i++ ){
-        InitSList( hostMgr.pendingPkgRes + i );
+        InitSList( hostMgr.pendRmtCotRes + i );
     }
     hostMgrPtr = (DzHostsMgr*)alloca( sizeof( DzHostsMgr ) );
     hostMgrPtr->hostArr = hostMgr.hostArr;
     hostMgrPtr->rmtFifoRes = hostMgr.rmtFifoRes;
-    hostMgrPtr->pendingPkgRes = hostMgr.pendingPkgRes;
+    hostMgrPtr->pendRmtCotRes = hostMgr.pendRmtCotRes;
     hostMgrPtr->servMask = servMask;
     hostMgrPtr->hostCount = hostCount;
     hostMgrPtr->exitSign = 0;
 
+    for( i = 0; i < hostCount; i++ ){
+        for( ret = 0; ret < hostCount; ret++ ){
+            if( servMask[i] & ( 1 << ret ) ){
+                servMask[ret] |= ( 1 << i );
+            }
+        }
+    }
     param.result = DS_OK;
     if( hostCount > 1 ){
         param.cotStart.entry = firstEntry;
@@ -426,7 +443,7 @@ inline int RunHosts(
         context = (intptr_t)&param;
     }
     ret = RunHost(
-        hostMgrPtr, 0, lowestPriority, defaultPri, defaultSSize,
+        hostMgrPtr, 0, lowestPri, dftPri, dftSSize,
         firstEntry, context
         );
     FreeTlsIndex();
@@ -435,18 +452,18 @@ inline int RunHosts(
 
 inline int GetCotCount( DzHost* host )
 {
-    return host->threadCount;
+    return host->cotCount;
 }
 
 inline int SetCurrCotPriority( DzHost* host, int priority )
 {
     int ret;
 
-    ret = host->currThread->priority;
+    ret = host->currCot->priority;
     if( priority >= CP_FIRST ){
-        host->currThread->priority = priority;
+        host->currCot->priority = priority;
         if( priority < ret ){
-            host->currPriority = priority;
+            host->currPri = priority;
         }
     }
     return ret;
@@ -468,21 +485,21 @@ inline int SetCotPoolDepth( DzHost* host, int sSize, int depth )
 
 inline int SetHostParam(
     DzHost*     host,
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize
+    int         lowestPri,
+    int         dftPri,
+    int         dftSSize
     )
 {
     int ret;
 
-    ret = host->lowestPriority;
-    if( lowestPriority > host->lowestPriority ){
-        host->lowestPriority = lowestPriority;
+    ret = host->lowestPri;
+    if( lowestPri > host->lowestPri ){
+        host->lowestPri = lowestPri;
     }
-    host->defaultPri = defaultPri;
-    host->defaultSSize = defaultSSize;
-    if( host->cotPoolSetDepth[ defaultSSize ] < DFT_SSIZE_POOL_DEPTH ){
-        SetCotPoolDepth( host, defaultSSize, DFT_SSIZE_POOL_DEPTH );
+    host->dftPri = dftPri;
+    host->dftSSize = dftSSize;
+    if( host->cotPoolSetDepth[ dftSSize ] < DFT_SSIZE_POOL_DEPTH ){
+        SetCotPoolDepth( host, dftSSize, DFT_SSIZE_POOL_DEPTH );
     }
 
     return ret;
@@ -506,6 +523,110 @@ inline void* ReAlloc( DzHost* host, void* mem, size_t size )
 inline void Free( DzHost* host, void* mem )
 {
     mspace_free( host->mallocSpace, mem );
+}
+
+inline int DispatchMinTimers( DzHost* host )
+{
+    DzTimerNode* timerNode;
+    int64 currTime;
+    int64 cmpTime;
+    BOOL ret;
+
+    while( host->timerCount > 0 ){
+        ret = FALSE;
+        currTime = MilUnixTime();
+        cmpTime = currTime + MIN_TIME_INTERVAL;
+        while( GetMinTimerNode( host )->timestamp <= cmpTime ){
+            timerNode = GetMinTimerNode( host );
+            timerNode->repeat--;
+            if( timerNode->repeat != 0 ){
+                if( timerNode->repeat < 0 ){
+                    timerNode->repeat = 0;
+                }
+                timerNode->timestamp -= timerNode->interval;
+                AdjustMinTimer( host, timerNode );
+            }else{
+                RemoveMinTimer( host );
+            }
+            ret = NotifyTimerNode( host, timerNode ) || ret;
+            if( host->timerCount == 0 ){
+                return ret ? 0 : -1;
+            }
+        }
+        if( ret ){
+            return 0;
+        }else{
+            return (int)( GetMinTimerNode( host )->timestamp - currTime );
+        }
+    }
+    return -1;
+}
+
+inline void DealRmtCot( DzHost* host, DzCot* dzCot )
+{
+    DzLItr* nextItr;
+
+    nextItr = NULL;
+    while( 1 ){
+        if( dzCot->priority < 0 ){
+            dzCot->priority += CP_DEFAULT + 1;
+            nextItr = dzCot->lItr.next;
+        }
+        host->cotCount++;
+        if( dzCot->priority == CP_DEFAULT ){
+            SwitchToCot( host, dzCot );
+        }else{
+            if( dzCot->priority > host->lowestPri ){
+                dzCot->priority = host->lowestPri;
+            }
+            DispatchCot( host, dzCot );
+        }
+        if( !nextItr ){
+            return;
+        }
+        dzCot = MEMBER_BASE( nextItr, DzCot, lItr );
+        nextItr = dzCot->lItr.next;
+    }
+}
+
+inline int DispatchRmtCots( DzHost* host, int timeout )
+{
+    int count;
+    int nowCount;
+    int writePos;
+    DzCot* dzCot;
+
+    if( timeout ){
+        nowCount = AtomCasInt( &host->checkRmtSign, 0, RMT_CHECK_SLEEP_SIGN );
+    }else{
+        nowCount = AtomReadInt( &host->checkRmtSign );
+    }
+    if( nowCount == 0 ){
+        return timeout;
+    }
+    count = nowCount;
+    host->scheduleCd = 0;
+    while( 1 ){
+        writePos = AtomReadInt( &host->checkFifo->writePos );
+        while( host->checkFifo->readPos != writePos ){
+            dzCot = host->checkFifo->rmtCotArr[ host->checkFifo->readPos ];
+            DealRmtCot( host, dzCot );
+            host->checkFifo->readPos++;
+            if( host->checkFifo->readPos == RMT_CALL_FIFO_SIZE ){
+                host->checkFifo->readPos = 0;
+            }
+            nowCount--;
+            if( nowCount == 0 ){
+                nowCount = AtomSubInt( &host->checkRmtSign, count );
+                nowCount -= count;
+                if( nowCount == 0 ){
+                    return 0;
+                }
+                count = nowCount;
+            }
+        }
+        host->checkFifo = host->checkFifo->next;
+    }
 }
 
 #ifdef __cplusplus

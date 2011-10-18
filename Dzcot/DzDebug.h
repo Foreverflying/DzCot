@@ -19,13 +19,13 @@ extern "C"{
 
 int __DbgGetLastErr( DzHost* host );
 void __DbgSetLastErr( DzHost* host, int err );
-void __DbgCheckCotStackOverflow( DzThread* dzThread );
+void __DbgCheckCotStackOverflow( DzCot* dzCot );
 
 #else
 
 #define __DbgGetLastErr( host ) (0)
 #define __DbgSetLastErr( host, err )
-#define __DbgCheckCotStackOverflow( dzThread )
+#define __DbgCheckCotStackOverflow( dzCot )
 
 #endif
 

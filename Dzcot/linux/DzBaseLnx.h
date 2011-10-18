@@ -15,7 +15,7 @@ extern "C"{
 #endif
 
 void* SysThreadEntry( void* context );
-void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
+void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 
 inline void* PageAlloc( size_t size )
 {

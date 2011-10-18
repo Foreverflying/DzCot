@@ -29,16 +29,16 @@ enum
 
 struct _DzTimerNode
 {
-    short           type;
-    unsigned short  repeat;
+    int             type;
     int             index;
     int64           timestamp;
-    int             interval;       //for repeat timer, should set minus
+    int             interval;
+    int             repeat;       //for repeat timer, should set minus
 };
 
 struct _DzEasyEvt
 {
-    DzThread*       dzThread;
+    DzCot*          dzCot;
 };
 
 struct _DzFastEvt
@@ -46,17 +46,16 @@ struct _DzFastEvt
     union{
         DzTimerNode     timerNode;
         struct{
-            short       type;
-            short       unused1;
-            int         unused2;
+            int         type;
+            int         unused1;
             int64       unusedTimestamp;
+            BOOL        notified;
             int         status;
         };
     };
-    BOOL                notified;
     union{
         DzWaitHelper*   helper;     //for timeout
-        DzThread*       dzThread;   //for fast event
+        DzCot*          dzCot;   //for fast event
     };
 };
 
@@ -66,17 +65,15 @@ struct _DzSynObj
         DzLItr          lItr;
         DzTimerNode     timerNode;
         struct{
-            short       type;
-            short       unused1;
-            int         status;
+            int         type;
+            int         unused1;
             int64       unusedTimestamp;
-            union{
-                int     unusedInterval;     //for repeat timer, should set minus
-                int     notifyCount;        //for semaphore and event
-            };
+            int         notifyCount;        //for semaphore and event
+            int         unused2;
         };
     };
     int                 ref;
+    int                 status;
     union{
         struct{
             DzRoutine   routine;    //for CallbackTimer, must reset
@@ -104,40 +101,24 @@ struct _DzWaitHelper
 {
     int             waitCount;
     int             checkIdx;
-    DzThread*       dzThread;
+    DzCot*          dzCot;
     DzWaitNode*     nodeArray;
     DzFastEvt       timeout;
 };
 
-struct _DzRmtCallPkg
+struct _DzRmtCotFifo
 {
-    union{
-        struct{
-            char    priority;
-            char    sSize;
-            char    hostId;
-            char    sign;
-        };
-        intptr_t    params;
-    };
-    DzRoutine       entry;
-    intptr_t        context;
-    DzSynObj*       evt;
-};
-
-struct _DzRmtCallFifo
-{
-    DzRmtCallFifo*  next;
+    DzRmtCotFifo*   next;
     int             readPos;
     int             writePos;
-    DzRmtCallPkg*   callPkgArr;
+    DzCot**         rmtCotArr;
 };
 
 struct _DzHostsMgr
 {
     DzHost**        hostArr;
-    DzRmtCallFifo*  rmtFifoRes;
-    DzSList*        pendingPkgRes;
+    DzRmtCotFifo*   rmtFifoRes;
+    DzSList*        pendRmtCotRes;
     int*            servMask;
     int             hostCount;
     volatile int    exitSign;
@@ -145,29 +126,46 @@ struct _DzHostsMgr
 
 struct _DzHost
 {
-    //running co thread
-    DzThread*       currThread;
+    //running cot
+    DzCot*          currCot;
 
     //CP_INSTANT task called instantly, so needn't be queued
     //if needed, while switch a CP_INSTANT to another CP_INSTANT
     //push it to the head of CP_HIGH queue
-    int             lowestPriority;
-    int             currPriority;
+    int             lowestPri;
+    int             currPri;
     DzSList         taskLs[ COT_PRIORITY_COUNT ];
 
-    //the host thread's original info
-    DzThread        originThread;
+    union{
+        //the host thread's original stack info
+        DzCot               centerCot;
 
-    //DzThread struct pool
-    DzLItr*         threadPool;
+        struct{
+            //centerCot use sp only
+            DzLItr          unused_lItr;
+            void*           unused_sp;
+
+            //host's id
+            int             hostId;
+
+            //remote call FIFO check sign
+            volatile int    checkRmtSign;
+
+            //host mask
+            int             hostMask;
+        };
+    };
+
+    //current cot count
+    int             cotCount;
+
+    //cot schedule countdown
+    int             scheduleCd;
+
+    //DzCot struct pool
+    DzLItr*         cotPool;
     DzLItr*         cotPools[ STACK_SIZE_COUNT ];
     int             cotPoolNowDepth[ STACK_SIZE_COUNT ];
-
-    //current thread count
-    int             threadCount;
-
-    //host's id
-    int             hostId;
 
     //Os struct
     DzOsStruct      osStruct;
@@ -177,9 +175,9 @@ struct _DzHost
     int             timerCount;
     int             timerHeapSize;
 
-    //default cot thread value
-    int             defaultPri;
-    int             defaultSSize;
+    //default cot value
+    int             dftPri;
+    int             dftSSize;
 
     //dlmalloc heap
     void*           mallocSpace;
@@ -193,20 +191,17 @@ struct _DzHost
     //multi hosts manager
     DzHostsMgr*     hostMgr;
 
-    //remote call FIFO check sign
-    volatile int    checkRmtSign;
-
-    //host mask
-    int             hostMask;
-
     //checking FIFO chain
-    DzRmtCallFifo*  checkFifo;
+    DzRmtCotFifo*   checkFifo;
 
     //remote call FIFOs
-    DzRmtCallFifo*  rmtFifoArr;
+    DzRmtCotFifo*   rmtFifoArr;
 
-    //pending remote call packages
-    DzSList*        pendingPkgs;
+    //pending remote cots
+    DzSList*        pendRmtCot;
+
+    //lazy dispatch remote cots
+    DzSList*        lazyRmtCot;
 
     //memory chunk pool
     char*           memPoolPos;
@@ -227,16 +222,34 @@ struct _DzSysParam
         struct{
             DzHandle    evt;
             DzHostsMgr* hostMgr;
+            DzCot*      returnCot;
             int         hostId;
-            int         lowestPriority;
-            int         defaultPri;
-            int         defaultSSize;
+            int         lowestPri;
+            int         dftPri;
+            int         dftSSize;
         } hostStart;
         struct{
             DzRoutine   entry;
             intptr_t    context;
         } cotStart;
     };
+};
+
+struct _DzRmtCotParam
+{
+    char                hostId;
+    char                type;       //0 normal call; 1 feedback call; -1 emergency
+    char                evtType;    //0 SynObj Events; 1 EasyEvt
+    char                sign;
+    union{
+        DzSynObj*       evt;
+        DzEasyEvt*      easyEvt;
+    };
+    union{
+        DzRoutine       entry;
+        DzCot*          cot;
+    };
+    intptr_t            context;
 };
 
 #endif // __DzStructs_h__

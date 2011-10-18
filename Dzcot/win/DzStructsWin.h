@@ -23,7 +23,7 @@ struct _DzOsStruct
     LPFN_GETACCEPTEXSOCKADDRS   _GetAcceptExSockAddrs;
 };
 
-struct _DzThread
+struct _DzCot
 {
     DzLItr              lItr;
     void*               sp;
@@ -32,7 +32,7 @@ struct _DzThread
     int                 sSize;
     int                 priority;
 
-    __DBG_DATA_DEFINE( DzThread )
+    __DBG_DATA_DEFINE( DzCot )
 };
 
 #endif // __DzStructsWin_h__

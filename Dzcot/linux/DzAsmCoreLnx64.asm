@@ -18,13 +18,14 @@
 
 # void __stdcall CallDzcotEntry( void )
 CallDzcotEntry:
-    leaq    8(%rsp), %rsi
-    movq    %rsp, %rdi
+    movq    16(%rsp), %rdi
+    movq    %rsp, %rsi
+    leaq    8(%rsp), %rdx
     call    DzcotEntry
 
-# void __fastcall DzSwitch( DzHost* host, DzThread* dzThread );
+# void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 # host$ = rdi
-# dzThread$ = rsi
+# dzCot$ = rsi
 DzSwitch:
     pushq   %rbp
     pushq   %rbx
@@ -33,10 +34,10 @@ DzSwitch:
     pushq   %r14
     pushq   %r15
 
-    movq    (%rdi), %rax    #rax = host->currThread
-    movq    %rsp, 8(%rax)   #host->currThread->sp = rsp
-    movq    %rsi, (%rdi)    #host->currThread = dzThread
-    movq    8(%rsi), %rsp   #rsp = dzThread.sp
+    movq    (%rdi), %rax    #rax = host->currCot
+    movq    %rsp, 8(%rax)   #host->currCot->sp = rsp
+    movq    %rsi, (%rdi)    #host->currCot = dzCot
+    movq    8(%rsi), %rsp   #rsp = dzCot.sp
 
     popq    %r15
     popq    %r14

@@ -15,7 +15,6 @@
 extern "C"{
 #endif
 
-int NotifyMinTimersAndRmtCalls( DzHost* host );
 void __stdcall CallbackTimerEntry( intptr_t context );
 
 inline int64 MilUnixTime()

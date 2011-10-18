@@ -90,7 +90,7 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
     BOOL ret;
     
     ret = FALSE;
-    for( priority = CP_FIRST; priority <= host->lowestPriority; priority++ ){
+    for( priority = CP_FIRST; priority <= host->lowestPri; priority++ ){
         queue = &obj->waitQ[ priority ];
         dlItr = queue->entry.next;
         while( dlItr != &queue->entry ){
@@ -99,7 +99,7 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
             if( node->helper->checkIdx < 0 ){
                 WaitNotified( obj );
                 ClearWait( host, node->helper );
-                DispatchThread( host, node->helper->dzThread );
+                DispatchCot( host, node->helper->dzCot );
                 node->helper->checkIdx = (int)( node - node->helper->nodeArray );
                 ret = TRUE;
                 if( !IsNotified( obj ) ){
@@ -131,7 +131,7 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
                             WaitNotified( head[i].synObj );
                         }
                         ClearWait( host, node->helper );
-                        DispatchThread( host, node->helper->dzThread );
+                        DispatchCot( host, node->helper->dzCot );
                         node->helper->checkIdx = 0;
                         ret = TRUE;
                         if( !IsNotified( obj ) ){
@@ -173,7 +173,7 @@ inline DzSynObj* CreateAutoEvt( DzHost* host, BOOL notified )
     return obj;
 }
 
-inline DzSynObj* CreateCountDownEvt( DzHost* host, u_int count )
+inline DzSynObj* CreateCdEvt( DzHost* host, u_int count )
 {
     DzSynObj* obj;
 
@@ -197,7 +197,7 @@ inline void SetEvt( DzHost* host, DzSynObj* evt )
         return;
     }
     if( NotifyWaitQueue( host, evt ) ){
-        host->currPriority = CP_FIRST;
+        host->currPri = CP_FIRST;
     }
 }
 
@@ -232,12 +232,12 @@ inline int ReleaseSem( DzHost* host, DzSynObj* sem, int count )
     }
     sem->notifyCount += count;
     if( NotifyWaitQueue( host, sem ) ){
-        host->currPriority = CP_FIRST;
+        host->currPri = CP_FIRST;
     }
     return sem->notifyCount;
 }
 
-inline DzSynObj* CreateTimer( DzHost* host, int milSec, unsigned short repeat )
+inline DzSynObj* CreateTimer( DzHost* host, int milSec, int repeat )
 {
     DzSynObj* obj;
 
@@ -268,7 +268,7 @@ inline void CloseTimer( DzHost* host, DzSynObj* timer )
 inline DzSynObj* CreateCallbackTimer(
     DzHost*         host,
     int             milSec,
-    unsigned short  repeat,
+    int             repeat,
     DzRoutine       callback,
     intptr_t        context,
     int             priority,
@@ -291,7 +291,7 @@ inline DzSynObj* CreateCallbackTimer(
     obj->priority = priority;
     obj->sSize = sSize;
     obj->ref++;
-    host->threadCount++;
+    host->cotCount++;
 
     AddTimer( host, &obj->timerNode );
     return obj;
@@ -302,7 +302,7 @@ inline void CloseCallbackTimer( DzHost* host, DzSynObj* timer )
     if( IsTimeNodeInHeap( &timer->timerNode ) ){
         RemoveTimer( host, &timer->timerNode );
     }
-    host->threadCount--;
+    host->cotCount--;
     timer->routine = NULL;
     timer->ref--;
     if( timer->ref == 0 ){
@@ -317,15 +317,15 @@ inline BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
     BOOL ret;
     DzFastEvt* fastEvt;
     DzSynObj* timer;
-    DzThread* dzThread;
+    DzCot* dzCot;
 
     switch( timerNode->type ){
     case TYPE_TIMER:
         timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
-        //since DzTimerNode.interval and DzTimerNode.notifyCount is union,
-        //negative DzTimerNode.notifyCount means not notified.
-        //so interval is a negative number
-        //when notifying Timer, DzTimerNode.notifyCount should keep positive,
+        //since DzTimerNode.interval and DzTimer.notifyCount is union,
+        //DzTimer.notifyCount > 0 means not notified.
+        //For DzTimerNode.interval is always a negative number,
+        //when notifying Timer, DzTimerNode.notifyCount should keep positive
         timer->notifyCount = - timer->notifyCount;
         ret = NotifyWaitQueue( host, timer );
         //well, if a timer can be notified more than once, it is still in timer heap.
@@ -345,15 +345,15 @@ inline BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
         fastEvt = MEMBER_BASE( timerNode, DzFastEvt, timerNode );
         fastEvt->helper->checkIdx = -1;
         ClearWait( host, fastEvt->helper );
-        DispatchThread( host, fastEvt->helper->dzThread );
+        DispatchCot( host, fastEvt->helper->dzCot );
         return TRUE;
 
     case TYPE_FAST_EVT:
         fastEvt = MEMBER_BASE( timerNode, DzFastEvt, timerNode );
         fastEvt->status = -1;
-        dzThread = fastEvt->dzThread;
-        fastEvt->dzThread = NULL;
-        DispatchThread( host, dzThread );
+        dzCot = fastEvt->dzCot;
+        fastEvt->dzCot = NULL;
+        DispatchCot( host, dzCot );
         return TRUE;
     }
     return TRUE;
@@ -398,14 +398,14 @@ inline int WaitSynObj( DzHost* host, DzSynObj* obj, int timeout )
     helper.waitCount = 1;
     helper.checkIdx = -1;
     helper.nodeArray[0].helper = &helper;
-    helper.dzThread = host->currThread;
+    helper.dzCot = host->currCot;
     if( timeout > 0 ){
         InitTimeOut( &helper.timeout, timeout, &helper );
         AddTimer( host, &helper.timeout.timerNode );
     }else{
         helper.timeout.timerNode.index = -1;
     }
-    AppendToWaitQ( &obj->waitQ[ host->currThread->priority ], &helper.nodeArray[0] );
+    AppendToWaitQ( &obj->waitQ[ host->currCot->priority ], &helper.nodeArray[0] );
     Schedule( host );
     return helper.checkIdx;
 }
@@ -439,7 +439,7 @@ inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** obj, BOOL waitAl
         return -1;
     }
     helper.waitCount = count;
-    helper.dzThread = host->currThread;
+    helper.dzCot = host->currCot;
     helper.nodeArray = (DzWaitNode*)alloca( sizeof(DzWaitNode) * count );
     helper.checkIdx = i == count ? -1 : i;
     for( i = 0; i < count; i++ ){
@@ -453,7 +453,7 @@ inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** obj, BOOL waitAl
         helper.timeout.timerNode.index = -1;
     }
     for( i = 0; i < count; i++ ){
-        AppendToWaitQ( &obj[i]->waitQ[ host->currThread->priority ], &helper.nodeArray[i] );
+        AppendToWaitQ( &obj[i]->waitQ[ host->currCot->priority ], &helper.nodeArray[i] );
     }
     Schedule( host );
     return helper.checkIdx;
@@ -468,12 +468,12 @@ inline void InitFastEvt( DzFastEvt* fastEvt )
 
 inline void NotifyFastEvt( DzHost* host, DzFastEvt* fastEvt, int status )
 {
-    if( !fastEvt->dzThread ){
+    if( !fastEvt->dzCot ){
         fastEvt->notified = TRUE;
         return;
     }
-    DispatchThread( host, fastEvt->dzThread );
-    fastEvt->dzThread = NULL;
+    DispatchCot( host, fastEvt->dzCot );
+    fastEvt->dzCot = NULL;
     if( IsTimeNodeInHeap( &fastEvt->timerNode ) ){
         RemoveTimer( host, &fastEvt->timerNode );
     }
@@ -486,7 +486,7 @@ inline int WaitFastEvt( DzHost* host, DzFastEvt* fastEvt, int timeout )
         fastEvt->notified = FALSE;
         return 0;
     }
-    fastEvt->dzThread = host->currThread;
+    fastEvt->dzCot = host->currCot;
     if( timeout >= 0 ){
         fastEvt->timerNode.repeat = 1;
         fastEvt->timerNode.timestamp = MilUnixTime() + timeout;
@@ -498,26 +498,26 @@ inline int WaitFastEvt( DzHost* host, DzFastEvt* fastEvt, int timeout )
 
 inline void CleanEasyEvt( DzEasyEvt* easyEvt )
 {
-    easyEvt->dzThread = NULL;
+    easyEvt->dzCot = NULL;
 }
 
 inline BOOL IsEasyEvtWaiting( DzEasyEvt* easyEvt )
 {
-    return easyEvt->dzThread != NULL;
+    return easyEvt->dzCot != NULL;
 }
 
 inline void NotifyEasyEvt( DzHost* host, DzEasyEvt* easyEvt )
 {
-    DispatchThread( host, easyEvt->dzThread );
+    DispatchCot( host, easyEvt->dzCot );
 }
 
 inline void WaitEasyEvt( DzHost* host, DzEasyEvt* easyEvt )
 {
-    easyEvt->dzThread = host->currThread;
+    easyEvt->dzCot = host->currCot;
     Schedule( host );
 }
 
-inline void DelayCurrThread( DzHost* host, int milSec )
+inline void DelayCurrCot( DzHost* host, int milSec )
 {
     DzFastEvt evt;
 

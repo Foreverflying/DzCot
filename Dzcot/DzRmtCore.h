@@ -16,95 +16,60 @@
 extern "C"{
 #endif
 
+DzCot* CreateWaitFifoCot( DzHost* host );
 void __stdcall MainHostEntry( intptr_t context );
-void __stdcall SendFifoWritableEntry( intptr_t context );
-void __stdcall FeedRmtCallEntry( intptr_t context );
+void __stdcall RemoteCotEntry( intptr_t context );
 
-inline void CopyRmtCallPkg( DzRmtCallPkg* src, DzRmtCallPkg* dst )
-{
-    dst->params = src->params;
-    dst->entry = src->entry;
-    dst->context = src->context;
-    dst->evt = src->evt;
-}
-
-inline void NotifyRmtCall( DzHost* rmtHost, int* writePos, int addVal )
+inline void NotifyRmtFifo( DzHost* rmtHost, int* writePos )
 {
     int nowCheck;
-    int newPos;
 
-    newPos = *writePos;
-    newPos += addVal;
-    if( newPos >= RMT_CALL_FIFO_SIZE ){
-        newPos -= RMT_CALL_FIFO_SIZE;
+    if( *writePos == RMT_CALL_FIFO_SIZE - 1 ){
+        *writePos = 0;
+    }else{
+        ( *writePos )++;
     }
-    *writePos = newPos;
-    nowCheck = AtomAddInt( &rmtHost->checkRmtSign, addVal );
+    nowCheck = AtomIncInt( &rmtHost->checkRmtSign );
     if( nowCheck == RMT_CHECK_SLEEP_SIGN ){
         AtomOrInt( &rmtHost->hostMgr->exitSign, rmtHost->hostMask );
         AwakeRemoteHost( rmtHost );
     }
 }
 
-inline DzRmtCallPkg* PendingRmtCall( DzHost* host, int rmtId )
-{
-    DzLNode* node;
-
-    node = AllocLNode( host );
-    node->content = (intptr_t)AllocLNode( host );
-    AddLItrToTail( &host->pendingPkgs[ rmtId ], &node->lItr );
-    return (DzRmtCallPkg*)node->content;
-}
-
-inline void SendRmtCall(
+inline void DispatchRmtCot(
     DzHost*         host,
     int             rmtId,
     BOOL            emergency,
-    DzRmtCallPkg*   srcPkg
+    DzCot*          cot
     )
 {
     int empty;
-    int addVal;
-    int writePos;
     DzHost* rmtHost;
-    DzRmtCallFifo* fifo;
-    DzRmtCallPkg* pkg;
+    DzRmtCotFifo* fifo;
+    DzCot* waitFifoCot;
 
     rmtHost = host->hostMgr->hostArr[ rmtId ];
-    addVal = 0;
-    if( host->pendingPkgs[ rmtId ].tail ){
-        pkg = PendingRmtCall( host, rmtId );
+    fifo = rmtHost->rmtFifoArr + host->hostId;
+    if( emergency ){
+        fifo->rmtCotArr[ fifo->writePos ] = cot;
+        NotifyRmtFifo( rmtHost, &fifo->writePos );
+        return;
+    }else if( host->pendRmtCot[ rmtId ].tail ){
+        AddLItrToTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
+        return;
+    }
+    empty = AtomReadInt( &fifo->readPos ) - fifo->writePos;
+    if( empty <= 0 ){
+        empty += RMT_CALL_FIFO_SIZE;
+    }
+    if( empty > 2 ){
+        fifo->rmtCotArr[ fifo->writePos ] = cot;
     }else{
-        fifo = rmtHost->rmtFifoArr + host->hostId;
-        empty = AtomReadInt( &fifo->readPos ) - fifo->writePos;
-        if( empty <= 0 ){
-            empty += RMT_CALL_FIFO_SIZE;
-        }
-        writePos = fifo->writePos;
-        pkg = fifo->callPkgArr + writePos;
-        addVal++;
-        if( empty == 2 ){
-            pkg->evt = 0;
-            pkg->priority = CP_FIRST;
-            pkg->sSize = SS_FIRST;
-            pkg->entry = SendFifoWritableEntry;
-            pkg->context = host->hostId;
-            if( !emergency ){
-                pkg = PendingRmtCall( host, rmtId );
-            }else{
-                writePos++;
-                if( writePos == RMT_CALL_FIFO_SIZE ){
-                    writePos = 0;
-                }
-                pkg = fifo->callPkgArr + writePos;
-                addVal++;
-            }
-        }
+        waitFifoCot = CreateWaitFifoCot( host );
+        fifo->rmtCotArr[ fifo->writePos ] = waitFifoCot;
+        AddLItrToTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
     }
-    CopyRmtCallPkg( srcPkg, pkg );
-    if( addVal ){
-        NotifyRmtCall( rmtHost, &fifo->writePos, addVal );
-    }
+    NotifyRmtFifo( rmtHost, &fifo->writePos );
 }
 
 #ifdef __cplusplus

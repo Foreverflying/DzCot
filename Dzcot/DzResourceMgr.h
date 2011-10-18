@@ -21,7 +21,7 @@ BOOL MemeryPoolGrow( DzHost* host );
 void ReleaseMemoryPool( DzHost* host );
 BOOL AllocListNodePool( DzHost* host );
 BOOL AllocSynObjPool( DzHost* host );
-BOOL AllocDzThreadPool( DzHost* host );
+BOOL AllocDzCotPool( DzHost* host );
 
 inline void* AllocChunk( DzHost* host, int size )
 {

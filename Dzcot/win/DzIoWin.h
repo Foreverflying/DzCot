@@ -114,7 +114,7 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
@@ -170,7 +170,7 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
@@ -223,7 +223,7 @@ inline int SendEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags 
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
@@ -269,7 +269,7 @@ inline int RecvEx( DzHost* host, int fd, DzBuf* bufs, u_int bufCount, int flags 
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
@@ -340,7 +340,7 @@ inline int SendToEx(
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
@@ -394,7 +394,7 @@ inline int RecvFromEx(
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
@@ -572,7 +572,7 @@ inline ssize_t Read( DzHost* host, int fd, void* buf, size_t count )
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );
@@ -635,7 +635,7 @@ inline ssize_t Write( DzHost* host, int fd, const void* buf, size_t count )
     }else{
         GetQueuedCompletionStatus( host->osStruct.iocp, &bytes, &key, &overlapped, 0 );
         if( overlapped != &asyncIo.overlapped ){
-            host->currPriority = CP_FIRST;
+            host->currPri = CP_FIRST;
             do{
                 asyncIoPtr = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                 NotifyEasyEvt( host, &asyncIoPtr->easyEvt );

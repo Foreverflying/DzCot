@@ -114,23 +114,23 @@ BOOL AllocSynObjPool( DzHost* host )
     return TRUE;
 }
 
-BOOL AllocDzThreadPool( DzHost* host )
+BOOL AllocDzCotPool( DzHost* host )
 {
-    DzThread* p;
-    DzThread* end;
+    DzCot* p;
+    DzCot* end;
     DzLItr* lItr;
 
-    p = (DzThread*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzThread ) );
+    p = (DzCot*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzCot ) );
     if( !p ){
         return FALSE;
     }
 
-    host->threadPool = &p->lItr;
+    host->cotPool = &p->lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
-    InitDzThread( end );
+    InitDzCot( host, end );
     while( p != end ){
-        InitDzThread( p );
+        InitDzCot( host, p );
         lItr = &p->lItr;
         lItr->next = &(++p)->lItr;
     }

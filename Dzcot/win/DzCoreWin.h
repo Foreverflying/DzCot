@@ -18,6 +18,7 @@ extern "C"{
 
 void __stdcall CallDzcotEntry( void );
 void __stdcall DzcotEntry(
+    DzHost*             host,
     volatile DzRoutine* entryPtr,
     volatile intptr_t*  contextPtr
     );
@@ -25,9 +26,9 @@ BOOL InitOsStruct( DzHost* host, DzHost* firstHost );
 void DeleteOsStruct( DzHost* host, DzHost* firstHost );
 void CotScheduleCenter( DzHost* host );
 
-inline void InitDzThread( DzThread* dzThread )
+inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
-    __DBG_INIT_INFO( DzThread, NULL, dzThread );
+    __DBG_INIT_INFO( DzCot, NULL, dzCot );
 }
 
 #if defined( _X86_ )
@@ -44,6 +45,7 @@ struct DzStackBottom
     void*       ipEntry;
     DzRoutine   entry;
     intptr_t    context;
+    DzHost*     host;
 };
 
 #elif defined( _M_AMD64 )
@@ -63,14 +65,15 @@ struct DzStackBottom
     void*       ipEntry;
     DzRoutine   entry;
     intptr_t    context;
+    DzHost*     host;
 };
 
 #endif
 
-inline void SetThreadEntry( DzThread* dzThread, DzRoutine entry, intptr_t context )
+inline void SetCotEntry( DzCot* dzCot, DzRoutine entry, intptr_t context )
 {
-    ( ( (struct DzStackBottom*)dzThread->stack ) - 1 )->entry = entry;
-    ( ( (struct DzStackBottom*)dzThread->stack ) - 1 )->context = context;
+    ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
+    ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->context = context;
 }
 
 inline char* AllocStack( DzHost* host, int size )
@@ -118,51 +121,52 @@ inline char* CommitStack( char* stack, int size )
     return ret ? stack - size + PAGE_SIZE : NULL;
 }
 
-inline void InitCotStack( DzHost* host, DzThread* dzThread )
+inline void InitCotStack( DzHost* host, DzCot* dzCot )
 {
     struct DzStackBottom* bottom;
 
-    bottom = ( (struct DzStackBottom*)dzThread->stack ) - 1;
+    bottom = ( (struct DzStackBottom*)dzCot->stack ) - 1;
+    bottom->host = host;
     bottom->ipEntry = CallDzcotEntry;
 #ifdef _X86_
     bottom->exceptPtr = host->osStruct.originExceptPtr;
 #endif
-    bottom->stackPtr = dzThread->stack;
-    bottom->stackLimit = dzThread->stackLimit;
+    bottom->stackPtr = dzCot->stack;
+    bottom->stackLimit = dzCot->stackLimit;
 
-    dzThread->sp = bottom;
+    dzCot->sp = bottom;
 }
 
-inline DzThread* InitCot( DzHost* host, DzThread* dzThread, int sSize )
+inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sSize )
 {
     int size;
     
     size = DZ_STACK_UNIT_SIZE << ( sSize * DZ_STACK_SIZE_STEP );
     if( sSize <= DZ_MAX_PERSIST_STACK_SIZE ){
-        dzThread->stackLimit = (char*)AllocChunk( host, size );
-        if( !dzThread->stackLimit ){
+        dzCot->stackLimit = (char*)AllocChunk( host, size );
+        if( !dzCot->stackLimit ){
             return NULL;
         }
-        dzThread->stack = dzThread->stackLimit + size;
+        dzCot->stack = dzCot->stackLimit + size;
     }else{
-        dzThread->stack = AllocStack( host, size );
-        if( !dzThread->stack ){
+        dzCot->stack = AllocStack( host, size );
+        if( !dzCot->stack ){
             return NULL;
         }
-        dzThread->stackLimit = CommitStack( dzThread->stack, PAGE_SIZE * 3 );
-        if( !dzThread->stackLimit )
+        dzCot->stackLimit = CommitStack( dzCot->stack, PAGE_SIZE * 3 );
+        if( !dzCot->stackLimit )
         {
             return NULL;
         }
     }
-    dzThread->sSize = sSize;
-    InitCotStack( host, dzThread );
-    return dzThread;
+    dzCot->sSize = sSize;
+    InitCotStack( host, dzCot );
+    return dzCot;
 }
 
-inline void FreeCotStack( DzThread* dzThread )
+inline void FreeCotStack( DzCot* dzCot )
 {
-    FreeStack( dzThread->stack, DZ_STACK_UNIT_SIZE << ( dzThread->sSize * DZ_STACK_SIZE_STEP ) );
+    FreeStack( dzCot->stack, DZ_STACK_UNIT_SIZE << ( dzCot->sSize * DZ_STACK_SIZE_STEP ) );
 }
 
 #ifdef __cplusplus

@@ -37,11 +37,11 @@
     ( structAddr->__dbgData )
 
 
-__DBG_DATA_TYPE( DzThread ){
+__DBG_DATA_TYPE( DzCot ){
     int     lastErr;
 };
 
-__DBG_DATA_TYPE_INIT( DzThread )
+__DBG_DATA_TYPE_INIT( DzCot )
 {
     data->lastErr = 0;
 }

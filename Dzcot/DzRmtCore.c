@@ -8,12 +8,49 @@
 #include "DzRmtCore.h"
 #include "DzCore.h"
 
+void __stdcall PauseCotHelpEntry( intptr_t context )
+{
+    DzHost* host = GetHost();
+    DzRmtCotParam* param = (DzRmtCotParam*)context;
+
+    DispatchRmtCot( host, (int)param->hostId, param->type < 0, param->cot );
+}
+
+inline void MoveCurCotNative( DzHost* host, DzRmtCotParam* param )
+{
+    DzCot* helpCot;
+
+    param->cot = host->currCot;
+    param->cot->priority = CP_DEFAULT;
+    helpCot = AllocDzCot( host, SS_FIRST );
+    SetCotEntry( helpCot, PauseCotHelpEntry, (intptr_t)param );
+    SwitchToCot( host, helpCot );
+}
+
+void __stdcall RemoteCotEntry( intptr_t context )
+{
+    DzHost* host = GetHost();
+    DzRmtCotParam* param = (DzRmtCotParam*)context;
+
+    param->entry( param->context );
+    MoveCurCotNative( host, param );
+    host = GetHost();
+    if( param->type > 0 ){
+        if( param->evtType == 0 ){
+            SetEvt( host, param->evt );
+            CloseSynObj( host, param->evt );
+        }else{
+            NotifyEasyEvt( host, param->easyEvt );
+        }
+    }
+    FreeLNode( host, (DzLNode*)param );
+}
+
 void __stdcall RemoteHostEntry( intptr_t context )
 {
     int i;
     DzHost* host;
-    DzRmtCallPkg* pkg;
-    DzRmtCallFifo* fifo;
+    DzRmtCotFifo* fifo;
     DzSysParam* param;
     
     host = GetHost();
@@ -26,8 +63,8 @@ void __stdcall RemoteHostEntry( intptr_t context )
                 fifo->next = host->rmtFifoArr + i;
                 fifo = fifo->next;
             }
-            fifo->callPkgArr = (DzRmtCallPkg*)
-                AllocChunk( host, sizeof( DzRmtCallPkg ) * RMT_CALL_FIFO_SIZE );
+            fifo->rmtCotArr = (DzCot**)
+                AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
         }
     }
     if( host->checkFifo ){
@@ -37,37 +74,36 @@ void __stdcall RemoteHostEntry( intptr_t context )
     param = (DzSysParam*)context;
     param->result = DS_OK;
     fifo = host->hostMgr->hostArr[0]->rmtFifoArr + host->hostId;
-    pkg = fifo->callPkgArr;
-    pkg->priority = CP_FIRST;
-    pkg->sSize = SS_FIRST;
-    pkg->entry = NULL;
-    pkg->evt = param->hostStart.evt;
-    NotifyRmtCall( host->hostMgr->hostArr[0], &fifo->writePos, 1 );
+    fifo->rmtCotArr[0] = param->hostStart.returnCot;
+    NotifyRmtFifo( host->hostMgr->hostArr[0], &fifo->writePos );
 }
 
 void __stdcall RunRemoteHost( intptr_t context )
 {
     int ret;
     DzSysParam* param;
-    DzRmtCallPkg* pkg;
-    DzRmtCallFifo* fifo;
+    DzRmtCotFifo* fifo;
 
     param = (DzSysParam*)context;
     ret = RunHost(
         param->hostStart.hostMgr, param->hostStart.hostId,
-        param->hostStart.lowestPriority, param->hostStart.defaultPri,
-        param->hostStart.defaultSSize, RemoteHostEntry, context
+        param->hostStart.lowestPri, param->hostStart.dftPri,
+        param->hostStart.dftSSize, RemoteHostEntry, context
         );
     if( ret != DS_OK ){
         param->result = ret;
         fifo = param->hostStart.hostMgr->hostArr[0]->rmtFifoArr + param->hostStart.hostId;
-        pkg = fifo->callPkgArr;
-        pkg->priority = CP_FIRST;
-        pkg->sSize = SS_FIRST;
-        pkg->entry = NULL;
-        pkg->evt = param->hostStart.evt;
-        NotifyRmtCall( param->hostStart.hostMgr->hostArr[0], &fifo->writePos, 1 );
+        fifo->rmtCotArr[0] = param->hostStart.returnCot;
+        NotifyRmtFifo( param->hostStart.hostMgr->hostArr[0], &fifo->writePos );
     }
+}
+
+void __stdcall SysThreadReturnCot( intptr_t context )
+{
+    DzHost* host = GetHost();
+    DzSysParam* param = (DzSysParam*)context;
+
+    SetEvt( host, param->hostStart.evt );
 }
 
 void __stdcall MainHostEntry( intptr_t context )
@@ -76,27 +112,32 @@ void __stdcall MainHostEntry( intptr_t context )
     DzHost* host;
     DzSysParam* cotParam;
     DzSysParam param[ DZ_MAX_HOST ];
-    DzRmtCallPkg tmpCallPkgArr[ DZ_MAX_HOST ];
+    DzCot* tmpCallPkgArr[ DZ_MAX_HOST ];
     DzSynObj* evt;
-    DzRmtCallFifo* fifo;
+    DzRmtCotFifo* fifo;
+    DzCot* dzCot;
 
     host = GetHost();
     host->checkFifo = host->rmtFifoArr;
     for( i = 0; i < host->hostMgr->hostCount; i++ ){
-        host->rmtFifoArr[i].callPkgArr = tmpCallPkgArr + i;
+        host->rmtFifoArr[i].rmtCotArr = tmpCallPkgArr + i;
         host->rmtFifoArr[i].next = host->rmtFifoArr + i + 1;
     }
     host->rmtFifoArr[ i - 1 ].next = host->rmtFifoArr;
-    evt = CreateCountDownEvt( host, host->hostMgr->hostCount - 1 );
+    evt = CreateCdEvt( host, host->hostMgr->hostCount - 1 );
     cotParam = (DzSysParam*)context;
     for( i = 1; i < host->hostMgr->hostCount; i++ ){
+        dzCot = AllocDzCot( host, SS_FIRST );
+        dzCot->priority = CP_DEFAULT;
+        SetCotEntry( dzCot, SysThreadReturnCot, (intptr_t)&param[i] );
         param[i].threadEntry = RunRemoteHost;
         param[i].hostStart.evt = evt;
         param[i].hostStart.hostMgr = host->hostMgr;
+        param[i].hostStart.returnCot = dzCot;
         param[i].hostStart.hostId = i;
-        param[i].hostStart.lowestPriority = host->lowestPriority;
-        param[i].hostStart.defaultPri = host->defaultPri;
-        param[i].hostStart.defaultSSize = host->defaultSSize;
+        param[i].hostStart.lowestPri = host->lowestPri;
+        param[i].hostStart.dftPri = host->dftPri;
+        param[i].hostStart.dftSSize = host->dftSSize;
         StartSystemThread( param + i );
     }
 
@@ -112,7 +153,7 @@ void __stdcall MainHostEntry( intptr_t context )
     for( i = 0; i < host->hostMgr->hostCount; i++ ){
         host->rmtFifoArr[i].readPos = 0;
         host->rmtFifoArr[i].writePos = 0;
-        host->rmtFifoArr[i].callPkgArr = NULL;
+        host->rmtFifoArr[i].rmtCotArr = NULL;
         if( host->hostMgr->servMask[ host->hostId ] & ( 1 << i ) ){
             if( !host->checkFifo ){
                 host->checkFifo = host->rmtFifoArr + i;
@@ -121,8 +162,8 @@ void __stdcall MainHostEntry( intptr_t context )
                 fifo->next = host->rmtFifoArr + i;
                 fifo = fifo->next;
             }
-            fifo->callPkgArr = (DzRmtCallPkg*)
-                AllocChunk( host, sizeof( DzRmtCallPkg ) * RMT_CALL_FIFO_SIZE );
+            fifo->rmtCotArr = (DzCot**)
+                AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
         }
     }
     if( host->checkFifo ){
@@ -130,78 +171,37 @@ void __stdcall MainHostEntry( intptr_t context )
     }
     cotParam->result = StartCot(
         host, cotParam->cotStart.entry, cotParam->cotStart.context,
-        CP_DEFAULT, SS_DEFAULT
+        host->dftPri, host->dftSSize
         );
 }
 
-void __stdcall RecvFifoWritableEntry( intptr_t context )
+void __stdcall WaitFifoWritableEntry( intptr_t context )
 {
-    int empty;
-    int addVal;
-    int writePos;
-    DzHost* host;
-    DzHost* rmtHost;
-    DzRmtCallFifo* fifo;
-    DzRmtCallPkg* pkg;
-    DzLNode* node;
-
-    host = GetHost();
-    rmtHost = host->hostMgr->hostArr[ context ];
-    fifo = rmtHost->rmtFifoArr + host->hostId;
-    writePos = fifo->writePos;
-    empty = fifo->readPos - writePos;
-    if( empty <= 0 ){
-        empty += RMT_CALL_FIFO_SIZE;
-    }
-    empty -= 2;
-    addVal = 0;
-    do{
-        node = MEMBER_BASE( host->pendingPkgs[ context ].head, DzLNode, lItr );
-        EraseListHead( &host->pendingPkgs[ context ] );
-        pkg = (DzRmtCallPkg*)node->content;
-        CopyRmtCallPkg( pkg, fifo->callPkgArr + writePos );
-        writePos++;
-        if( writePos == RMT_CALL_FIFO_SIZE ){
-            writePos = 0;
-        }
-        FreeLNode( host, (DzLNode*)pkg );
-        FreeLNode( host, node );
-        addVal++;
-    }while( host->pendingPkgs[ context ].head && addVal < empty );
-    if( addVal == empty && host->pendingPkgs[ context ].head ){
-        pkg = fifo->callPkgArr + writePos;
-        pkg->evt = 0;
-        pkg->priority = CP_FIRST;
-        pkg->sSize = SS_FIRST;
-        pkg->entry = SendFifoWritableEntry;
-        pkg->context = rmtHost->hostId;
-        addVal++;
-    }
-    NotifyRmtCall( rmtHost, &fifo->writePos, addVal );
-}
-
-void __stdcall SendFifoWritableEntry( intptr_t context )
-{
-    DzHost* host;
-    int rmtId = (int)context;
-    DzRmtCallPkg pkg;
-
-    host = GetHost();
-    pkg.evt = 0;
-    pkg.priority = CP_FIRST;
-    pkg.sSize = SS_FIRST;
-    pkg.entry = RecvFifoWritableEntry;
-    pkg.context = host->hostId;
-    SendRmtCall( host, rmtId, TRUE, &pkg );
-}
-
-void __stdcall FeedRmtCallEntry( intptr_t context )
-{
+    int rmtId;
+    DzCot* dzCot;
     DzHost* host = GetHost();
-    DzRmtCallPkg* pkg = (DzRmtCallPkg*)context;
+    DzRmtCotParam* param = (DzRmtCotParam*)context;
 
-    pkg->entry( pkg->context );
-    pkg->entry = NULL;
-    SendRmtCall( host, pkg->hostId, FALSE, pkg );
-    FreeLNode( host, (DzLNode*)pkg );
+    rmtId = host->hostId;
+    MoveCurCotNative( host, param );
+    host = GetHost();
+    host->pendRmtCot[ rmtId ].tail->next = NULL;
+    dzCot = MEMBER_BASE( host->pendRmtCot[ rmtId ].head, DzCot, lItr );
+    dzCot->priority -= CP_DEFAULT + 1;
+    InitSList( &host->pendRmtCot[ rmtId ] );
+    DispatchRmtCot( host, rmtId, FALSE, dzCot );
+    FreeLNode( host, (DzLNode*)param );
+}
+
+DzCot* CreateWaitFifoCot( DzHost* host )
+{
+    DzCot* ret;
+    DzRmtCotParam* param;
+
+    param = (DzRmtCotParam*)AllocLNode( host );
+    param->type = -1;
+    ret = AllocDzCot( host, SS_FIRST );
+    ret->priority = CP_DEFAULT;
+    SetCotEntry( ret, WaitFifoWritableEntry, (intptr_t)param );
+    return ret;
 }

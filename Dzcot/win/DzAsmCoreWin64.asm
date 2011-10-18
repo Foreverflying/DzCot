@@ -14,15 +14,16 @@ _TEXT   SEGMENT
 
 ; void CallDzcotEntry( void );
 CallDzcotEntry PROC     ;CallDzcotEntry
-    mov     rcx, rsp
-    lea     rdx, [rsp+8]
+    mov     rcx, [rsp+16]
+    mov     rdx, rsp
+    lea     r8, [rsp+8]
     sub     rsp, 32
     call    DzcotEntry
 CallDzcotEntry ENDP     ;CallDzcotEntry
 
-; void DzSwitch( DzHost* host, DzThread* dzThread );
+; void DzSwitch( DzHost* host, DzCot* dzCot );
 ; host$ = rcx
-; dzThread$ = rdx
+; dzCot$ = rdx
 DzSwitch PROC           ; DzSwitch
     push    rbp
     push    rbx
@@ -37,10 +38,10 @@ DzSwitch PROC           ; DzSwitch
     push    qword ptr [rax+8]
     push    qword ptr [rax+16]
 
-    mov     rsi, [rcx]      ;rsi = host->currThread
-    mov     [rsi+8], rsp    ;host->currThread->sp = rsp
-    mov     [rcx], rdx      ;host->currThread = dzThread
-    mov     rsp, [rdx+8]    ;rsp = dzThread.sp
+    mov     rsi, [rcx]      ;rsi = host->currCot
+    mov     [rsi+8], rsp    ;host->currCot->sp = rsp
+    mov     [rcx], rdx      ;host->currCot = dzCot
+    mov     rsp, [rdx+8]    ;rsp = dzCot.sp
 
     pop     qword ptr [rax+16]
     pop     qword ptr [rax+8]

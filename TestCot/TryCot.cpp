@@ -56,35 +56,58 @@ void TryCotPool()
 }
 //*/
 
+void __stdcall TestRemoteCot1( intptr_t context )
+{
+    int hostId = Inner::GetHost()->hostId;
+    char buff[32];
+    sprintf( buff, "                               " );
+    buff[ 1 + 2 * hostId ] = 0;
+    printf( "%s--%d--print from host %d\r\n", buff, hostId, (int)context );
+}
+
 void __stdcall TestRemoteCot( intptr_t context )
 {
-    printf( "======Cot in host %d\r\n", Inner::GetHost()->hostId );
-    printf( "TestRemoteCot run!\r\n" );
+    int hostId = Inner::GetHost()->hostId;
+    char buff[32];
+    sprintf( buff, "                               " );
+    buff[ 1 + 2 * hostId ] = 0;
+    printf( "%s--%d--PRINT\r\n", buff, hostId );
+    for( int i = 0; i < context; i++ ){
+        DzStartRemoteCot( i, TestRemoteCot1, hostId );
+    }
 }
 
 void __stdcall TestCotTryEntry( intptr_t context )
 {
+    //printf( "Fuck this!\r\n" );
     //TryCotPool();
+
+    /*
     printf( "Host size is %d\r\n", (int)sizeof( Inner::DzHost ) );
     for( int i = 1; i < gHostCount; i++ ){
-        DzStartRemoteCot( i, TestRemoteCot, NULL );
+        DzStartRemoteCot( i, TestRemoteCot, i );
     }
     printf( "hahhha, i am sleep now1!\r\n" );
     DzSleep( 1500 );
     printf( "well, awake1\r\n\r\n" );
+    //*/
 
+    //*
     printf( "hahhha, i am sleep now2!\r\n" );
-    DzHandle evt = DzCreateCountDownEvt( gHostCount - 1 );
+    DzHandle evt = DzCreateCdEvt( gHostCount - 1 );
     for( int i = 1; i < gHostCount; i++ ){
-        DzEvtStartRemoteCot( evt, i, TestRemoteCot, NULL );
+        DzEvtStartRemoteCot( evt, i, TestRemoteCot, i );
     }
     DzWaitSynObj( evt );
-    printf( "well, awake2\r\n\r\n" );
-    DzCloneSynObj( evt );
+    printf( "well, awake2\r\n" );
+    DzCloseSynObj( evt );
+    //*/
 
+    /*
     printf( "hahhha, i am sleep now3!\r\n" );
     for( int i = 1; i < gHostCount; i++ ){
-        DzRunRemoteCot( i, TestRemoteCot, NULL );
+        DzRunRemoteCot( i, TestRemoteCot, i );
     }
     printf( "well, awake3\r\n\r\n" );
+    //*/
 }

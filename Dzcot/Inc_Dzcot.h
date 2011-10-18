@@ -166,9 +166,9 @@ static int __DzMakeServMask__( BOOL notServ, ... )
 int DzRunHosts(
     int         hostCount,
     int*        servMask,
-    int         lowestPriority,
-    int         defaultPri,
-    int         defaultSSize,
+    int         lowestPri,
+    int         dftPri,
+    int         dftSSize,
     DzRoutine   firstEntry,
     intptr_t    context         __DZ_DFT_ARG( 0 )
     );
@@ -223,7 +223,7 @@ int DzRunRemoteCot(
 int DzGetCotCount();
 int DzSetPriority( int priority );
 int DzSetCotPoolDepth( int sSize, int depth );
-int DzSetHostParam( int lowestPriority, int defaultPri, int defaultSSize );
+int DzSetHostParam( int lowestPri, int dftPri, int dftSSize );
 
 int DzWaitSynObj(
     DzHandle    obj,
@@ -239,25 +239,25 @@ DzHandle DzCreateMtx( BOOL owner );
 BOOL DzReleaseMtx( DzHandle mtx );
 DzHandle DzCreateManualEvt( BOOL notified );
 DzHandle DzCreateAutoEvt( BOOL notified );
-DzHandle DzCreateCountDownEvt( u_int count );
+DzHandle DzCreateCdEvt( u_int count );
 BOOL DzSetEvt( DzHandle evt );
 BOOL DzResetEvt( DzHandle evt );
 DzHandle DzCreateSem( int count );
 int DzReleaseSem( DzHandle sem, int count );
 DzHandle DzCloneSynObj( DzHandle obj );
 BOOL DzCloseSynObj( DzHandle obj );
-DzHandle DzCreateTimer( u_int milSec, u_int repeat );
+DzHandle DzCreateTimer( int milSec, int repeat );
 BOOL DzCloseTimer( DzHandle timer );
 DzHandle DzCreateCallbackTimer(
-    u_int       milSec,
-    u_int       repeat,
+    int         milSec,
+    int         repeat,
     DzRoutine   callback,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 BOOL DzCloseCallbackTimer( DzHandle timer );
-void DzSleep( u_int milSec );
+void DzSleep( int milSec );
 
 int DzOpenFileA( const char* fileName, int flags );
 int DzCloseFile( int fd );

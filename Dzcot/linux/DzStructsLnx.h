@@ -23,7 +23,7 @@ struct _DzOsStruct
     DzAsyncIo*      pipeAsyncIo;
 };
 
-struct _DzThread
+struct _DzCot
 {
     DzLItr          lItr;
     void*           sp;
@@ -31,7 +31,7 @@ struct _DzThread
     int             sSize;
     int             priority;
 
-    __DBG_DATA_DEFINE( DzThread )
+    __DBG_DATA_DEFINE( DzCot )
 };
 
 #endif // __DzStructsLnx_h__

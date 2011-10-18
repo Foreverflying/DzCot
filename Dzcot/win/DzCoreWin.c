@@ -58,24 +58,24 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 
 // DzcotEntry:
 // the real function entry the cot starts, it call the user entry
-// after that, when the cot is finished, put it into the thread pool
+// after that, when the cot is finished, put it into the cot pool
 // schedule next cot
 void __stdcall DzcotEntry(
+    DzHost*             host,
     volatile DzRoutine* entryPtr,
     volatile intptr_t*  contextPtr
     )
 {
-    DzHost* host = GetHost();
     __try{
         while(1){
             //call the entry
             ( *entryPtr )( *contextPtr );
 
-            //free the thread
-            host->threadCount--;
-            FreeDzThread( host, host->currThread );
+            //free the cot
+            host->cotCount--;
+            FreeDzCot( host, host->currCot );
 
-            //then schedule another thread
+            //then schedule another cot
             Schedule( host );
         }
     }__except( MiniDumpExpFilter( GetExceptionInformation() ) ){
@@ -158,7 +158,7 @@ void DeleteOsStruct( DzHost* host, DzHost* firstHost )
 }
 
 // CotScheduleCenter:
-// the Cot Schedule Center thread uses the host's origin thread's stack
+// the Cot Schedule Center uses the host's origin thread's stack
 // manager all kernel objects that may cause real block
 void CotScheduleCenter( DzHost* host )
 {
@@ -169,20 +169,34 @@ void CotScheduleCenter( DzHost* host )
     DWORD timeout;
 
     while( 1 ){
-        timeout = (DWORD)NotifyMinTimersAndRmtCalls( host );
-        while( host->threadCount ){
+        timeout = (DWORD)DispatchMinTimers( host );
+        timeout = host->scheduleCd ? timeout : 0;
+        timeout = (DWORD)DispatchRmtCots( host, (int)timeout );
+        while( host->cotCount ){
             GetQueuedCompletionStatus( host->osStruct.iocp, (LPDWORD)&n, &key, &overlapped, timeout );
             AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
             if( overlapped != NULL ){
                 do{
                     asyncIo = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
                     NotifyEasyEvt( host, &asyncIo->easyEvt );
-                    GetQueuedCompletionStatus( host->osStruct.iocp, &n, &key, &overlapped, 0 );
+                    GetQueuedCompletionStatus( host->osStruct.iocp, (LPDWORD)&n, &key, &overlapped, 0 );
                 }while( overlapped != NULL );
-                host->currPriority = CP_FIRST;
-                Schedule( host );
             }
-            timeout = (DWORD)NotifyMinTimersAndRmtCalls( host );
+            host->currPri = CP_FIRST;
+            host->scheduleCd = SCHEDULE_COUNTDOWN;
+            Schedule( host );
+            timeout = (DWORD)DispatchMinTimers( host );
+            timeout = host->scheduleCd ? timeout : 0;
+            timeout = (DWORD)DispatchRmtCots( host, (int)timeout );
+        }
+        if( timeout == 0 ){
+            timeout = DispatchRmtCots( host, -1 );
+            if( timeout == 0 ){
+                host->currPri = CP_FIRST;
+                host->scheduleCd = SCHEDULE_COUNTDOWN;
+                Schedule( host );
+                continue;
+            }
         }
         if( AtomAndInt( &host->hostMgr->exitSign, ~host->hostMask ) != host->hostMask ){
             GetQueuedCompletionStatus( host->osStruct.iocp, (LPDWORD)&n, &key, &overlapped, -1 );
@@ -193,7 +207,7 @@ void CotScheduleCenter( DzHost* host )
         }else{
             //be sure quit id 0 host at the end, for hostMgr is in id 0 host's stack
             for( n = host->hostMgr->hostCount - 1; n >= 0; n-- ){
-                if( n != host->hostId ){
+                if( host->hostMgr->hostArr[ n ] && n != host->hostId ){
                     AwakeRemoteHost( host->hostMgr->hostArr[ n ] );
                 }
             }
