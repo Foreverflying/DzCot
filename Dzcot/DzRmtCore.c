@@ -179,16 +179,16 @@ void __stdcall WaitFifoWritableEntry( intptr_t context )
 {
     int rmtId;
     DzCot* dzCot;
+    DzLItr* lItr;
     DzHost* host = GetHost();
     DzRmtCotParam* param = (DzRmtCotParam*)context;
 
     rmtId = host->hostId;
     MoveCurCotNative( host, param );
     host = GetHost();
-    host->pendRmtCot[ rmtId ].tail->next = NULL;
-    dzCot = MEMBER_BASE( host->pendRmtCot[ rmtId ].head, DzCot, lItr );
+    lItr = GetChainAndResetSList( &host->pendRmtCot[ rmtId ] );
+    dzCot = MEMBER_BASE( lItr, DzCot, lItr );
     dzCot->priority -= CP_DEFAULT + 1;
-    InitSList( &host->pendRmtCot[ rmtId ] );
     DispatchRmtCot( host, rmtId, FALSE, dzCot );
     FreeLNode( host, (DzLNode*)param );
 }

@@ -82,7 +82,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
     //printf( "Fuck this!\r\n" );
     //TryCotPool();
 
-    /*
+    //*
     printf( "Host size is %d\r\n", (int)sizeof( Inner::DzHost ) );
     for( int i = 1; i < gHostCount; i++ ){
         DzStartRemoteCot( i, TestRemoteCot, i );
@@ -103,7 +103,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
     DzCloseSynObj( evt );
     //*/
 
-    /*
+    //*
     printf( "hahhha, i am sleep now3!\r\n" );
     for( int i = 1; i < gHostCount; i++ ){
         DzRunRemoteCot( i, TestRemoteCot, i );

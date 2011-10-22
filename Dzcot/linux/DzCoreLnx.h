@@ -25,7 +25,6 @@ void __stdcall DzcotEntry(
     );
 BOOL InitOsStruct( DzHost* host, DzHost* firstHost );
 void DeleteOsStruct( DzHost* host, DzHost* firstHost );
-void CotScheduleCenter( DzHost* host );
 
 inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
@@ -71,9 +70,9 @@ struct DzStackBottom
     void*       unusedEbx;
     void*       unusedEbp;
     void*       ipEntry;
+    DzHost*     host;
     DzRoutine   entry;
     intptr_t    context;
-    DzHost*     host;
 };
 
 #elif defined( __amd64 )
@@ -87,9 +86,9 @@ struct DzStackBottom
     void*       unusedRbx;
     void*       unusedRbp;
     void*       ipEntry;
+    DzHost*     host;
     DzRoutine   entry;
     intptr_t    context;
-    DzHost*     host;
 };
 
 #endif
@@ -159,6 +158,39 @@ inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sSize )
 inline void FreeCotStack( DzCot* dzCot )
 {
     FreeStack( dzCot->stack, DZ_STACK_UNIT_SIZE << ( dzCot->sSize * DZ_STACK_SIZE_STEP ) );
+}
+
+inline void BlockAndDispatchIo( DzHost* host, int timeout )
+{
+    int i;
+    int listCount;
+    DzAsyncIo* asyncIo;
+    struct epoll_event* evtList;
+
+    evtList = host->osStruct.evtList;
+    listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
+    AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
+    if( listCount != 0 ){
+        while( 1 ){
+            for( i = 0; i < listCount; i++ ){
+                asyncIo = (DzAsyncIo*)evtList[i].data.ptr;
+                if( IsEasyEvtWaiting( &asyncIo->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
+                    NotifyEasyEvt( host, &asyncIo->inEvt );
+                    CleanEasyEvt( &asyncIo->inEvt );
+                }
+                if( IsEasyEvtWaiting( &asyncIo->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
+                    NotifyEasyEvt( host, &asyncIo->outEvt );
+                    CleanEasyEvt( &asyncIo->outEvt );
+                }
+            }
+            if( listCount == EPOLL_EVT_LIST_SIZE ){
+                listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, 0 );
+                continue;
+            }
+            break;
+        }
+        read( host->osStruct.pipe[0], evtList, 2048 );
+    }
 }
 
 #ifdef __cplusplus

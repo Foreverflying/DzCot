@@ -18,12 +18,12 @@
 
 # void __stdcall CallDzcotEntry( void )
 CallDzcotEntry:
-    movl    8(%esp), %ecx
-    leal    4(%esp), %eax
-    movl    %esp, %edx
-    pushl   %eax
+    leal    8(%esp), %edx
+    leal    4(%esp), %ecx
+    movl    (%esp), %eax
     pushl   %edx
     pushl   %ecx
+    pushl   %eax
     call    DzcotEntry
 
 # void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );

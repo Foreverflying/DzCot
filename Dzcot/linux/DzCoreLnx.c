@@ -112,6 +112,8 @@ BOOL InitOsStruct( DzHost* host, DzHost* firstHost )
     flag = fcntl( host->osStruct.pipe[1], F_GETFL, 0 );
     fcntl( host->osStruct.pipe[1], F_SETFL, flag | O_NONBLOCK );
     epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_ADD, host->osStruct.pipe[0], &evt );
+    host->osStruct.evtList = (struct epoll_event*)
+        AllocChunk( host, sizeof( struct epoll_event ) * EPOLL_EVT_LIST_SIZE );
     return TRUE;
 }
 
@@ -127,80 +129,4 @@ void DeleteOsStruct( DzHost* host, DzHost* firstHost )
     close( host->osStruct.pipe[1] );
     close( host->osStruct.pipe[0] );
     close( host->osStruct.epollFd );
-}
-
-// CotScheduleCenter:
-// the Cot Schedule Center uses the host's origin thread's stack
-// manager all kernel objects that may cause real block
-void CotScheduleCenter( DzHost* host )
-{
-    int i;
-    int timeout;
-    int listCount;
-    int n;
-    DzAsyncIo* asyncIo;
-    struct epoll_event *evtList;
-
-    evtList = (struct epoll_event*)AllocChunk( host, sizeof( struct epoll_event ) * EPOLL_EVT_LIST_SIZE );
-    while( 1 ){
-        timeout = DispatchMinTimers( host );
-        timeout = host->scheduleCd ? timeout : 0;
-        timeout = DispatchRmtCots( host, timeout );
-        while( host->cotCount ){
-            listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
-            AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
-            if( listCount != 0 ){
-                while( 1 ){
-                    for( i = 0; i < listCount; i++ ){
-                        asyncIo = (DzAsyncIo*)evtList[i].data.ptr;
-                        if( IsEasyEvtWaiting( &asyncIo->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
-                            NotifyEasyEvt( host, &asyncIo->inEvt );
-                            CleanEasyEvt( &asyncIo->inEvt );
-                        }
-                        if( IsEasyEvtWaiting( &asyncIo->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
-                            NotifyEasyEvt( host, &asyncIo->outEvt );
-                            CleanEasyEvt( &asyncIo->outEvt );
-                        }
-                    }
-                    if( listCount == EPOLL_EVT_LIST_SIZE ){
-                        listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, 0 );
-                        continue;
-                    }
-                    break;
-                }
-                read( host->osStruct.pipe[0], evtList, 2048 );
-            }
-            host->currPri = CP_FIRST;
-            host->scheduleCd = SCHEDULE_COUNTDOWN;
-            Schedule( host );
-            timeout = DispatchMinTimers( host );
-            timeout = host->scheduleCd ? timeout : 0;
-            timeout = DispatchRmtCots( host, timeout );
-        }
-        if( timeout == 0 ){
-            timeout = DispatchRmtCots( host, -1 );
-            if( timeout == 0 ){
-                host->currPri = CP_FIRST;
-                host->scheduleCd = SCHEDULE_COUNTDOWN;
-                Schedule( host );
-                continue;
-            }
-        }
-        if( AtomAndInt( &host->hostMgr->exitSign, ~host->hostMask ) != host->hostMask ){
-            listCount = epoll_wait( host->osStruct.epollFd, evtList, EPOLL_EVT_LIST_SIZE, -1 );
-            if( AtomReadInt( &host->hostMgr->exitSign ) ){
-                AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
-                read( host->osStruct.pipe[0], evtList, 2048 );
-                continue;
-            }
-        }else{
-            //be sure quit id 0 host at the end, for hostMgr is in id 0 host's stack
-            for( n = host->hostMgr->hostCount - 1; n >= 0; n-- ){
-                if( n != host->hostId ){
-                    AwakeRemoteHost( host->hostMgr->hostArr[ n ] );
-                }
-            }
-        }
-        break;
-    }
 }

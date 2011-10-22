@@ -1159,7 +1159,7 @@ void __stdcall TcpCltConnectCloseMain( intptr_t context )
         if( fd == -1 ){
             throw (int)__LINE__;
         }
-        DzHandle timer = DzCreateCallbackTimer( 5, 1, HelpCloseSocket, (intptr_t)fd );
+        DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
         int ret = DzConnect( fd, gAddr, gAddrLen );
         EXPECT_EQ( -1, ret );
         DzCloseCallbackTimer( timer );

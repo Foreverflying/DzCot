@@ -22,6 +22,7 @@ extern "C"{
 
 void __stdcall DelayFreeCotHelper( intptr_t context );
 void __stdcall EventNotifyCotEntry( intptr_t context );
+void CotScheduleCenter( DzHost* host );
 
 inline void ReleaseAllPoolStack( DzHost* host )
 {
@@ -356,7 +357,7 @@ inline int RunHost(
         host.cotPoolSetDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
     }
 
-    if( InitOsStruct( &host, hostMgr->hostArr[0] ) ){
+    if( MemeryPoolGrow( &host ) && InitOsStruct( &host, hostMgr->hostArr[0] ) ){
         AtomOrInt( &host.hostMgr->exitSign, 1 << hostId );
         SetHost( &host );
         host.hostMgr->hostArr[ hostId ] = &host;
@@ -377,8 +378,8 @@ inline int RunHost(
     }
 
     ReleaseAllPoolStack( &host );
-    PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     ReleaseMemoryPool( &host );
+    PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     destroy_mspace( host.mallocSpace );
 
     return ret;
@@ -594,6 +595,7 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
     int count;
     int nowCount;
     int writePos;
+    int scheduleCd;
     DzCot* dzCot;
 
     if( timeout ){
@@ -605,6 +607,7 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
         return timeout;
     }
     count = nowCount;
+    scheduleCd = host->scheduleCd;
     host->scheduleCd = 0;
     while( 1 ){
         writePos = AtomReadInt( &host->checkFifo->writePos );
@@ -620,6 +623,7 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
                 nowCount = AtomSubInt( &host->checkRmtSign, count );
                 nowCount -= count;
                 if( nowCount == 0 ){
+                    host->scheduleCd = scheduleCd;
                     return 0;
                 }
                 count = nowCount;

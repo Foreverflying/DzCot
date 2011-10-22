@@ -45,7 +45,7 @@ inline void StartSystemThread( DzSysParam* param )
 
 inline void AwakeRemoteHost( DzHost* dstHost )
 {
-    PostQueuedCompletionStatus( dstHost->osStruct.iocp, 0, 0, NULL );
+    PostQueuedCompletionStatus( dstHost->osStruct.iocp, 0, 1, (LPOVERLAPPED)1 );
 }
 
 inline int AtomReadInt( volatile int* val )

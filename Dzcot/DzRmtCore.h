@@ -54,8 +54,8 @@ inline void DispatchRmtCot(
         fifo->rmtCotArr[ fifo->writePos ] = cot;
         NotifyRmtFifo( rmtHost, &fifo->writePos );
         return;
-    }else if( host->pendRmtCot[ rmtId ].tail ){
-        AddLItrToTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
+    }else if( !IsSListEmpty( &host->pendRmtCot[ rmtId ] ) ){
+        AddLItrToNonEptTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
         return;
     }
     empty = AtomReadInt( &fifo->readPos ) - fifo->writePos;

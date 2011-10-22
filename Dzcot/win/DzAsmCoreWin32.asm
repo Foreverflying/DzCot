@@ -16,12 +16,12 @@ _TEXT   SEGMENT
 
 ; void __stdcall CallDzcotEntry( void );
 _CallDzcotEntry@0 PROC  ;CallDzcotEntry
-    mov     ecx, [esp+8]
-    lea     eax, [esp+4]
-    mov     edx, esp
-    push    eax
+    lea     edx, [esp+8]
+    lea     ecx, [esp+4]
+    mov     eax, [esp]
     push    edx
     push    ecx
+    push    eax
     call    _DzcotEntry@12
 _CallDzcotEntry@0 ENDP  ;CallDzcotEntry
 

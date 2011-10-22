@@ -57,6 +57,15 @@ inline void InitSList( DzSList* list )
     list->tail = NULL;
 }
 
+inline void EraseListHead( DzSList* list )
+{
+    if( list->head == list->tail ){
+        list->head = list->tail = NULL;
+    }else{
+        list->head = list->head->next;
+    }
+}
+
 inline void AddLItrToHead( DzSList* list, DzLItr* lItr )
 {
     if( !list->head ){
@@ -77,13 +86,30 @@ inline void AddLItrToTail( DzSList* list, DzLItr* lItr )
     }
 }
 
-inline void EraseListHead( DzSList* list )
+inline BOOL IsSListEmpty( DzSList* list )
 {
-    if( list->head == list->tail ){
-        list->head = list->tail = NULL;
-    }else{
-        list->head = list->head->next;
-    }
+    return list->tail == NULL;
+}
+
+inline void AddLItrToEptSList( DzSList* list, DzLItr* lItr )
+{
+    list->head = lItr;
+    list->tail = lItr;
+}
+
+inline void AddLItrToNonEptTail( DzSList* list, DzLItr* lItr )
+{
+    list->tail->next = lItr;
+    list->tail = lItr;
+}
+
+inline DzLItr* GetChainAndResetSList( DzSList* list )
+{
+    DzLItr* ret = list->head;
+    list->tail->next = NULL;
+    list->head = NULL;
+    list->tail = NULL;
+    return ret;
 }
 
 #ifdef __cplusplus

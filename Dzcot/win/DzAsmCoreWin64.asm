@@ -14,9 +14,9 @@ _TEXT   SEGMENT
 
 ; void CallDzcotEntry( void );
 CallDzcotEntry PROC     ;CallDzcotEntry
-    mov     rcx, [rsp+16]
-    mov     rdx, rsp
-    lea     r8, [rsp+8]
+    lea     r8, [rsp+16]
+    lea     rdx, [rsp+8]
+    mov     rcx, [rsp]
     sub     rsp, 32
     call    DzcotEntry
 CallDzcotEntry ENDP     ;CallDzcotEntry

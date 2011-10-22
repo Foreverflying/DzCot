@@ -18,9 +18,9 @@
 
 # void __stdcall CallDzcotEntry( void )
 CallDzcotEntry:
-    movq    16(%rsp), %rdi
-    movq    %rsp, %rsi
-    leaq    8(%rsp), %rdx
+    leaq    16(%rsp), %rdx
+    leaq    8(%rsp), %rsi
+    movq    (%rsp), %rdi
     call    DzcotEntry
 
 # void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );

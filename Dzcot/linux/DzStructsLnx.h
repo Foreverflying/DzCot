@@ -15,12 +15,13 @@
 
 struct _DzOsStruct
 {
-    int             epollFd;
-    int             maxFdCount;
-    int             pipe[2];
-    DzAsyncIo**     fdTable;
-    DzLItr*         asyncIoPool;
-    DzAsyncIo*      pipeAsyncIo;
+    int                 epollFd;
+    int                 maxFdCount;
+    int                 pipe[2];
+    DzAsyncIo**         fdTable;
+    DzLItr*             asyncIoPool;
+    DzAsyncIo*          pipeAsyncIo;
+    struct epoll_event* evtList;
 };
 
 struct _DzCot

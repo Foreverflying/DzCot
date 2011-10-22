@@ -24,7 +24,6 @@ void __stdcall DzcotEntry(
     );
 BOOL InitOsStruct( DzHost* host, DzHost* firstHost );
 void DeleteOsStruct( DzHost* host, DzHost* firstHost );
-void CotScheduleCenter( DzHost* host );
 
 inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
@@ -43,9 +42,9 @@ struct DzStackBottom
     void*       unusedEbx;
     void*       unusedEbp;
     void*       ipEntry;
+    DzHost*     host;
     DzRoutine   entry;
     intptr_t    context;
-    DzHost*     host;
 };
 
 #elif defined( _M_AMD64 )
@@ -63,9 +62,9 @@ struct DzStackBottom
     void*       unusedRbx;
     void*       unusedRbp;
     void*       ipEntry;
+    DzHost*     host;
     DzRoutine   entry;
     intptr_t    context;
-    DzHost*     host;
 };
 
 #endif
@@ -167,6 +166,26 @@ inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sSize )
 inline void FreeCotStack( DzCot* dzCot )
 {
     FreeStack( dzCot->stack, DZ_STACK_UNIT_SIZE << ( dzCot->sSize * DZ_STACK_SIZE_STEP ) );
+}
+
+inline void BlockAndDispatchIo( DzHost* host, int timeout )
+{
+    ULONG_PTR key;
+    DWORD n;
+    OVERLAPPED* overlapped;
+    DzAsyncIo* asyncIo;
+
+    GetQueuedCompletionStatus( host->osStruct.iocp, &n, &key, &overlapped, (DWORD)timeout );
+    AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
+    if( overlapped != NULL ){
+        do{
+            if( !key ){
+                asyncIo = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
+                NotifyEasyEvt( host, &asyncIo->easyEvt );
+            }
+            GetQueuedCompletionStatus( host->osStruct.iocp, &n, &key, &overlapped, 0 );
+        }while( overlapped != NULL );
+    }
 }
 
 #ifdef __cplusplus

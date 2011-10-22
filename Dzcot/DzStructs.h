@@ -73,7 +73,6 @@ struct _DzSynObj
         };
     };
     int                 ref;
-    int                 status;
     union{
         struct{
             DzRoutine   routine;    //for CallbackTimer, must reset
@@ -202,6 +201,9 @@ struct _DzHost
 
     //lazy dispatch remote cots
     DzSList*        lazyRmtCot;
+
+    //lazy free memory list
+    DzSList*        lazyFreeMem;
 
     //memory chunk pool
     char*           memPoolPos;
