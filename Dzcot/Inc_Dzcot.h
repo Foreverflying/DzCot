@@ -330,6 +330,8 @@ void* DzMalloc( size_t size );
 void* DzCalloc( size_t num, size_t size );
 void* DzReAlloc( void* mem, size_t size );
 void DzFree( void* p );
+void* DzMallocEx( size_t size );
+void DzFreeEx( void* mem );
 
 unsigned long long DzUnixTime();
 unsigned long long DzMilUnixTime();

@@ -2,6 +2,9 @@
 #include "stdafx.h"
 #include "../Dzcot/Inc_Dzcot.h"
 #include "TryCot.h"
+#include <vector>
+
+using namespace std;
 
 namespace Inner{
 #undef DZ_MAX_IOV
@@ -67,14 +70,20 @@ void __stdcall TestRemoteCot1( intptr_t context )
 
 void __stdcall TestRemoteCot( intptr_t context )
 {
+    vector<int>* tmp = (vector<int>*)context;
+    delete tmp;
+
     int hostId = Inner::GetHost()->hostId;
     char buff[32];
     sprintf( buff, "                               " );
     buff[ 1 + 2 * hostId ] = 0;
     printf( "%s--%d--PRINT\r\n", buff, hostId );
-    for( int i = 0; i < context; i++ ){
+    for( int i = 0; i < hostId; i++ ){
+        DzStartRemoteCot( i, TestRemoteCot1, hostId );
+        DzStartRemoteCot( i, TestRemoteCot1, hostId );
         DzStartRemoteCot( i, TestRemoteCot1, hostId );
     }
+    DzSleep( 1000 );
 }
 
 void __stdcall TestCotTryEntry( intptr_t context )
@@ -85,14 +94,15 @@ void __stdcall TestCotTryEntry( intptr_t context )
     //*
     printf( "Host size is %d\r\n", (int)sizeof( Inner::DzHost ) );
     for( int i = 1; i < gHostCount; i++ ){
-        DzStartRemoteCot( i, TestRemoteCot, i );
+        auto n = new vector<int>();
+        DzStartRemoteCot( i, TestRemoteCot, (intptr_t)n );
     }
     printf( "hahhha, i am sleep now1!\r\n" );
     DzSleep( 1500 );
     printf( "well, awake1\r\n\r\n" );
     //*/
 
-    //*
+    /*
     printf( "hahhha, i am sleep now2!\r\n" );
     DzHandle evt = DzCreateCdEvt( gHostCount - 1 );
     for( int i = 1; i < gHostCount; i++ ){
@@ -103,7 +113,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
     DzCloseSynObj( evt );
     //*/
 
-    //*
+    /*
     printf( "hahhha, i am sleep now3!\r\n" );
     for( int i = 1; i < gHostCount; i++ ){
         DzRunRemoteCot( i, TestRemoteCot, i );

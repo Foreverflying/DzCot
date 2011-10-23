@@ -584,6 +584,7 @@
     <ClInclude Include="DzStructsDebug.h" />
     <ClInclude Include="DzDeclareStructs.h" />
     <ClInclude Include="Inc_DzFastNewDel.h" />
+    <ClInclude Include="Inc_DzFastNewDelEx.h" />
     <ClInclude Include="linux\DzBaseLnx.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugLib|Win32'">true</ExcludedFromBuild>

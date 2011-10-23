@@ -7,6 +7,7 @@
 
 #include "DzIncOs.h"
 #include "DzCore.h"
+#include "DzIoOs.h"
 
 void __stdcall DelayFreeCotHelper( intptr_t context )
 {
@@ -21,14 +22,12 @@ void __stdcall DelayFreeCotHelper( intptr_t context )
 void __stdcall EventNotifyCotEntry( intptr_t context )
 {
     DzHost* host = GetHost();
-    DzLNode* node = (DzLNode*)context;
-    DzRoutine entry = (DzRoutine)node->content;
-    DzSynObj* evt = (DzSynObj*)node->context2;
+    DzCotParam* param = (DzCotParam*)context;
 
-    entry( node->context1 );
-    SetEvt( host, evt );
-    CloseSynObj( host, evt );
-    FreeLNode( host, node );
+    param->entry( param->context );
+    SetEvt( host, param->evt );
+    CloseSynObj( host, param->evt );
+    FreeLNode( host, (DzLNode*)param );
 }
 
 void __stdcall CallbackTimerEntry( intptr_t context )
@@ -74,6 +73,9 @@ void CotScheduleCenter( DzHost* host )
             host->currPri = CP_FIRST;
             host->scheduleCd = SCHEDULE_COUNTDOWN;
             Schedule( host );
+        }
+        if( host->lazyTimer ){
+            DealLazyResEntry( 0 );
         }
         if( AtomAndInt( &host->hostMgr->exitSign, ~host->hostMask ) != host->hostMask ){
             BlockAndDispatchIo( host, -1 );

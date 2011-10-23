@@ -154,16 +154,16 @@ inline int EvtStartCot(
     )
 {
     int ret;
-    DzLNode* node;
+    DzCotParam* param;
 
-    node = AllocLNode( host );
-    node->content = (intptr_t)entry;
-    node->context1 = (intptr_t)context;
-    node->context2 = (intptr_t)CloneSynObj( evt );
-    ret = StartCot( host, EventNotifyCotEntry, (intptr_t)node, priority, sSize );
+    param = (DzCotParam*)AllocLNode( host );
+    param->entry = entry;
+    param->context = context;
+    param->evt = CloneSynObj( evt );
+    ret = StartCot( host, EventNotifyCotEntry, (intptr_t)param, priority, sSize );
     if( ret != DS_OK ){
-        CloseSynObj( host, (DzSynObj*)node->context2 );
-        FreeLNode( host, node );
+        CloseSynObj( host, param->evt );
+        FreeLNode( host, (DzLNode*)param );
     }
     return ret;
 }
@@ -174,22 +174,22 @@ inline int EvtStartCotInstant(
     DzHost*     host,
     DzSynObj*   evt,
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
 {
     int ret;
-    DzLNode* node;
+    DzCotParam* param;
 
-    node = AllocLNode( host );
-    node->content = (intptr_t)entry;
-    node->context1 = (intptr_t)context;
-    node->context2 = (intptr_t)CloneSynObj( evt );
-    ret = StartCot( host, EventNotifyCotEntry, (intptr_t)node, priority, sSize );
+    param = (DzCotParam*)AllocLNode( host );
+    param->entry = entry;
+    param->context = context;
+    param->evt = CloneSynObj( evt );
+    ret = StartCotInstant( host, EventNotifyCotEntry, (intptr_t)param, priority, sSize );
     if( ret != DS_OK ){
-        CloseSynObj( host, (DzSynObj*)node->context2 );
-        FreeLNode( host, node );
+        CloseSynObj( host, param->evt );
+        FreeLNode( host, (DzLNode*)param );
     }
     return ret;
 }
@@ -203,21 +203,21 @@ inline int StartRemoteCot(
     int         sSize
     )
 {
-    DzRmtCotParam* param;
+    DzCotParam* param;
     DzCot* dzCot;
 
     dzCot = AllocDzCot( host, sSize );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
-    param = (DzRmtCotParam*)AllocLNode( host );
+    param = (DzCotParam*)AllocLNode( host );
     param->hostId = host->hostId;
     param->entry = entry;
     param->context = context;
     param->type = 0;
     dzCot->priority = priority;
     SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
-    DispatchRmtCot( host, rmtId, FALSE, dzCot );
+    SendRmtCot( host, rmtId, FALSE, dzCot );
     return DS_OK;
 }
 
@@ -231,14 +231,14 @@ inline int EvtStartRemoteCot(
     int         sSize
     )
 {
-    DzRmtCotParam* param;
+    DzCotParam* param;
     DzCot* dzCot;
 
     dzCot = AllocDzCot( host, sSize );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
-    param = (DzRmtCotParam*)AllocLNode( host );
+    param = (DzCotParam*)AllocLNode( host );
     param->hostId = host->hostId;
     param->entry = entry;
     param->context = context;
@@ -247,7 +247,7 @@ inline int EvtStartRemoteCot(
     param->evt = CloneSynObj( evt );
     dzCot->priority = priority;
     SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
-    DispatchRmtCot( host, rmtId, FALSE, dzCot );
+    SendRmtCot( host, rmtId, FALSE, dzCot );
     return DS_OK;
 }
 
@@ -260,7 +260,7 @@ inline int RunRemoteCot(
     int         sSize
     )
 {
-    DzRmtCotParam* param;
+    DzCotParam* param;
     DzCot* dzCot;
     DzEasyEvt easyEvt;
 
@@ -268,7 +268,7 @@ inline int RunRemoteCot(
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
-    param = (DzRmtCotParam*)AllocLNode( host );
+    param = (DzCotParam*)AllocLNode( host );
     param->hostId = host->hostId;
     param->entry = entry;
     param->context = context;
@@ -277,7 +277,7 @@ inline int RunRemoteCot(
     param->easyEvt = &easyEvt;
     dzCot->priority = priority;
     SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
-    DispatchRmtCot( host, rmtId, FALSE, dzCot );
+    SendRmtCot( host, rmtId, FALSE, dzCot );
     WaitEasyEvt( host, &easyEvt );
     return DS_OK;
 }
@@ -339,13 +339,16 @@ inline int RunHost(
     host.timerHeap = timerHeap;
     host.dftPri = dftPri;
     host.dftSSize = dftSSize;
-    host.mallocSpace = mallocSpace;
+    host.mSpace = mallocSpace;
     host.synObjPool = NULL;
     host.lNodePool = NULL;
     host.hostMgr = hostMgr;
     host.checkFifo = NULL;
     host.rmtFifoArr = hostMgr->rmtFifoRes + hostMgr->hostCount * hostId;
     host.pendRmtCot = hostMgr->pendRmtCotRes + hostMgr->hostCount * hostId;
+    host.lazyRmtCot = hostMgr->lazyRmtCotRes + hostMgr->hostCount * hostId;
+    host.lazyFreeMem = hostMgr->lazyFreeMemRes + hostMgr->hostCount * hostId;
+    host.lazyTimer = NULL;
     host.memPoolPos = NULL;
     host.memPoolEnd = NULL;
     host.poolGrowList = NULL;
@@ -380,7 +383,7 @@ inline int RunHost(
     ReleaseAllPoolStack( &host );
     ReleaseMemoryPool( &host );
     PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
-    destroy_mspace( host.mallocSpace );
+    destroy_mspace( host.mSpace );
 
     return ret;
 }
@@ -421,10 +424,22 @@ inline int RunHosts(
     for( i = 0; i < hostCount * hostCount; i++ ){
         InitSList( hostMgr.pendRmtCotRes + i );
     }
+    hostMgr.lazyRmtCotRes = (DzSList*)
+        alloca( sizeof( DzSList ) * hostCount * hostCount );
+    for( i = 0; i < hostCount * hostCount; i++ ){
+        InitSList( hostMgr.lazyRmtCotRes + i );
+    }
+    hostMgr.lazyFreeMemRes = (DzSList*)
+        alloca( sizeof( DzSList ) * hostCount * hostCount );
+    for( i = 0; i < hostCount * hostCount; i++ ){
+        InitSList( hostMgr.lazyFreeMemRes + i );
+    }
     hostMgrPtr = (DzHostsMgr*)alloca( sizeof( DzHostsMgr ) );
     hostMgrPtr->hostArr = hostMgr.hostArr;
     hostMgrPtr->rmtFifoRes = hostMgr.rmtFifoRes;
     hostMgrPtr->pendRmtCotRes = hostMgr.pendRmtCotRes;
+    hostMgrPtr->lazyRmtCotRes = hostMgr.lazyRmtCotRes;
+    hostMgrPtr->lazyFreeMemRes = hostMgr.lazyFreeMemRes;
     hostMgrPtr->servMask = servMask;
     hostMgrPtr->hostCount = hostCount;
     hostMgrPtr->exitSign = 0;
@@ -438,8 +453,8 @@ inline int RunHosts(
     }
     param.result = DS_OK;
     if( hostCount > 1 ){
-        param.cotStart.entry = firstEntry;
-        param.cotStart.context = context;
+        param.cs.entry = firstEntry;
+        param.cs.context = context;
         firstEntry = MainHostEntry;
         context = (intptr_t)&param;
     }
@@ -508,22 +523,49 @@ inline int SetHostParam(
 
 inline void* Malloc( DzHost* host, size_t size )
 {
-    return mspace_malloc( host->mallocSpace, size );
+    return mspace_malloc( host->mSpace, size );
 }
 
 inline void* Calloc( DzHost* host, size_t num, size_t size )
 {
-    return mspace_calloc( host->mallocSpace, num, size );
+    return mspace_calloc( host->mSpace, num, size );
 }
 
 inline void* ReAlloc( DzHost* host, void* mem, size_t size )
 {
-    return mspace_realloc( host->mallocSpace, mem, size );
+    return mspace_realloc( host->mSpace, mem, size );
 }
 
 inline void Free( DzHost* host, void* mem )
 {
-    mspace_free( host->mallocSpace, mem );
+    mspace_free( host->mSpace, mem );
+}
+
+inline void* MallocEx( DzHost* host, size_t size )
+{
+    DzMemExTag* ret;
+
+    ret = (DzMemExTag*)mspace_malloc( host->mSpace, size + sizeof( int64 ) );
+    ret->hostId = host->hostId;
+    return ret + 1;
+}
+
+inline void FreeEx( DzHost* host, void* mem )
+{
+    DzLNode* node;
+    DzMemExTag* base;
+
+    base = ( (DzMemExTag*)mem ) - 1;
+    if( base->hostId == host->hostId ){
+        mspace_free( host->mSpace, base );
+    }else{
+        node = AllocLNode( host );
+        node->d1 = (intptr_t)base;
+        AddLItrToTail( host->lazyFreeMem + base->hostId, &node->lItr );
+        if( !host->lazyTimer ){
+            StartLazyTimer( host );
+        }
+    }
 }
 
 inline int DispatchMinTimers( DzHost* host )

@@ -831,6 +831,9 @@ void __stdcall TcpSvrRecvCloseRoutine( intptr_t context )
         if( type == 0 ){
             DzShutdown( fd, 0 );
             ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
+            //Warning: platform difference!
+            //after shutdown for READ, subsequent read call return different
+            //linux return 0 and windows return -1
             EXPECT_GE( 0, ret );
             ret = writeFunc( fd, &idx, sizeof( idx ), NULL, NULL );
             EXPECT_EQ( sizeof( idx ), ret );

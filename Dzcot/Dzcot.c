@@ -119,7 +119,7 @@ int DzEvtStartCot(
 int DzEvtStartCotInstant(
     DzSynObj*   evt,
     DzRoutine   entry,
-    void*       context,
+    intptr_t    context,
     int         priority,
     int         sSize
     )
@@ -753,6 +753,22 @@ void DzFree( void* mem )
     assert( host );
 
     Free( host, mem );
+}
+
+void* DzMallocEx( size_t size )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return MallocEx( host, size );
+}
+
+void DzFreeEx( void* mem )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    FreeEx( host, mem );
 }
 
 unsigned long long DzUnixTime()

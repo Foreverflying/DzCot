@@ -118,6 +118,8 @@ struct _DzHostsMgr
     DzHost**        hostArr;
     DzRmtCotFifo*   rmtFifoRes;
     DzSList*        pendRmtCotRes;
+    DzSList*        lazyRmtCotRes;
+    DzSList*        lazyFreeMemRes;
     int*            servMask;
     int             hostCount;
     volatile int    exitSign;
@@ -179,7 +181,7 @@ struct _DzHost
     int             dftSSize;
 
     //dlmalloc heap
-    void*           mallocSpace;
+    void*           mSpace;
 
     //DzSynObj struct pool
     DzLItr*         synObjPool;
@@ -205,6 +207,9 @@ struct _DzHost
     //lazy free memory list
     DzSList*        lazyFreeMem;
 
+    //lazy checking timer
+    DzSynObj*       lazyTimer;
+
     //memory chunk pool
     char*           memPoolPos;
     char*           memPoolEnd;
@@ -229,29 +234,32 @@ struct _DzSysParam
             int         lowestPri;
             int         dftPri;
             int         dftSSize;
-        } hostStart;
+        } hs;   //used for host start
         struct{
             DzRoutine   entry;
             intptr_t    context;
-        } cotStart;
+        } cs;   //used for cot start
     };
 };
 
-struct _DzRmtCotParam
+struct _DzCotParam
 {
-    char                hostId;
-    char                type;       //0 normal call; 1 feedback call; -1 emergency
-    char                evtType;    //0 SynObj Events; 1 EasyEvt
-    char                sign;
+    char            hostId;
+    char            type;       //0 normal call; 1 feedback call; -1 emergency
+    char            evtType;    //0 SynObj Events; 1 EasyEvt
+    char            sign;
     union{
-        DzSynObj*       evt;
-        DzEasyEvt*      easyEvt;
+        DzSynObj*   evt;
+        DzEasyEvt*  easyEvt;
     };
-    union{
-        DzRoutine       entry;
-        DzCot*          cot;
-    };
-    intptr_t            context;
+    DzRoutine       entry;
+    intptr_t        context;
+};
+
+struct _DzMemExTag
+{
+    int             hostId;
+    int             reserve;
 };
 
 #endif // __DzStructs_h__

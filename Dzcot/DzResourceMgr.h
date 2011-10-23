@@ -58,6 +58,12 @@ inline void FreeLNode( DzHost* host, DzLNode* node )
     host->lNodePool = &node->lItr;
 }
 
+inline void FreeChainLNode( DzHost* host, DzLItr* head, DzLItr* tail )
+{
+    tail->next = host->lNodePool;
+    host->lNodePool = head;
+}
+
 #ifdef __cplusplus
 };
 #endif

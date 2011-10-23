@@ -11,29 +11,41 @@
 void __stdcall PauseCotHelpEntry( intptr_t context )
 {
     DzHost* host = GetHost();
-    DzRmtCotParam* param = (DzRmtCotParam*)context;
+    DzLNode* node = (DzLNode*)context;
+    int rmtId = (int)node->d2;
+    DzCot* dzCot = (DzCot*)node->d1;
 
-    DispatchRmtCot( host, (int)param->hostId, param->type < 0, param->cot );
+    if( node->d3 ){
+        SendRmtCot( host, rmtId, node->d3 < 0, dzCot );
+    }else{
+        AddLItrToTail( &host->lazyRmtCot[ rmtId ], &dzCot->lItr );
+        if( !host->lazyTimer ){
+            StartLazyTimer( host );
+        }
+    }
 }
 
-inline void MoveCurCotNative( DzHost* host, DzRmtCotParam* param )
+inline void MoveCurCotToRmt( DzHost* host, int rmtId, int type )
 {
     DzCot* helpCot;
+    DzLNode node;
 
-    param->cot = host->currCot;
-    param->cot->priority = CP_DEFAULT;
+    node.d1 = (intptr_t)host->currCot;
+    node.d2 = (intptr_t)rmtId;
+    node.d3 = (intptr_t)type;
     helpCot = AllocDzCot( host, SS_FIRST );
-    SetCotEntry( helpCot, PauseCotHelpEntry, (intptr_t)param );
+    SetCotEntry( helpCot, PauseCotHelpEntry, (intptr_t)&node );
     SwitchToCot( host, helpCot );
 }
 
 void __stdcall RemoteCotEntry( intptr_t context )
 {
     DzHost* host = GetHost();
-    DzRmtCotParam* param = (DzRmtCotParam*)context;
+    DzCotParam* param = (DzCotParam*)context;
 
     param->entry( param->context );
-    MoveCurCotNative( host, param );
+    host->currCot->priority = CP_DEFAULT;
+    MoveCurCotToRmt( host, param->hostId, param->type );
     host = GetHost();
     if( param->type > 0 ){
         if( param->evtType == 0 ){
@@ -44,6 +56,63 @@ void __stdcall RemoteCotEntry( intptr_t context )
         }
     }
     FreeLNode( host, (DzLNode*)param );
+}
+
+void __stdcall LazyFreeMemEntry( intptr_t context )
+{
+    int rmtId;
+    DzLNode* node;
+    DzLItr* tail;
+    DzHost* host;
+
+    host = GetHost();
+    node = MEMBER_BASE( (DzLItr*)context, DzLNode, lItr );
+    tail = (DzLItr*)node->d2;
+    rmtId = (int)node->d3;
+    do{
+        Free( host, (void*)node->d1 );
+        node = MEMBER_BASE( node->lItr.next, DzLNode, lItr );
+    }while( node );
+    host->currCot->priority = CP_DEFAULT;
+    MoveCurCotToRmt( host, rmtId, 1 );
+    host = GetHost();
+    FreeChainLNode( host, (DzLItr*)context, tail );
+}
+
+void __stdcall DealLazyResEntry( intptr_t context )
+{
+    int i;
+    DzLItr* lItr;
+    DzLItr* tail;
+    DzCot* dzCot;
+    DzHost* host;
+    DzLNode* node;
+
+    host = GetHost();
+    for( i = 0; i < host->hostMgr->hostCount; i++ ){
+        if( !IsSListEmpty( host->lazyRmtCot + i ) ){
+            tail = host->lazyRmtCot[i].tail;
+            lItr = GetChainAndResetSList( host->lazyRmtCot + i );
+            dzCot = MEMBER_BASE( lItr, DzCot, lItr );
+            dzCot->priority -= CP_DEFAULT + 1;
+            SendRmtCot( host, i, FALSE, dzCot );
+            if( !IsSListEmpty( &host->pendRmtCot[i] ) ){
+                host->pendRmtCot[i].tail = tail;
+            }
+        }
+        if( !IsSListEmpty( host->lazyFreeMem + i ) ){
+            tail = host->lazyFreeMem[i].tail;
+            lItr = GetChainAndResetSList( host->lazyFreeMem + i );
+            node = MEMBER_BASE( lItr, DzLNode, lItr );
+            node->d2 = (intptr_t)tail;
+            node->d3 = (intptr_t)host->hostId;
+            dzCot = AllocDzCot( host, SS_FIRST );
+            dzCot->priority = CP_DEFAULT;
+            SetCotEntry( dzCot, LazyFreeMemEntry, (intptr_t)node );
+            SendRmtCot( host, i, FALSE, dzCot );
+        }
+    }
+    StopLazyTimer( host );
 }
 
 void __stdcall RemoteHostEntry( intptr_t context )
@@ -74,7 +143,7 @@ void __stdcall RemoteHostEntry( intptr_t context )
     param = (DzSysParam*)context;
     param->result = DS_OK;
     fifo = host->hostMgr->hostArr[0]->rmtFifoArr + host->hostId;
-    fifo->rmtCotArr[0] = param->hostStart.returnCot;
+    fifo->rmtCotArr[0] = param->hs.returnCot;
     NotifyRmtFifo( host->hostMgr->hostArr[0], &fifo->writePos );
 }
 
@@ -86,15 +155,14 @@ void __stdcall RunRemoteHost( intptr_t context )
 
     param = (DzSysParam*)context;
     ret = RunHost(
-        param->hostStart.hostMgr, param->hostStart.hostId,
-        param->hostStart.lowestPri, param->hostStart.dftPri,
-        param->hostStart.dftSSize, RemoteHostEntry, context
+        param->hs.hostMgr, param->hs.hostId, param->hs.lowestPri,
+        param->hs.dftPri, param->hs.dftSSize, RemoteHostEntry, context
         );
     if( ret != DS_OK ){
         param->result = ret;
-        fifo = param->hostStart.hostMgr->hostArr[0]->rmtFifoArr + param->hostStart.hostId;
-        fifo->rmtCotArr[0] = param->hostStart.returnCot;
-        NotifyRmtFifo( param->hostStart.hostMgr->hostArr[0], &fifo->writePos );
+        fifo = param->hs.hostMgr->hostArr[0]->rmtFifoArr + param->hs.hostId;
+        fifo->rmtCotArr[0] = param->hs.returnCot;
+        NotifyRmtFifo( param->hs.hostMgr->hostArr[0], &fifo->writePos );
     }
 }
 
@@ -103,7 +171,7 @@ void __stdcall SysThreadReturnCot( intptr_t context )
     DzHost* host = GetHost();
     DzSysParam* param = (DzSysParam*)context;
 
-    SetEvt( host, param->hostStart.evt );
+    SetEvt( host, param->hs.evt );
 }
 
 void __stdcall MainHostEntry( intptr_t context )
@@ -131,13 +199,13 @@ void __stdcall MainHostEntry( intptr_t context )
         dzCot->priority = CP_DEFAULT;
         SetCotEntry( dzCot, SysThreadReturnCot, (intptr_t)&param[i] );
         param[i].threadEntry = RunRemoteHost;
-        param[i].hostStart.evt = evt;
-        param[i].hostStart.hostMgr = host->hostMgr;
-        param[i].hostStart.returnCot = dzCot;
-        param[i].hostStart.hostId = i;
-        param[i].hostStart.lowestPri = host->lowestPri;
-        param[i].hostStart.dftPri = host->dftPri;
-        param[i].hostStart.dftSSize = host->dftSSize;
+        param[i].hs.evt = evt;
+        param[i].hs.hostMgr = host->hostMgr;
+        param[i].hs.returnCot = dzCot;
+        param[i].hs.hostId = i;
+        param[i].hs.lowestPri = host->lowestPri;
+        param[i].hs.dftPri = host->dftPri;
+        param[i].hs.dftSSize = host->dftSSize;
         StartSystemThread( param + i );
     }
 
@@ -170,7 +238,7 @@ void __stdcall MainHostEntry( intptr_t context )
         fifo->next = host->checkFifo;
     }
     cotParam->result = StartCot(
-        host, cotParam->cotStart.entry, cotParam->cotStart.context,
+        host, cotParam->cs.entry, cotParam->cs.context,
         host->dftPri, host->dftSSize
         );
 }
@@ -180,28 +248,24 @@ void __stdcall WaitFifoWritableEntry( intptr_t context )
     int rmtId;
     DzCot* dzCot;
     DzLItr* lItr;
-    DzHost* host = GetHost();
-    DzRmtCotParam* param = (DzRmtCotParam*)context;
+    DzHost* host;
 
-    rmtId = host->hostId;
-    MoveCurCotNative( host, param );
+    host = GetHost();
+    rmtId = (int)context;
+    MoveCurCotToRmt( host, rmtId, -1 );
     host = GetHost();
     lItr = GetChainAndResetSList( &host->pendRmtCot[ rmtId ] );
     dzCot = MEMBER_BASE( lItr, DzCot, lItr );
     dzCot->priority -= CP_DEFAULT + 1;
-    DispatchRmtCot( host, rmtId, FALSE, dzCot );
-    FreeLNode( host, (DzLNode*)param );
+    SendRmtCot( host, rmtId, FALSE, dzCot );
 }
 
 DzCot* CreateWaitFifoCot( DzHost* host )
 {
     DzCot* ret;
-    DzRmtCotParam* param;
 
-    param = (DzRmtCotParam*)AllocLNode( host );
-    param->type = -1;
     ret = AllocDzCot( host, SS_FIRST );
     ret->priority = CP_DEFAULT;
-    SetCotEntry( ret, WaitFifoWritableEntry, (intptr_t)param );
+    SetCotEntry( ret, WaitFifoWritableEntry, (intptr_t)host->hostId );
     return ret;
 }

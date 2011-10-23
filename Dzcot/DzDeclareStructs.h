@@ -32,7 +32,8 @@ struct _DzRmtCotFifo;
 struct _DzHost;
 struct _DzHostsMgr;
 struct _DzSysParam;
-struct _DzRmtCotParam;
+struct _DzCotParam;
+struct _DzMemExTag;
 
 typedef struct _DzTimerNode     DzTimerNode;
 typedef struct _DzEasyEvt       DzEasyEvt;
@@ -44,7 +45,8 @@ typedef struct _DzRmtCotFifo    DzRmtCotFifo;
 typedef struct _DzHost          DzHost;
 typedef struct _DzHostsMgr      DzHostsMgr;
 typedef struct _DzSysParam      DzSysParam;
-typedef struct _DzRmtCotParam   DzRmtCotParam;
+typedef struct _DzCotParam      DzCotParam;
+typedef struct _DzMemExTag      DzMemExTag;
 
 //define in DzStructsOs.h
 struct _DzOsStruct;

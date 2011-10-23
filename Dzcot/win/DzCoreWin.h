@@ -168,26 +168,6 @@ inline void FreeCotStack( DzCot* dzCot )
     FreeStack( dzCot->stack, DZ_STACK_UNIT_SIZE << ( dzCot->sSize * DZ_STACK_SIZE_STEP ) );
 }
 
-inline void BlockAndDispatchIo( DzHost* host, int timeout )
-{
-    ULONG_PTR key;
-    DWORD n;
-    OVERLAPPED* overlapped;
-    DzAsyncIo* asyncIo;
-
-    GetQueuedCompletionStatus( host->osStruct.iocp, &n, &key, &overlapped, (DWORD)timeout );
-    AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
-    if( overlapped != NULL ){
-        do{
-            if( !key ){
-                asyncIo = MEMBER_BASE( overlapped, DzAsyncIo, overlapped );
-                NotifyEasyEvt( host, &asyncIo->easyEvt );
-            }
-            GetQueuedCompletionStatus( host->osStruct.iocp, &n, &key, &overlapped, 0 );
-        }while( overlapped != NULL );
-    }
-}
-
 #ifdef __cplusplus
 };
 #endif

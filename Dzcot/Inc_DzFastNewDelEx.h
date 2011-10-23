@@ -1,9 +1,10 @@
 /********************************************************************
-    created:    2011/07/21 12:48
-    file:       Inc_DzFastNewDel.h
+    created:    2011/10/23 21:09
+    file:       Inc_DzFastNewDelEx.h
     author:     Foreverflying
     purpose:    Override the global new delete operator with faster
-                function DzMalloc DzFree while using DzCot.
+                function DzMallocExEx DzFreeExEx while using DzCot and
+                need delete objects which new by another CotHost.
                 just include this file in only one cpp file.
 *********************************************************************/
 
@@ -21,7 +22,7 @@ using namespace std;
 
 void* operator new( size_t count ) throw( bad_alloc )
 {
-    void* ret = DzMalloc( count );
+    void* ret = DzMallocEx( count );
     if( !ret ){
         throw bad_alloc();
     }
@@ -30,12 +31,12 @@ void* operator new( size_t count ) throw( bad_alloc )
 
 void operator delete( void* p ) throw()
 {
-    DzFree( p );
+    DzFreeEx( p );
 }
 
 void* operator new[]( size_t count ) throw( bad_alloc )
 {
-    void* ret = DzMalloc( count );
+    void* ret = DzMallocEx( count );
     if( !ret ){
         throw bad_alloc();
     }
@@ -44,27 +45,27 @@ void* operator new[]( size_t count ) throw( bad_alloc )
 
 void operator delete[]( void* p ) throw()
 {
-    DzFree( p );
+    DzFreeEx( p );
 }
 
 void* operator new( size_t count, const nothrow_t& ) throw()
 {
-    return DzMalloc( count );
+    return DzMallocEx( count );
 }
 
 void operator delete( void* p, const nothrow_t& ) throw()
 {
-    DzFree( p );
+    DzFreeEx( p );
 }
 
 void* operator new[]( size_t count, const nothrow_t& ) throw()
 {
-    return DzMalloc( count );
+    return DzMallocEx( count );
 }
 
 void operator delete[]( void* p, const nothrow_t& ) throw()
 {
-    DzFree( p );
+    DzFreeEx( p );
 }
 
 #endif

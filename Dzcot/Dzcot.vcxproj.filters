@@ -157,6 +157,9 @@
     <ClInclude Include="linux\DzStructsLnx.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Inc_DzFastNewDelEx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

@@ -61,6 +61,8 @@ EXPORTS
     DzCalloc
     DzReAlloc
     DzFree
+    DzMallocEx
+    DzFreeEx
     DzUnixTime
     DzMilUnixTime
     __DzDbgLastErr

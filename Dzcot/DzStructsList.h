@@ -38,14 +38,14 @@ struct _DzLNode
         struct{
             union{
                 DzLItr      lItr;
-                intptr_t    context3;
+                intptr_t    d4;
             };
-            intptr_t        context2;
+            intptr_t        d3;
         };
         DzDLItr             dlItr;
     };
-    intptr_t                context1;
-    intptr_t                content;
+    intptr_t                d2;
+    intptr_t                d1;
 };
 
 #endif // __DzStructsList_h__
