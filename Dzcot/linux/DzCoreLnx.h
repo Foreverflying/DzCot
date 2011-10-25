@@ -65,10 +65,10 @@ inline void CloseAsyncIo( DzHost* host, DzAsyncIo* asyncIo )
 
 struct DzStackBottom
 {
-    void*       unusedEdi;
-    void*       unusedEsi;
-    void*       unusedEbx;
-    void*       unusedEbp;
+    void*       _unusedEdi;
+    void*       _unusedEsi;
+    void*       _unusedEbx;
+    void*       _unusedEbp;
     void*       ipEntry;
     DzHost*     host;
     DzRoutine   entry;
@@ -79,12 +79,12 @@ struct DzStackBottom
 
 struct DzStackBottom
 {
-    void*       unusedR15;
-    void*       unusedR14;
-    void*       unusedR13;
-    void*       unusedR12;
-    void*       unusedRbx;
-    void*       unusedRbp;
+    void*       _unusedR15;
+    void*       _unusedR14;
+    void*       _unusedR13;
+    void*       _unusedR12;
+    void*       _unusedRbx;
+    void*       _unusedRbp;
     void*       ipEntry;
     DzHost*     host;
     DzRoutine   entry;

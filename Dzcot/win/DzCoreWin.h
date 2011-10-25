@@ -37,10 +37,10 @@ struct DzStackBottom
     void*       stackLimit;
     void*       stackPtr;
     void*       exceptPtr;
-    void*       unusedEdi;
-    void*       unusedEsi;
-    void*       unusedEbx;
-    void*       unusedEbp;
+    void*       _unusedEdi;
+    void*       _unusedEsi;
+    void*       _unusedEbx;
+    void*       _unusedEbp;
     void*       ipEntry;
     DzHost*     host;
     DzRoutine   entry;
@@ -53,18 +53,19 @@ struct DzStackBottom
 {
     void*       stackLimit;
     void*       stackPtr;
-    void*       unusedR15;
-    void*       unusedR14;
-    void*       unusedR13;
-    void*       unusedR12;
-    void*       unusedRdi;
-    void*       unusedRsi;
-    void*       unusedRbx;
-    void*       unusedRbp;
+    void*       _unusedR15;
+    void*       _unusedR14;
+    void*       _unusedR13;
+    void*       _unusedR12;
+    void*       _unusedRdi;
+    void*       _unusedRsi;
+    void*       _unusedRbx;
+    void*       _unusedRbp;
     void*       ipEntry;
     DzHost*     host;
     DzRoutine   entry;
     intptr_t    context;
+    void*       _unusedPadding;
 };
 
 #endif
