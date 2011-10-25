@@ -577,9 +577,11 @@
   <ItemGroup>
     <ClInclude Include="dlconfig.h" />
     <ClInclude Include="dlmalloc.h" />
+    <ClInclude Include="DzBase.h" />
     <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzCore.h" />
     <ClInclude Include="DzCoreOs.h" />
+    <ClInclude Include="DzInc.h" />
     <ClInclude Include="DzRmtCore.h" />
     <ClInclude Include="DzStructsDebug.h" />
     <ClInclude Include="DzDeclareStructs.h" />

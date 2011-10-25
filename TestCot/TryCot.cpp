@@ -10,10 +10,10 @@ namespace Inner{
 #undef DZ_MAX_IOV
 #undef DZ_MAX_HOST
 #include "../Dzcot/DzStructs.h"
-#include "../Dzcot/DzBaseOs.h"
+#include "../Dzcot/DzBase.h"
 }
 
-int gHostCount = 8;
+int gHostCount = 2;
 int gServMask[] = {
     DzMakeServMask( TRUE ),
     DzMakeServMask( TRUE ),
@@ -80,8 +80,8 @@ void __stdcall TestRemoteCot( intptr_t context )
     printf( "%s--%d--PRINT\r\n", buff, hostId );
     for( int i = 0; i < hostId; i++ ){
         DzStartRemoteCot( i, TestRemoteCot1, hostId );
-        DzStartRemoteCot( i, TestRemoteCot1, hostId );
-        DzStartRemoteCot( i, TestRemoteCot1, hostId );
+//         DzStartRemoteCot( i, TestRemoteCot1, hostId );
+//         DzStartRemoteCot( i, TestRemoteCot1, hostId );
     }
     DzSleep( 1000 );
 }

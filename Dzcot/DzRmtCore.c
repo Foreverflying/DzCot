@@ -89,7 +89,7 @@ void __stdcall DealLazyResEntry( intptr_t context )
     DzLNode* node;
 
     host = GetHost();
-    for( i = 0; i < host->hostMgr->hostCount; i++ ){
+    for( i = 0; i < host->hostCount; i++ ){
         if( !IsSListEmpty( host->lazyRmtCot + i ) ){
             tail = host->lazyRmtCot[i].tail;
             lItr = GetChainAndResetSList( host->lazyRmtCot + i );
@@ -123,8 +123,8 @@ void __stdcall RemoteHostEntry( intptr_t context )
     DzSysParam* param;
     
     host = GetHost();
-    for( i = 0; i < host->hostMgr->hostCount; i++ ){
-        if( host->hostMgr->servMask[ host->hostId ] & ( 1 << i ) ){
+    for( i = 0; i < host->hostCount; i++ ){
+        if( host->servMask & ( 1 << i ) ){
             if( !host->checkFifo ){
                 host->checkFifo = host->rmtFifoArr + i;
                 fifo = host->checkFifo;
@@ -142,9 +142,9 @@ void __stdcall RemoteHostEntry( intptr_t context )
 
     param = (DzSysParam*)context;
     param->result = DS_OK;
-    fifo = host->hostMgr->hostArr[0]->rmtFifoArr + host->hostId;
+    fifo = host->mgr->hostArr[0]->rmtFifoArr + host->hostId;
     fifo->rmtCotArr[0] = param->hs.returnCot;
-    NotifyRmtFifo( host->hostMgr->hostArr[0], &fifo->writePos );
+    NotifyRmtFifo( host->mgr->hostArr[0], fifo->writePos );
 }
 
 void __stdcall RunRemoteHost( intptr_t context )
@@ -162,7 +162,7 @@ void __stdcall RunRemoteHost( intptr_t context )
         param->result = ret;
         fifo = param->hs.hostMgr->hostArr[0]->rmtFifoArr + param->hs.hostId;
         fifo->rmtCotArr[0] = param->hs.returnCot;
-        NotifyRmtFifo( param->hs.hostMgr->hostArr[0], &fifo->writePos );
+        NotifyRmtFifo( param->hs.hostMgr->hostArr[0], fifo->writePos );
     }
 }
 
@@ -180,27 +180,27 @@ void __stdcall MainHostEntry( intptr_t context )
     DzHost* host;
     DzSysParam* cotParam;
     DzSysParam param[ DZ_MAX_HOST ];
-    DzCot* tmpCallPkgArr[ DZ_MAX_HOST ];
+    DzCot* tmpCotArr[ DZ_MAX_HOST ];
     DzSynObj* evt;
     DzRmtCotFifo* fifo;
     DzCot* dzCot;
 
     host = GetHost();
     host->checkFifo = host->rmtFifoArr;
-    for( i = 0; i < host->hostMgr->hostCount; i++ ){
-        host->rmtFifoArr[i].rmtCotArr = tmpCallPkgArr + i;
+    for( i = 0; i < host->hostCount; i++ ){
+        host->rmtFifoArr[i].rmtCotArr = tmpCotArr + i;
         host->rmtFifoArr[i].next = host->rmtFifoArr + i + 1;
     }
     host->rmtFifoArr[ i - 1 ].next = host->rmtFifoArr;
-    evt = CreateCdEvt( host, host->hostMgr->hostCount - 1 );
+    evt = CreateCdEvt( host, host->hostCount - 1 );
     cotParam = (DzSysParam*)context;
-    for( i = 1; i < host->hostMgr->hostCount; i++ ){
+    for( i = 1; i < host->hostCount; i++ ){
         dzCot = AllocDzCot( host, SS_FIRST );
         dzCot->priority = CP_DEFAULT;
         SetCotEntry( dzCot, SysThreadReturnCot, (intptr_t)&param[i] );
         param[i].threadEntry = RunRemoteHost;
         param[i].hs.evt = evt;
-        param[i].hs.hostMgr = host->hostMgr;
+        param[i].hs.hostMgr = host->mgr;
         param[i].hs.returnCot = dzCot;
         param[i].hs.hostId = i;
         param[i].hs.lowestPri = host->lowestPri;
@@ -211,18 +211,18 @@ void __stdcall MainHostEntry( intptr_t context )
 
     WaitSynObj( host, evt, -1 );
     CloseSynObj( host, evt );
-    for( i = 1; i < host->hostMgr->hostCount; i++ ){
+    for( i = 1; i < host->hostCount; i++ ){
         if( param[i].result != DS_OK ){
             cotParam->result = param[i].result;
             return;
         }
     }
     host->checkFifo = NULL;
-    for( i = 0; i < host->hostMgr->hostCount; i++ ){
-        host->rmtFifoArr[i].readPos = 0;
-        host->rmtFifoArr[i].writePos = 0;
+    for( i = 0; i < host->hostCount; i++ ){
+        *host->rmtFifoArr[i].readPos = 0;
+        *host->rmtFifoArr[i].writePos = 0;
         host->rmtFifoArr[i].rmtCotArr = NULL;
-        if( host->hostMgr->servMask[ host->hostId ] & ( 1 << i ) ){
+        if( host->servMask & ( 1 << i ) ){
             if( !host->checkFifo ){
                 host->checkFifo = host->rmtFifoArr + i;
                 fifo = host->checkFifo;

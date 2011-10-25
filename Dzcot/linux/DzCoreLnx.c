@@ -5,7 +5,7 @@
     purpose:
 *********************************************************************/
 
-#include "../DzIncOs.h"
+#include "../DzInc.h"
 #include "../DzCore.h"
 
 void* SysThreadEntry( void* context )
@@ -26,7 +26,7 @@ BOOL AllocAsyncIoPool( DzHost* host )
         return FALSE;
     }
 
-    host->osStruct.asyncIoPool = &p->lItr;
+    host->asyncIoPool = &p->lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
     CleanEasyEvt( &end->inEvt );
@@ -52,8 +52,8 @@ BOOL AllocAsyncIoPool( DzHost* host )
 // schedule next cot
 void __stdcall DzcotEntry(
     DzHost*             host,
-    volatile DzRoutine* entryPtr,
-    volatile intptr_t*  contextPtr
+    DzRoutine volatile* entryPtr,
+    intptr_t volatile*  contextPtr
     )
 {
     while(1){
@@ -69,64 +69,64 @@ void __stdcall DzcotEntry(
     }
 }
 
-BOOL InitOsStruct( DzHost* host, DzHost* firstHost )
+BOOL InitOsStruct( DzHost* host )
 {
     int flag;
     struct rlimit fdLimit;
     struct epoll_event evt;
+    DzHost* firstHost = host->hostId == 0 ? NULL : host->mgr->hostArr[0];
 
     if( !firstHost ){
         if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
             return FALSE;
         }
-        host->osStruct.maxFdCount = fdLimit.rlim_cur;
+        host->os.maxFdCount = fdLimit.rlim_cur;
     }else{
-        host->osStruct.maxFdCount = firstHost->osStruct.maxFdCount;
+        host->os.maxFdCount = firstHost->os.maxFdCount;
     }
-    host->osStruct.epollFd = epoll_create( host->osStruct.maxFdCount );
-    if( host->osStruct.epollFd < 0 ){
+    host->os.epollFd = epoll_create( host->os.maxFdCount );
+    if( host->os.epollFd < 0 ){
         return FALSE;
     }
-    if( pipe( host->osStruct.pipe ) != 0 ){
-        close( host->osStruct.epollFd );
+    if( pipe( host->os.pipe ) != 0 ){
+        close( host->os.epollFd );
         return FALSE;
     }
     if( !firstHost ){
-        host->osStruct.fdTable = ( DzAsyncIo** )
-            PageAlloc( sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount );
-        if( !host->osStruct.fdTable ){
-            close( host->osStruct.pipe[1] );
-            close( host->osStruct.pipe[0] );
-            close( host->osStruct.epollFd );
+        host->os.fdTable = ( DzAsyncIo** )
+            PageAlloc( sizeof( DzAsyncIo* ) * host->os.maxFdCount );
+        if( !host->os.fdTable ){
+            close( host->os.pipe[1] );
+            close( host->os.pipe[0] );
+            close( host->os.epollFd );
             return FALSE;
         }
     }else{
-        host->osStruct.fdTable = firstHost->osStruct.fdTable;
+        host->os.fdTable = firstHost->os.fdTable;
     }
-    host->osStruct.asyncIoPool = NULL;
-    host->osStruct.pipeAsyncIo = CreateAsyncIo( host );
-    evt.data.ptr = host->osStruct.pipeAsyncIo;
+    host->os.pipeAsyncIo = CreateAsyncIo( host );
+    evt.data.ptr = host->os.pipeAsyncIo;
     evt.events = EPOLLIN;
-    flag = fcntl( host->osStruct.pipe[0], F_GETFL, 0 );
-    fcntl( host->osStruct.pipe[0], F_SETFL, flag | O_NONBLOCK );
-    flag = fcntl( host->osStruct.pipe[1], F_GETFL, 0 );
-    fcntl( host->osStruct.pipe[1], F_SETFL, flag | O_NONBLOCK );
-    epoll_ctl( host->osStruct.epollFd, EPOLL_CTL_ADD, host->osStruct.pipe[0], &evt );
-    host->osStruct.evtList = (struct epoll_event*)
+    flag = fcntl( host->os.pipe[0], F_GETFL, 0 );
+    fcntl( host->os.pipe[0], F_SETFL, flag | O_NONBLOCK );
+    flag = fcntl( host->os.pipe[1], F_GETFL, 0 );
+    fcntl( host->os.pipe[1], F_SETFL, flag | O_NONBLOCK );
+    epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, host->os.pipe[0], &evt );
+    host->os.evtList = (struct epoll_event*)
         AllocChunk( host, sizeof( struct epoll_event ) * EPOLL_EVT_LIST_SIZE );
     return TRUE;
 }
 
-void DeleteOsStruct( DzHost* host, DzHost* firstHost )
+void DeleteOsStruct( DzHost* host )
 {
-    CloseAsyncIo( host, host->osStruct.pipeAsyncIo );
-    if( !firstHost ){
+    CloseAsyncIo( host, host->os.pipeAsyncIo );
+    if( host->hostId == 0 ){
         PageFree(
-            host->osStruct.fdTable,
-            sizeof( DzAsyncIo* ) * host->osStruct.maxFdCount
+            host->os.fdTable,
+            sizeof( DzAsyncIo* ) * host->os.maxFdCount
             );
     }
-    close( host->osStruct.pipe[1] );
-    close( host->osStruct.pipe[0] );
-    close( host->osStruct.epollFd );
+    close( host->os.pipe[1] );
+    close( host->os.pipe[0] );
+    close( host->os.epollFd );
 }

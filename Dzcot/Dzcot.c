@@ -5,7 +5,7 @@
     purpose:    
 *********************************************************************/
 
-#include "DzIncOs.h"
+#include "DzInc.h"
 #include "DzSynObj.h"
 #include "DzCore.h"
 #include "DzIoOs.h"
@@ -157,9 +157,9 @@ int DzStartRemoteCot(
     if( sSize == SS_DEFAULT ){
         sSize = host->dftSSize;
     }
-    assert( rmtId >= 0 && rmtId < host->hostMgr->hostCount );
+    assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
-    assert( host->hostMgr->servMask[ rmtId ] & ( 1 << host->hostId ) );
+    assert( host->servMask & ( 1 << rmtId ) );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
@@ -186,9 +186,9 @@ int DzEvtStartRemoteCot(
     }
     assert( evt );
     assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
-    assert( rmtId >= 0 && rmtId < host->hostMgr->hostCount );
+    assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
-    assert( host->hostMgr->servMask[ rmtId ] & host->hostMask );
+    assert( host->servMask & ( 1 << rmtId ) );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
@@ -212,14 +212,23 @@ int DzRunRemoteCot(
     if( sSize == SS_DEFAULT ){
         sSize = host->dftSSize;
     }
-    assert( rmtId >= 0 && rmtId < host->hostMgr->hostCount );
+    assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
-    assert( host->hostMgr->servMask[ rmtId ] & host->hostMask );
+    assert( host->servMask & ( 1 << rmtId ) );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
 
     return RunRemoteCot( host, rmtId, entry, context, priority, sSize );
+}
+
+int DzRunWorker( DzRoutine entry, intptr_t context )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( entry );
+
+    return RunWorker( entry, context );
 }
 
 int DzGetCotCount()
@@ -243,10 +252,19 @@ int DzSetCotPoolDepth( int sSize, int depth )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( sSize >= SS_FIRST && sSize <= STACK_SIZE_COUNT );
+    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
     assert( depth <= DZ_MAX_COT_POOL_DEPTH );
 
     return SetCotPoolDepth( host, sSize, depth );
+}
+
+int DzSetWorkerPoolDepth( int depth )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( depth >= 0 && depth <= DZ_MAX_COT_POOL_DEPTH );
+
+    return SetWorkerPoolDepth( host, depth );
 }
 
 int DzSetHostParam( int lowestPri, int dftPri, int dftSSize )

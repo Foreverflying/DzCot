@@ -53,52 +53,67 @@ inline void StartSystemThread( DzSysParam* param )
 inline void AwakeRemoteHost( DzHost* dstHost )
 {
     char n = 0;
-    write( dstHost->osStruct.pipe[1], &n, sizeof( n ) );
+    write( dstHost->os.pipe[1], &n, sizeof( n ) );
 }
 
-inline int AtomReadInt( volatile int* val )
+inline int AtomReadInt( int volatile* val )
 {
     return *val;
 }
 
-inline int AtomIncInt( volatile int* val )
+inline void AtomSetInt( int volatile* val, int set )
+{
+    *val = set;
+}
+
+inline void* AtomReadPtr( void* volatile* val )
+{
+    return *val;
+}
+
+inline void AtomSetPtr( void* volatile* val, void* set )
+{
+    *val = set;
+}
+
+inline int AtomIncInt( int volatile* val )
 {
     return __sync_fetch_and_add( val, 1 );
 }
 
-inline int AtomDecInt( volatile int* val )
+inline int AtomDecInt( int volatile* val )
 {
     return __sync_fetch_and_sub( val, 1 );
 }
 
-inline int AtomAddInt( volatile int* val, int add )
+inline int AtomAddInt( int volatile* val, int add )
 {
     return __sync_fetch_and_add( val, add );
 }
 
-inline int AtomSubInt( volatile int* val, int sub )
+inline int AtomSubInt( int volatile* val, int sub )
 {
     return __sync_fetch_and_sub( val, sub );
 }
 
-inline int AtomOrInt( volatile int* val, int mask )
+inline int AtomOrInt( int volatile* val, int mask )
 {
     return __sync_fetch_and_or( val, mask );
 }
 
-inline int AtomAndInt( volatile int* val, int mask )
+inline int AtomAndInt( int volatile* val, int mask )
 {
     return __sync_fetch_and_and( val, mask );
 }
 
-inline int AtomCasInt( volatile int* val, int cmp, int set )
+inline int AtomCasInt( int volatile* val, int cmp, int set )
 {
     return __sync_val_compare_and_swap( val, cmp, set );
 }
 
-inline void* AtomCasPtr( volatile void** val, void* cmp, void* set )
+inline void* AtomCasPtr( void* volatile* val, void* cmp, void* set )
 {
-    return (void*)__sync_val_compare_and_swap( val, cmp, set );
+    return __sync_val_compare_and_swap( val, cmp, set );
 }
 
 inline BOOL AllocTlsIndex()

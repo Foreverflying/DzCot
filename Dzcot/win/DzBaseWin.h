@@ -14,7 +14,6 @@
 extern "C"{
 #endif
 
-void AwakeRemoteHost( DzHost* dstHost );
 void __cdecl SysThreadEntry( void* context );
 void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 
@@ -45,55 +44,70 @@ inline void StartSystemThread( DzSysParam* param )
 
 inline void AwakeRemoteHost( DzHost* dstHost )
 {
-    PostQueuedCompletionStatus( dstHost->osStruct.iocp, 0, 1, (LPOVERLAPPED)1 );
+    PostQueuedCompletionStatus( dstHost->os.iocp, 0, 1, (LPOVERLAPPED)1 );
 }
 
-inline int AtomReadInt( volatile int* val )
+inline int AtomReadInt( int volatile* val )
 {
     return *val;
 }
 
-inline int AtomIncInt( volatile int* val )
+inline void AtomSetInt( int volatile* val, int set )
 {
-    return InterlockedIncrement( (volatile LONG*)val ) - 1;
+    *val = set;
 }
 
-inline int AtomDecInt( volatile int* val )
+inline void* AtomReadPtr( void* volatile* val )
 {
-    return InterlockedDecrement( (volatile LONG*)val ) + 1;
+    return *val;
 }
 
-inline int AtomAddInt( volatile int* val, int add )
+inline void AtomSetPtr( void* volatile* val, void* set )
 {
-    return InterlockedExchangeAdd( (volatile LONG*)val, (LONG)add );
+    *val = set;
 }
 
-inline int AtomSubInt( volatile int* val, int sub )
+inline int AtomIncInt( int volatile* val )
 {
-    return InterlockedExchangeAdd( (volatile LONG*)val, (LONG)( - sub ) );
+    return InterlockedIncrement( (LONG volatile*)val ) - 1;
 }
 
-inline int AtomOrInt( volatile int* val, int mask )
+inline int AtomDecInt( int volatile* val )
 {
-    return _InterlockedOr( (volatile LONG*)val, (LONG)mask );
+    return InterlockedDecrement( (LONG volatile*)val ) + 1;
 }
 
-inline int AtomAndInt( volatile int* val, int mask )
+inline int AtomAddInt( int volatile* val, int add )
 {
-    return _InterlockedAnd( (volatile LONG*)val, (LONG)mask );
+    return InterlockedExchangeAdd( (LONG volatile*)val, (LONG)add );
 }
 
-inline int AtomCasInt( volatile int* val, int cmp, int set )
+inline int AtomSubInt( int volatile* val, int sub )
+{
+    return InterlockedExchangeAdd( (LONG volatile*)val, (LONG)( - sub ) );
+}
+
+inline int AtomOrInt( int volatile* val, int mask )
+{
+    return _InterlockedOr( (LONG volatile*)val, (LONG)mask );
+}
+
+inline int AtomAndInt( int volatile* val, int mask )
+{
+    return _InterlockedAnd( (LONG volatile*)val, (LONG)mask );
+}
+
+inline int AtomCasInt( int volatile* val, int cmp, int set )
 {
     return InterlockedCompareExchange(
-        (volatile LONG*)val, (LONG)set, (LONG)cmp
+        (LONG volatile*)val, (LONG)set, (LONG)cmp
         );
 }
 
-inline void* AtomCasPtr( volatile void** val, void* cmp, void* set )
+inline void* AtomCasPtr( void* volatile* val, void* cmp, void* set )
 {
-    return InterlockedCompareExchangePointer(
-        (volatile PVOID*)val, (PVOID)set, (PVOID)cmp
+    return (void*)InterlockedCompareExchangePointer(
+        ( PVOID volatile*)val, (PVOID)set, (PVOID)cmp
         );
 }
 

@@ -9,12 +9,12 @@
 #define __DzCore_h__
 
 #include "DzStructs.h"
-#include "DzBaseOs.h"
+#include "DzBase.h"
 #include "DzResourceMgr.h"
 #include "DzSchedule.h"
-#include "DzCoreOs.h"
 #include "DzRmtCore.h"
 #include "dlmalloc.h"
+#include "DzCoreOs.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -282,10 +282,15 @@ inline int RunRemoteCot(
     return DS_OK;
 }
 
+inline int RunWorker( DzRoutine entry, intptr_t context )
+{
+    return 0;
+}
+
 // RunHost:
 // Initial and start the cot host
 // the function will block while there are cots running
-// after all cots exit, the host will stop and the block ends
+// after all cots exit, the host will stop and the blocking ends
 inline int RunHost(
     DzHostsMgr* hostMgr,
     int         hostId,
@@ -299,91 +304,107 @@ inline int RunHost(
     int i;
     int ret;
     void* mallocSpace;
-    DzTimerNode** timerHeap;
-    DzHost host;
+    uintptr_t tmp;
+    DzHost* host;
 
-    timerHeap = (DzTimerNode**)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
-    if( !timerHeap ){
-        PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+    tmp = (uintptr_t)alloca( sizeof( DzHost ) + CPU_CACHE_ALIGN );
+    host = (DzHost*)( tmp + CPU_CACHE_ALIGN - tmp % CPU_CACHE_ALIGN );
+
+    tmp = (uintptr_t)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+    if( !tmp ){
+        PageFree( (void*)tmp, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
         return DS_NO_MEMORY;
     }
     mallocSpace = create_mspace( 0, 0 );
     if( !mallocSpace ){
         destroy_mspace( mallocSpace );
-        PageFree( timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+        PageFree( (void*)tmp, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
         return DS_NO_MEMORY;
     }
 
-    host.currCot = &host.centerCot;
-    host.lowestPri = lowestPri;
-    host.currPri = lowestPri + 1;
-    for( i = 0; i <= lowestPri; i++ ){
-        InitSList( &host.taskLs[i] );
+    host->currCot = &host->centerCot;
+    host->cotCount = 0;
+    host->scheduleCd = SCHEDULE_COUNTDOWN;
+    host->dftPri = dftPri;
+    host->dftSSize = dftSSize;
+    host->timerHeap = (DzTimerNode**)tmp;
+    host->timerCount = 0;
+    host->timerHeapSize = 0;
+    host->lowestPri = lowestPri;
+    host->currPri = lowestPri + 1;
+    host->mSpace = mallocSpace;
+    host->hostId = hostId;
+    host->hostMask = 1 << hostId;
+    host->rmtCheckSignPtr = hostMgr->rmtCheckSign + hostId;
+    host->rmtFifoArr = hostMgr->rmtFifoRes + hostMgr->hostCount * hostId;
+    for( i = 0; i < hostMgr->hostCount; i++ ){
+        host->rmtFifoArr[i].readPos = hostMgr->rmtReadPos[ i ] + hostId;
+        host->rmtFifoArr[i].writePos = hostMgr->rmtWritePos[ hostId ] + i;
+        host->rmtFifoArr[i].rmtCotArr = NULL;
     }
-    host.hostId = hostId;
-    host.checkRmtSign = 0;
-    host.hostMask = 1 << hostId;
-    host.cotCount = 0;
-    host.scheduleCd = SCHEDULE_COUNTDOWN;
-    host.cotPool = NULL;
+    for( i = 0; i <= lowestPri; i++ ){
+        InitSList( &host->taskLs[i] );
+    }
+    host->mgr = hostMgr;
+    host->checkFifo = NULL;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
-        host.cotPools[i] = NULL;
-        host.cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
+        host->cotPools[i] = NULL;
+        host->cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
     }
     for( ; i < STACK_SIZE_COUNT; i++ ){
-        host.cotPools[i] = NULL;
-        host.cotPoolNowDepth[i] = 0;
+        host->cotPools[i] = NULL;
+        host->cotPoolNowDepth[i] = 0;
     }
-    host.timerCount = 0;
-    host.timerHeapSize = 0;
-    host.timerHeap = timerHeap;
-    host.dftPri = dftPri;
-    host.dftSSize = dftSSize;
-    host.mSpace = mallocSpace;
-    host.synObjPool = NULL;
-    host.lNodePool = NULL;
-    host.hostMgr = hostMgr;
-    host.checkFifo = NULL;
-    host.rmtFifoArr = hostMgr->rmtFifoRes + hostMgr->hostCount * hostId;
-    host.pendRmtCot = hostMgr->pendRmtCotRes + hostMgr->hostCount * hostId;
-    host.lazyRmtCot = hostMgr->lazyRmtCotRes + hostMgr->hostCount * hostId;
-    host.lazyFreeMem = hostMgr->lazyFreeMemRes + hostMgr->hostCount * hostId;
-    host.lazyTimer = NULL;
-    host.memPoolPos = NULL;
-    host.memPoolEnd = NULL;
-    host.poolGrowList = NULL;
+    host->cotPool = NULL;
+    host->synObjPool = NULL;
+    host->lNodePool = NULL;
+    host->asyncIoPool = NULL;
+    host->pendRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
+    host->lazyRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
+    host->lazyFreeMem = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
+    for( i = 0; i < hostMgr->hostCount; i++ ){
+        InitSList( host->pendRmtCot + i );
+        InitSList( host->lazyRmtCot + i );
+        InitSList( host->lazyFreeMem + i );
+    }
+    host->lazyTimer = NULL;
+    host->memPoolPos = NULL;
+    host->memPoolEnd = NULL;
+    host->poolGrowList = NULL;
+    host->hostCount = hostMgr->hostCount;
+    host->servMask = hostMgr->servMask[ hostId ];
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){
-        host.cotPoolSetDepth[i] = 0;
+        host->cotPoolSetDepth[i] = 0;
     }
     if( dftSSize > DZ_MAX_PERSIST_STACK_SIZE ){
-        host.cotPoolNowDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
-        host.cotPoolSetDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
+        host->cotPoolNowDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
+        host->cotPoolSetDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
     }
 
-    if( MemeryPoolGrow( &host ) && InitOsStruct( &host, hostMgr->hostArr[0] ) ){
-        AtomOrInt( &host.hostMgr->exitSign, 1 << hostId );
-        SetHost( &host );
-        host.hostMgr->hostArr[ hostId ] = &host;
+    if( MemeryPoolGrow( host ) && InitOsStruct( host ) ){
+        AtomOrInt( &host->mgr->exitSign, 1 << hostId );
+        SetHost( host );
+        host->mgr->hostArr[ hostId ] = host;
 
-        ret = StartCot( &host, firstEntry, context, dftPri, dftSSize );
+        ret = StartCot( host, firstEntry, context, dftPri, dftSSize );
         if( ret == DS_OK ){
-            Schedule( &host );
+            Schedule( host );
         }
-        CotScheduleCenter( &host );
+        CotScheduleCenter( host );
 
         //after all cot finished, IoMgrRoutine will return.
         //so cleanup the host struct
-        host.hostMgr->hostArr[ hostId ] = NULL;
+        host->mgr->hostArr[ hostId ] = NULL;
         SetHost( NULL );
-        DeleteOsStruct( &host, hostMgr->hostArr[0] );
+        DeleteOsStruct( host );
     }else{
         ret = DS_NO_MEMORY;
     }
 
-    ReleaseAllPoolStack( &host );
-    ReleaseMemoryPool( &host );
-    PageFree( host.timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
-    destroy_mspace( host.mSpace );
+    ReleaseAllPoolStack( host );
+    ReleaseMemoryPool( host );
+    PageFree( host->timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+    destroy_mspace( host->mSpace );
 
     return ret;
 }
@@ -401,48 +422,35 @@ inline int RunHosts(
     int i;
     int ret;
     DzSysParam param;
-    DzHostsMgr hostMgr;
-    DzHostsMgr* hostMgrPtr;
+    DzHostsMgr* hostMgr;
+    uintptr_t tmp;
 
     if( !AllocTlsIndex() ){
         return DS_NO_MEMORY;
     }
-    hostMgr.hostArr = (DzHost**)
-        alloca( sizeof( DzHost* ) * hostCount );
-    for( i = 0; i < hostCount; i++ ){
-        hostMgr.hostArr[i] = NULL;
+    tmp = sizeof( DzHostsMgr ) + CPU_CACHE_ALIGN;
+    tmp += sizeof( DzRmtCotFifo ) * hostCount * hostCount + CPU_CACHE_ALIGN;
+    tmp = (intptr_t)alloca( tmp );
+    tmp += CPU_CACHE_ALIGN - tmp % CPU_CACHE_ALIGN;
+    hostMgr = (DzHostsMgr*)tmp;
+    tmp += sizeof( DzHostsMgr );
+    tmp += CPU_CACHE_ALIGN - tmp % CPU_CACHE_ALIGN;
+
+    for( i = 0; i < DZ_MAX_HOST; i++ ){
+        hostMgr->hostArr[i] = NULL;
+        hostMgr->rmtCheckSign[i] = 0;
+        for( ret = 0; ret < DZ_MAX_HOST; ret++ ){
+            hostMgr->rmtReadPos[i][ret] = 0;
+            hostMgr->rmtWritePos[i][ret] = 0;
+        }
     }
-    hostMgr.rmtFifoRes = (DzRmtCotFifo*)
-        alloca( sizeof( DzRmtCotFifo ) * hostCount * hostCount );
-    for( i = 0; i < hostCount * hostCount; i++ ){
-        hostMgr.rmtFifoRes[i].readPos = 0;
-        hostMgr.rmtFifoRes[i].writePos = 0;
-        hostMgr.rmtFifoRes[i].rmtCotArr = NULL;
-    }
-    hostMgr.pendRmtCotRes = (DzSList*)
-        alloca( sizeof( DzSList ) * hostCount * hostCount );
-    for( i = 0; i < hostCount * hostCount; i++ ){
-        InitSList( hostMgr.pendRmtCotRes + i );
-    }
-    hostMgr.lazyRmtCotRes = (DzSList*)
-        alloca( sizeof( DzSList ) * hostCount * hostCount );
-    for( i = 0; i < hostCount * hostCount; i++ ){
-        InitSList( hostMgr.lazyRmtCotRes + i );
-    }
-    hostMgr.lazyFreeMemRes = (DzSList*)
-        alloca( sizeof( DzSList ) * hostCount * hostCount );
-    for( i = 0; i < hostCount * hostCount; i++ ){
-        InitSList( hostMgr.lazyFreeMemRes + i );
-    }
-    hostMgrPtr = (DzHostsMgr*)alloca( sizeof( DzHostsMgr ) );
-    hostMgrPtr->hostArr = hostMgr.hostArr;
-    hostMgrPtr->rmtFifoRes = hostMgr.rmtFifoRes;
-    hostMgrPtr->pendRmtCotRes = hostMgr.pendRmtCotRes;
-    hostMgrPtr->lazyRmtCotRes = hostMgr.lazyRmtCotRes;
-    hostMgrPtr->lazyFreeMemRes = hostMgr.lazyFreeMemRes;
-    hostMgrPtr->servMask = servMask;
-    hostMgrPtr->hostCount = hostCount;
-    hostMgrPtr->exitSign = 0;
+    hostMgr->exitSign = 0;
+    hostMgr->hostCount = hostCount;
+    hostMgr->workerNowDepth = 0;
+    hostMgr->workerSetDepth = 0;
+    hostMgr->workerPool = NULL;
+    hostMgr->rmtFifoRes = (DzRmtCotFifo*)tmp;
+    hostMgr->servMask = servMask;
 
     for( i = 0; i < hostCount; i++ ){
         for( ret = 0; ret < hostCount; ret++ ){
@@ -459,7 +467,7 @@ inline int RunHosts(
         context = (intptr_t)&param;
     }
     ret = RunHost(
-        hostMgrPtr, 0, lowestPri, dftPri, dftSSize,
+        hostMgr, 0, lowestPri, dftPri, dftSSize,
         firstEntry, context
         );
     FreeTlsIndex();
@@ -497,6 +505,11 @@ inline int SetCotPoolDepth( DzHost* host, int sSize, int depth )
         host->cotPoolSetDepth[ sSize ] = depth;
     }
     return ret;
+}
+
+inline int SetWorkerPoolDepth( DzHost* host, int depth )
+{
+    return 0;
 }
 
 inline int SetHostParam(
@@ -636,14 +649,15 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
 {
     int count;
     int nowCount;
+    int readPos;
     int writePos;
     int scheduleCd;
     DzCot* dzCot;
 
     if( timeout ){
-        nowCount = AtomCasInt( &host->checkRmtSign, 0, RMT_CHECK_SLEEP_SIGN );
+        nowCount = AtomCasInt( host->rmtCheckSignPtr, 0, RMT_CHECK_SLEEP_SIGN );
     }else{
-        nowCount = AtomReadInt( &host->checkRmtSign );
+        nowCount = AtomReadInt( host->rmtCheckSignPtr );
     }
     if( nowCount == 0 ){
         return timeout;
@@ -652,24 +666,29 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
     scheduleCd = host->scheduleCd;
     host->scheduleCd = 0;
     while( 1 ){
-        writePos = AtomReadInt( &host->checkFifo->writePos );
-        while( host->checkFifo->readPos != writePos ){
-            dzCot = host->checkFifo->rmtCotArr[ host->checkFifo->readPos ];
-            DealRmtCot( host, dzCot );
-            host->checkFifo->readPos++;
-            if( host->checkFifo->readPos == RMT_CALL_FIFO_SIZE ){
-                host->checkFifo->readPos = 0;
-            }
-            nowCount--;
-            if( nowCount == 0 ){
-                nowCount = AtomSubInt( &host->checkRmtSign, count );
-                nowCount -= count;
-                if( nowCount == 0 ){
-                    host->scheduleCd = scheduleCd;
-                    return 0;
+        readPos = AtomReadInt( host->checkFifo->readPos );
+        writePos = AtomReadInt( host->checkFifo->writePos );
+        if( readPos != writePos ){
+            do{
+                dzCot = host->checkFifo->rmtCotArr[ readPos ];
+                DealRmtCot( host, dzCot );
+                readPos++;
+                if( readPos == RMT_CALL_FIFO_SIZE ){
+                    readPos = 0;
                 }
-                count = nowCount;
-            }
+                nowCount--;
+                if( nowCount == 0 ){
+                    nowCount = AtomSubInt( host->rmtCheckSignPtr, count );
+                    nowCount -= count;
+                    if( nowCount == 0 ){
+                        host->scheduleCd = scheduleCd;
+                        AtomSetInt( host->checkFifo->readPos, readPos );
+                        return 0;
+                    }
+                    count = nowCount;
+                }
+            }while( readPos != writePos );
+            AtomSetInt( host->checkFifo->readPos, readPos );
         }
         host->checkFifo = host->checkFifo->next;
     }

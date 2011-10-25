@@ -220,9 +220,14 @@ int DzRunRemoteCot(
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
+int DzRunWorker(
+    DzRoutine   entry,
+    intptr_t    context         __DZ_DFT_ARG( 0 )
+    );
 int DzGetCotCount();
 int DzSetPriority( int priority );
 int DzSetCotPoolDepth( int sSize, int depth );
+int DzSetWorkerPoolDepth( int depth );
 int DzSetHostParam( int lowestPri, int dftPri, int dftSSize );
 
 int DzWaitSynObj(

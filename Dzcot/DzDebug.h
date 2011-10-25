@@ -8,7 +8,7 @@
 #ifndef __DzDebug_h__
 #define __DzDebug_h__
 
-#include "DzIncOs.h"
+#include "DzInc.h"
 #include "DzDeclareStructs.h"
 
 #ifdef __cplusplus

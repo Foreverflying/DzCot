@@ -160,6 +160,12 @@
     <ClInclude Include="Inc_DzFastNewDelEx.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DzBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DzInc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

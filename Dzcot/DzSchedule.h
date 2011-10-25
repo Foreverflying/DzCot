@@ -10,7 +10,7 @@
 
 #include "DzStructs.h"
 #include "DzList.h"
-#include "DzBaseOs.h"
+#include "DzBase.h"
 #include "DzDebug.h"
 
 #ifdef __cplusplus

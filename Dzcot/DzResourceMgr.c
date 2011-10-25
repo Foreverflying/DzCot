@@ -5,12 +5,10 @@
     purpose:    
 *********************************************************************/
 
-#include "DzIncOs.h"
-#include "DzBaseOs.h"
+#include "DzInc.h"
+#include "DzBase.h"
 #include "DzResourceMgr.h"
-#include "DzIoOs.h"
 #include "DzSynObj.h"
-#include "DzCoreOs.h"
 #include "DzCore.h"
 
 BOOL MemeryPoolGrow( DzHost* host )

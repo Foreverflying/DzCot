@@ -8,7 +8,7 @@
 #ifndef __DzStructs_h__
 #define __DzStructs_h__
 
-#include "DzIncOs.h"
+#include "DzInc.h"
 #include "DzDeclareStructs.h"
 #include "DzStructsList.h"
 #include "DzStructsOs.h"
@@ -47,8 +47,8 @@ struct _DzFastEvt
         DzTimerNode     timerNode;
         struct{
             int         type;
-            int         unused1;
-            int64       unusedTimestamp;
+            int         _unused1;
+            int64       _unusedTimestamp;
             BOOL        notified;
             int         status;
         };
@@ -66,10 +66,10 @@ struct _DzSynObj
         DzTimerNode     timerNode;
         struct{
             int         type;
-            int         unused1;
-            int64       unusedTimestamp;
+            int         _unused1;
+            int64       _unusedTimestamp;
             int         notifyCount;        //for semaphore and event
-            int         unused2;
+            int         _unused2;
         };
     };
     int                 ref;
@@ -108,80 +108,117 @@ struct _DzWaitHelper
 struct _DzRmtCotFifo
 {
     DzRmtCotFifo*   next;
-    int             readPos;
-    int             writePos;
+    int volatile*   readPos;
+    int volatile*   writePos;
     DzCot**         rmtCotArr;
+};
+
+struct _DzShareConstant
+{
+    DzRmtCotFifo    rmtFifo;
 };
 
 struct _DzHostsMgr
 {
-    DzHost**        hostArr;
-    DzRmtCotFifo*   rmtFifoRes;
-    DzSList*        pendRmtCotRes;
-    DzSList*        lazyRmtCotRes;
-    DzSList*        lazyFreeMemRes;
-    int*            servMask;
+    DzHost*         hostArr[ DZ_MAX_HOST ];
+    int volatile    rmtCheckSign[ DZ_MAX_HOST ];
+    int volatile    rmtWritePos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
+    int volatile    rmtReadPos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
+    int volatile    exitSign;
     int             hostCount;
-    volatile int    exitSign;
+    int             workerNowDepth;
+    int             workerSetDepth;
+    DzLItr*         workerPool;
+    DzRmtCotFifo*   rmtFifoRes;
+    int*            servMask;
 };
 
 struct _DzHost
 {
-    //running cot
-    DzCot*          currCot;
-
-    //CP_INSTANT task called instantly, so needn't be queued
-    //if needed, while switch a CP_INSTANT to another CP_INSTANT
-    //push it to the head of CP_HIGH queue
-    int             lowestPri;
-    int             currPri;
-    DzSList         taskLs[ COT_PRIORITY_COUNT ];
-
+    //the first cache align is mutable
+    //and will be used only by the host itself.
+    //for currCot have to stay at the head
     union{
+        struct{
+            //running cot
+            DzCot*          currCot;
+
+            //union centerCot use sp only
+            void*           _unused_sp;
+
+            //current cot count
+            int             cotCount;
+
+            //cot schedule countdown
+            int             scheduleCd;
+
+            //default cot value
+            int             dftPri;
+            int             dftSSize;
+
+            //used for timer
+            DzTimerNode**   timerHeap;
+            int             timerCount;
+            int             timerHeapSize;
+
+            //iterator for task lists when scheduling
+            int             lowestPri;
+            int             currPri;
+
+            //dlmalloc heap
+            void*           mSpace;
+       };
+
         //the host thread's original stack info
         DzCot               centerCot;
 
-        struct{
-            //centerCot use sp only
-            DzLItr          unused_lItr;
-            void*           unused_sp;
+        //CPU cache align
+        DzCacheChunk        _pending1;
+    };
 
+    //the second cache align may be read by all hosts.
+    //it is read only when hosts are running, so there's no false sharing
+    union{
+        struct{
             //host's id
             int             hostId;
 
-            //remote call FIFO check sign
-            volatile int    checkRmtSign;
-
             //host mask
             int             hostMask;
+
+            //remote cot FIFOs
+            DzRmtCotFifo*   rmtFifoArr;
+
+            //remote check sign pointer
+            int volatile*   rmtCheckSignPtr;
+
+            //Os struct
+            DzOsStruct      os;
         };
+
+        //CPU cache align
+        DzCacheChunk        _pending2;
     };
 
-    //current cot count
-    int             cotCount;
+    //the third cache align
+    //local access only, frequently
 
-    //cot schedule countdown
-    int             scheduleCd;
+    //schedule tasks' list
+    DzSList         taskLs[ COT_PRIORITY_COUNT ];
+
+    //multi hosts manager
+    DzHostsMgr*     mgr;
+
+    //checking FIFO chain
+    DzRmtCotFifo*   checkFifo;
+
+    //the fourth and fifth cache align on 64 bit platform
+    //resource pools, local access only, frequently
 
     //DzCot struct pool
-    DzLItr*         cotPool;
     DzLItr*         cotPools[ STACK_SIZE_COUNT ];
     int             cotPoolNowDepth[ STACK_SIZE_COUNT ];
-
-    //Os struct
-    DzOsStruct      osStruct;
-
-    //used for timer
-    DzTimerNode**   timerHeap;
-    int             timerCount;
-    int             timerHeapSize;
-
-    //default cot value
-    int             dftPri;
-    int             dftSSize;
-
-    //dlmalloc heap
-    void*           mSpace;
+    DzLItr*         cotPool;
 
     //DzSynObj struct pool
     DzLItr*         synObjPool;
@@ -189,14 +226,10 @@ struct _DzHost
     //DzDqNode struct pool
     DzLItr*         lNodePool;
 
-    //multi hosts manager
-    DzHostsMgr*     hostMgr;
+    //DzAsyncIo struct Pool
+    DzLItr*         asyncIoPool;
 
-    //checking FIFO chain
-    DzRmtCotFifo*   checkFifo;
-
-    //remote call FIFOs
-    DzRmtCotFifo*   rmtFifoArr;
+    //the sixth cache align on 64 bit platform
 
     //pending remote cots
     DzSList*        pendRmtCot;
@@ -216,6 +249,13 @@ struct _DzHost
 
     //record pool alloc history
     DzLItr*         poolGrowList;
+
+    //host count and serve mask local copy,
+    //avoid reading global hostCount leads false sharing
+    int             hostCount;
+    int             servMask;
+
+    //the seventh cache align on 64 bit platform begin
 
     //configure data
     int             cotPoolSetDepth[ STACK_SIZE_COUNT ];

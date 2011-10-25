@@ -8,7 +8,7 @@
 #ifndef __DzStructsDebug_h__
 #define __DzStructsDebug_h__
 
-#include "DzIncOs.h"
+#include "DzInc.h"
 
 #ifndef __DBG_DEBUG_CHECK_MODE
 

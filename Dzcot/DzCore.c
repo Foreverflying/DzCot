@@ -5,7 +5,7 @@
     purpose:    
 *********************************************************************/
 
-#include "DzIncOs.h"
+#include "DzInc.h"
 #include "DzCore.h"
 #include "DzIoOs.h"
 
@@ -77,17 +77,17 @@ void CotScheduleCenter( DzHost* host )
         if( host->lazyTimer ){
             DealLazyResEntry( 0 );
         }
-        if( AtomAndInt( &host->hostMgr->exitSign, ~host->hostMask ) != host->hostMask ){
+        if( AtomAndInt( &host->mgr->exitSign, ~host->hostMask ) != host->hostMask ){
             BlockAndDispatchIo( host, -1 );
-            if( AtomReadInt( &host->hostMgr->exitSign ) ){
-                AtomAndInt( &host->checkRmtSign, ~RMT_CHECK_SLEEP_SIGN );
+            if( AtomReadInt( &host->mgr->exitSign ) ){
+                AtomAndInt( host->rmtCheckSignPtr, ~RMT_CHECK_SLEEP_SIGN );
                 continue;
             }
         }else{
             //be sure quit id 0 host at the end, for hostMgr is in id 0 host's stack
-            for( n = host->hostMgr->hostCount - 1; n >= 0; n-- ){
-                if( host->hostMgr->hostArr[ n ] && n != host->hostId ){
-                    AwakeRemoteHost( host->hostMgr->hostArr[ n ] );
+            for( n = host->hostCount - 1; n >= 0; n-- ){
+                if( host->mgr->hostArr[ n ] && n != host->hostId ){
+                    AwakeRemoteHost( host->mgr->hostArr[ n ] );
                 }
             }
         }

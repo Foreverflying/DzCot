@@ -9,9 +9,12 @@ EXPORTS
     DzStartRemoteCot
     DzEvtStartRemoteCot
     DzRunRemoteCot
+    DzRunWorker
     DzGetCotCount
     DzSetPriority
     DzSetCotPoolDepth
+    DzSetWorkerPoolDepth
+    DzSetHostParam
     DzWaitSynObj
     DzWaitMultiSynObj
     DzCreateMtx

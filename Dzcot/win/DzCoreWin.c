@@ -5,8 +5,7 @@
     purpose:    
 *********************************************************************/
 
-#include "../DzIncOs.h"
-#include "../DzCoreOs.h"
+#include "../DzInc.h"
 #include "../DzCore.h"
 
 void __cdecl SysThreadEntry( void* context )
@@ -62,8 +61,8 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 // schedule next cot
 void __stdcall DzcotEntry(
     DzHost*             host,
-    volatile DzRoutine* entryPtr,
-    volatile intptr_t*  contextPtr
+    DzRoutine volatile* entryPtr,
+    intptr_t volatile*  contextPtr
     )
 {
     __try{
@@ -126,33 +125,34 @@ BOOL SockCleanup()
     return WSACleanup() == 0;
 }
 
-BOOL InitOsStruct( DzHost* host, DzHost* firstHost )
+BOOL InitOsStruct( DzHost* host )
 {
+    DzHost* firstHost = host->hostId == 0 ? NULL : host->mgr->hostArr[0];
+
     if( !firstHost ){
-        if( !SockStartup( &host->osStruct ) ){
+        if( !SockStartup( &host->os ) ){
             return FALSE;
         }
     }else{
-        host->osStruct._AcceptEx = firstHost->osStruct._AcceptEx;
-        host->osStruct._ConnectEx = firstHost->osStruct._ConnectEx;
-        host->osStruct._GetAcceptExSockAddrs = firstHost->osStruct._GetAcceptExSockAddrs;
+        host->os._AcceptEx = firstHost->os._AcceptEx;
+        host->os._ConnectEx = firstHost->os._ConnectEx;
+        host->os._GetAcceptExSockAddrs = firstHost->os._GetAcceptExSockAddrs;
     }
-    host->osStruct.iocp = CreateIoCompletionPort(
+    host->os.iocp = CreateIoCompletionPort(
         INVALID_HANDLE_VALUE,
         NULL,
         (ULONG_PTR)NULL,
         1
         );
-    host->osStruct.originExceptPtr = GetExceptPtr();
-    host->osStruct.originalStack = GetStackPtr();
+    host->os.originExceptPtr = GetExceptPtr();
 
-    return host->osStruct.iocp != NULL;
+    return host->os.iocp != NULL;
 }
 
-void DeleteOsStruct( DzHost* host, DzHost* firstHost )
+void DeleteOsStruct( DzHost* host )
 {
-    CloseHandle( host->osStruct.iocp );
-    if( !firstHost ){
+    CloseHandle( host->os.iocp );
+    if( host->hostId == 0 ){
         SockCleanup();
     }
 }

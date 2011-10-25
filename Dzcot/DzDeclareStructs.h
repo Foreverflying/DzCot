@@ -8,6 +8,16 @@
 #ifndef __DzDeclareStructs_h__
 #define __DzDeclareStructs_h__
 
+#include "DzInc.h"
+
+//used for cache align to avoid false sharing
+struct _DzCacheChunk
+{
+    char        _padding[ CPU_CACHE_ALIGN ];
+};
+
+typedef struct _DzCacheChunk    DzCacheChunk;
+
 //define in DzStructsList.h
 struct _DzLItr;
 struct _DzSList;
@@ -61,7 +71,7 @@ struct _DzAsyncIo;
 typedef struct _DzAsyncIo       DzAsyncIo;
 
 //alias struct names when using in the interface
-typedef struct _DzLNode         DzParamNode;
 typedef struct _DzSynObj*       DzHandle;
+typedef struct _DzLNode         DzParamNode;
 
 #endif // __DzDeclareStructs_h__

@@ -8,7 +8,7 @@
 #ifndef __DzCoreLnx_h__
 #define __DzCoreLnx_h__
 
-#include "../DzBaseOs.h"
+#include "../DzBase.h"
 #include "../DzResourceMgr.h"
 #include "../DzSynObj.h"
 
@@ -20,11 +20,11 @@ BOOL AllocAsyncIoPool( DzHost* host );
 void __stdcall CallDzcotEntry( void );
 void __stdcall DzcotEntry(
     DzHost*             host,
-    volatile DzRoutine* entryPtr,
-    volatile intptr_t*  contextPtr
+    DzRoutine volatile* entryPtr,
+    intptr_t volatile*  contextPtr
     );
-BOOL InitOsStruct( DzHost* host, DzHost* firstHost );
-void DeleteOsStruct( DzHost* host, DzHost* firstHost );
+BOOL InitOsStruct( DzHost* host );
+void DeleteOsStruct( DzHost* host );
 
 inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
@@ -35,13 +35,13 @@ inline DzAsyncIo* CreateAsyncIo( DzHost* host )
 {
     DzAsyncIo* asyncIo;
 
-    if( !host->osStruct.asyncIoPool ){
+    if( !host->asyncIoPool ){
         if( !AllocAsyncIoPool( host ) ){
             return NULL;
         }
     }
-    asyncIo = MEMBER_BASE( host->osStruct.asyncIoPool, DzAsyncIo, lItr );
-    host->osStruct.asyncIoPool = host->osStruct.asyncIoPool->next;
+    asyncIo = MEMBER_BASE( host->asyncIoPool, DzAsyncIo, lItr );
+    host->asyncIoPool = host->asyncIoPool->next;
     asyncIo->err = 0;
     asyncIo->ref++;
     return asyncIo;
@@ -56,8 +56,8 @@ inline void CloseAsyncIo( DzHost* host, DzAsyncIo* asyncIo )
 {
     asyncIo->ref--;
     if( asyncIo->ref == 0 ){
-        asyncIo->lItr.next = host->osStruct.asyncIoPool;
-        host->osStruct.asyncIoPool = &asyncIo->lItr;
+        asyncIo->lItr.next = host->asyncIoPool;
+        host->asyncIoPool = &asyncIo->lItr;
     }
 }
 

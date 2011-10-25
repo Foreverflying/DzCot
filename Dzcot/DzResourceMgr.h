@@ -11,7 +11,7 @@
 #include "DzStructs.h"
 #include "DzList.h"
 #include "DzStructsIoOs.h"
-#include "DzBaseOs.h"
+#include "DzBase.h"
 
 #ifdef __cplusplus
 extern "C"{

@@ -8,7 +8,7 @@
 #ifndef __DzCoreWin_h__
 #define __DzCoreWin_h__
 
-#include "../DzBaseOs.h"
+#include "../DzBase.h"
 #include "../DzResourceMgr.h"
 #include "../DzSynObj.h"
 
@@ -19,11 +19,11 @@ extern "C"{
 void __stdcall CallDzcotEntry( void );
 void __stdcall DzcotEntry(
     DzHost*             host,
-    volatile DzRoutine* entryPtr,
-    volatile intptr_t*  contextPtr
+    DzRoutine volatile* entryPtr,
+    intptr_t volatile*  contextPtr
     );
-BOOL InitOsStruct( DzHost* host, DzHost* firstHost );
-void DeleteOsStruct( DzHost* host, DzHost* firstHost );
+BOOL InitOsStruct( DzHost* host );
+void DeleteOsStruct( DzHost* host );
 
 inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
@@ -128,7 +128,7 @@ inline void InitCotStack( DzHost* host, DzCot* dzCot )
     bottom->host = host;
     bottom->ipEntry = CallDzcotEntry;
 #ifdef _X86_
-    bottom->exceptPtr = host->osStruct.originExceptPtr;
+    bottom->exceptPtr = host->os.originExceptPtr;
 #endif
     bottom->stackPtr = dzCot->stack;
     bottom->stackLimit = dzCot->stackLimit;

@@ -9,7 +9,7 @@
 #define __DzTimer_h__
 
 #include "DzStructs.h"
-#include "DzBaseOs.h"
+#include "DzBase.h"
 
 #ifdef __cplusplus
 extern "C"{

@@ -8,7 +8,7 @@
 #ifndef __DzStructsWin_h__
 #define __DzStructsWin_h__
 
-#include "../DzIncOs.h"
+#include "../DzInc.h"
 #include "../DzDeclareStructs.h"
 #include "../DzStructsDebug.h"
 #include "../DzStructsList.h"
@@ -17,7 +17,6 @@ struct _DzOsStruct
 {
     HANDLE                      iocp;
     void*                       originExceptPtr;
-    char*                       originalStack;
     LPFN_ACCEPTEX               _AcceptEx;
     LPFN_CONNECTEX              _ConnectEx;
     LPFN_GETACCEPTEXSOCKADDRS   _GetAcceptExSockAddrs;
@@ -25,12 +24,26 @@ struct _DzOsStruct
 
 struct _DzCot
 {
-    DzLItr              lItr;
-    void*               sp;
-    char*               stack;
-    char*               stackLimit;
-    int                 sSize;
-    int                 priority;
+    union{
+        struct{
+            DzLItr              lItr;
+            void*               sp;
+            char*               stack;
+            char*               stackLimit;
+            int                 sSize;
+            int                 priority;
+            //used for remote cot
+            DzRoutine           entry;
+            union{
+                DzEasyEvt*      easyEvt;
+                DzSynObj*       evt;
+            };
+            int                 hostId;
+            short               feedType;
+            short               evtType;
+        };
+        DzCacheChunk            _padding;
+    };
 
     __DBG_DATA_DEFINE( DzCot )
 };
