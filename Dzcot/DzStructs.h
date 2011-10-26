@@ -121,6 +121,7 @@ struct _DzShareConstant
 struct _DzHostsMgr
 {
     DzHost*         hostArr[ DZ_MAX_HOST ];
+    DzSysAutoEvt    sysAutoEvt[ DZ_MAX_HOST ];
     int volatile    rmtCheckSign[ DZ_MAX_HOST ];
     int volatile    rmtWritePos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
     int volatile    rmtReadPos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
@@ -279,21 +280,22 @@ struct _DzSysParam
             DzRoutine   entry;
             intptr_t    context;
         } cs;   //used for cot start
+        struct{
+            DzRoutine   entry;
+            intptr_t    context;
+            DzCot*      dzCot;
+            DzHostsMgr* hostMgr;
+        } wk;   //used for worker thread start
     };
 };
 
-struct _DzCotParam
+struct _DzWorker
 {
-    char            hostId;
-    char            type;       //0 normal call; 1 feedback call; -1 emergency
-    char            evtType;    //0 SynObj Events; 1 EasyEvt
-    char            sign;
-    union{
-        DzSynObj*   evt;
-        DzEasyEvt*  easyEvt;
-    };
+    DzLItr          lItr;
+    DzCot*          dzCot;
     DzRoutine       entry;
     intptr_t        context;
+    DzSysAutoEvt    sysEvt;
 };
 
 struct _DzMemExTag

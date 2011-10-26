@@ -14,7 +14,7 @@
 extern "C"{
 #endif
 
-void* SysThreadEntry( void* context );
+void* SysThreadMain( void* context );
 void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 
 inline void* PageAlloc( size_t size )
@@ -46,7 +46,7 @@ inline void StartSystemThread( DzSysParam* param )
     pthread_attr_setscope( &attr, PTHREAD_SCOPE_SYSTEM );
     pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_DETACHED );
     pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
-    pthread_create( &tid, &attr, SysThreadEntry, param );
+    pthread_create( &tid, &attr, SysThreadMain, param );
     pthread_attr_destroy( &attr );
 }
 
@@ -54,6 +54,26 @@ inline void AwakeRemoteHost( DzHost* dstHost )
 {
     char n = 0;
     write( dstHost->os.pipe[1], &n, sizeof( n ) );
+}
+
+inline void InitSysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    sysEvt->sem
+}
+
+inline void FreeSysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    CloseHandle( sysEvt->event );
+}
+
+inline void WaitSysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    WaitForSingleObject( sysEvt->event, INFINITE );
+}
+
+inline void NotifySysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    SetEvent( sysEvt->event );
 }
 
 inline int AtomReadInt( int volatile* val )

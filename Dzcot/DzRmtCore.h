@@ -18,16 +18,15 @@ extern "C"{
 #endif
 
 DzCot* CreateWaitFifoCot( DzHost* host );
-void __stdcall MainHostEntry( intptr_t context );
+void __stdcall MainHostFirstEntry( intptr_t context );
 void __stdcall RemoteCotEntry( intptr_t context );
 void __stdcall DealLazyResEntry( intptr_t context );
+void __stdcall WorkerMain( intptr_t context );
 
-inline void NotifyRmtFifo( DzHost* rmtHost, int volatile* writePos )
+inline void NotifyRmtFifo( DzHost* rmtHost, int volatile* writePos, int nowPos )
 {
     int nowCheck;
-    int nowPos;
 
-    nowPos = AtomReadInt( writePos );
     if( nowPos == RMT_CALL_FIFO_SIZE - 1 ){
         nowPos = 0;
     }else{
@@ -59,7 +58,7 @@ inline void SendRmtCot(
     writePos = AtomReadInt( fifo->writePos );
     if( emergency ){
         fifo->rmtCotArr[ writePos ] = cot;
-        NotifyRmtFifo( rmtHost, fifo->writePos );
+        NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
         return;
     }else if( !IsSListEmpty( &host->pendRmtCot[ rmtId ] ) ){
         AddLItrToNonEptTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
@@ -76,7 +75,7 @@ inline void SendRmtCot(
         fifo->rmtCotArr[ writePos ] = waitFifoCot;
         AddLItrToTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
     }
-    NotifyRmtFifo( rmtHost, fifo->writePos );
+    NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
 }
 
 inline void StartLazyTimer( DzHost* host )

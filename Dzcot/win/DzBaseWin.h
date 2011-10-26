@@ -14,7 +14,7 @@
 extern "C"{
 #endif
 
-void __cdecl SysThreadEntry( void* context );
+void __cdecl SysThreadMain( void* context );
 void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 
 inline void* PageAlloc( size_t size )
@@ -39,12 +39,32 @@ inline void PageFree( void* p, size_t size )
 
 inline void StartSystemThread( DzSysParam* param )
 {
-    _beginthread( SysThreadEntry, MIN_STACK_SIZE, param );
+    _beginthread( SysThreadMain, MIN_STACK_SIZE, param );
 }
 
 inline void AwakeRemoteHost( DzHost* dstHost )
 {
     PostQueuedCompletionStatus( dstHost->os.iocp, 0, 1, (LPOVERLAPPED)1 );
+}
+
+inline void InitSysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    sysEvt->event = CreateEvent( NULL, FALSE, FALSE, NULL );
+}
+
+inline void FreeSysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    CloseHandle( sysEvt->event );
+}
+
+inline void WaitSysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    WaitForSingleObject( sysEvt->event, INFINITE );
+}
+
+inline void NotifySysAutoEvt( DzSysAutoEvt* sysEvt )
+{
+    SetEvent( sysEvt->event );
 }
 
 inline int AtomReadInt( int volatile* val )

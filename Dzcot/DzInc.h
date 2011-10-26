@@ -16,6 +16,7 @@
 //global constants
 #define DZ_TLS_IDX                  ( 16 )
 #define CPU_CACHE_ALIGN             ( 64 )
+#define CPU_CACHE_ALIGN_MASK        ( CPU_CACHE_ALIGN - 1 )
 #define PAGE_SIZE                   ( 4096 )
 #define DZ_STACK_UNIT_SIZE          ( 4096 )
 #define DZ_STACK_SIZE_STEP          ( 2 )

@@ -153,19 +153,22 @@ inline int EvtStartCot(
     int         sSize
     )
 {
-    int ret;
-    DzCotParam* param;
+    DzCot* dzCot;
 
-    param = (DzCotParam*)AllocLNode( host );
-    param->entry = entry;
-    param->context = context;
-    param->evt = CloneSynObj( evt );
-    ret = StartCot( host, EventNotifyCotEntry, (intptr_t)param, priority, sSize );
-    if( ret != DS_OK ){
-        CloseSynObj( host, param->evt );
-        FreeLNode( host, (DzLNode*)param );
+    dzCot = AllocDzCot( host, sSize );
+    if( !dzCot ){
+        return DS_NO_MEMORY;
     }
-    return ret;
+    dzCot->priority = priority;
+    if( priority < host->currPri ){
+        host->currPri = priority;
+    }
+    host->cotCount++;
+    SetCotEntry( dzCot, EventNotifyCotEntry, context );
+    dzCot->entry = entry;
+    dzCot->evt = CloneSynObj( evt );
+    DispatchCot( host, dzCot );
+    return DS_OK;
 }
 
 // EvtStartCotInstant:
@@ -179,19 +182,21 @@ inline int EvtStartCotInstant(
     int         sSize
     )
 {
-    int ret;
-    DzCotParam* param;
+    DzCot* dzCot;
 
-    param = (DzCotParam*)AllocLNode( host );
-    param->entry = entry;
-    param->context = context;
-    param->evt = CloneSynObj( evt );
-    ret = StartCotInstant( host, EventNotifyCotEntry, (intptr_t)param, priority, sSize );
-    if( ret != DS_OK ){
-        CloseSynObj( host, param->evt );
-        FreeLNode( host, (DzLNode*)param );
+    dzCot = AllocDzCot( host, sSize );
+    if( !dzCot ){
+        return DS_NO_MEMORY;
     }
-    return ret;
+    dzCot->priority = priority;
+    host->cotCount++;
+    host->scheduleCd++;
+    SetCotEntry( dzCot, EventNotifyCotEntry, context );
+    dzCot->entry = entry;
+    dzCot->evt = CloneSynObj( evt );
+    TemporaryPushCot( host, host->currCot );
+    SwitchToCot( host, dzCot );
+    return DS_OK;
 }
 
 inline int StartRemoteCot(
@@ -203,20 +208,17 @@ inline int StartRemoteCot(
     int         sSize
     )
 {
-    DzCotParam* param;
     DzCot* dzCot;
 
     dzCot = AllocDzCot( host, sSize );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
-    param = (DzCotParam*)AllocLNode( host );
-    param->hostId = host->hostId;
-    param->entry = entry;
-    param->context = context;
-    param->type = 0;
+    dzCot->hostId = host->hostId;
+    dzCot->entry = entry;
+    dzCot->feedType = 0;
     dzCot->priority = priority;
-    SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
+    SetCotEntry( dzCot, RemoteCotEntry, context );
     SendRmtCot( host, rmtId, FALSE, dzCot );
     return DS_OK;
 }
@@ -231,22 +233,19 @@ inline int EvtStartRemoteCot(
     int         sSize
     )
 {
-    DzCotParam* param;
     DzCot* dzCot;
 
     dzCot = AllocDzCot( host, sSize );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
-    param = (DzCotParam*)AllocLNode( host );
-    param->hostId = host->hostId;
-    param->entry = entry;
-    param->context = context;
-    param->type = 1;
-    param->evtType = 0;
-    param->evt = CloneSynObj( evt );
+    dzCot->hostId = host->hostId;
+    dzCot->entry = entry;
+    dzCot->feedType = 1;
+    dzCot->evtType = 0;
+    dzCot->evt = CloneSynObj( evt );
     dzCot->priority = priority;
-    SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
+    SetCotEntry( dzCot, RemoteCotEntry, context );
     SendRmtCot( host, rmtId, FALSE, dzCot );
     return DS_OK;
 }
@@ -260,7 +259,6 @@ inline int RunRemoteCot(
     int         sSize
     )
 {
-    DzCotParam* param;
     DzCot* dzCot;
     DzEasyEvt easyEvt;
 
@@ -268,23 +266,45 @@ inline int RunRemoteCot(
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
-    param = (DzCotParam*)AllocLNode( host );
-    param->hostId = host->hostId;
-    param->entry = entry;
-    param->context = context;
-    param->type = 1;
-    param->evtType = 1;
-    param->easyEvt = &easyEvt;
+    dzCot->hostId = host->hostId;
+    dzCot->entry = entry;
+    dzCot->feedType = 1;
+    dzCot->evtType = 1;
+    dzCot->easyEvt = &easyEvt;
     dzCot->priority = priority;
-    SetCotEntry( dzCot, RemoteCotEntry, (intptr_t)param );
+    SetCotEntry( dzCot, RemoteCotEntry, context );
     SendRmtCot( host, rmtId, FALSE, dzCot );
     WaitEasyEvt( host, &easyEvt );
     return DS_OK;
 }
 
-inline int RunWorker( DzRoutine entry, intptr_t context )
+inline int RunWorker( DzHost* host, DzRoutine entry, intptr_t context )
 {
-    return 0;
+    DzLItr* lItr;
+    DzSysParam param;
+    DzWorker* worker;
+
+    lItr = AtomPopSList( &host->mgr->workerPool );
+    if( lItr ){
+        AtomIncInt( &host->mgr->workerNowDepth );
+        worker = MEMBER_BASE( lItr, DzWorker, lItr );
+        worker->entry = entry;
+        worker->context = context;
+        worker->dzCot = host->currCot;
+        worker->dzCot->hostId = host->hostId;
+        NotifySysAutoEvt( &worker->sysEvt );
+    }else{
+        param.threadEntry = WorkerMain;
+        param.wk.entry = entry;
+        param.wk.context = context;
+        param.wk.dzCot = host->currCot;
+        param.wk.dzCot->hostId = host->hostId;
+        param.wk.hostMgr = host->mgr;
+        StartSystemThread( &param );
+    }
+    Schedule( host );
+    host->cotCount--;
+    return DS_OK;
 }
 
 // RunHost:
@@ -308,7 +328,7 @@ inline int RunHost(
     DzHost* host;
 
     tmp = (uintptr_t)alloca( sizeof( DzHost ) + CPU_CACHE_ALIGN );
-    host = (DzHost*)( tmp + CPU_CACHE_ALIGN - tmp % CPU_CACHE_ALIGN );
+    host = (DzHost*)( ( tmp + CPU_CACHE_ALIGN_MASK ) & ~CPU_CACHE_ALIGN_MASK );
 
     tmp = (uintptr_t)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     if( !tmp ){
@@ -423,6 +443,7 @@ inline int RunHosts(
     int ret;
     DzSysParam param;
     DzHostsMgr* hostMgr;
+    DzWorker* worker;
     uintptr_t tmp;
 
     if( !AllocTlsIndex() ){
@@ -431,10 +452,10 @@ inline int RunHosts(
     tmp = sizeof( DzHostsMgr ) + CPU_CACHE_ALIGN;
     tmp += sizeof( DzRmtCotFifo ) * hostCount * hostCount + CPU_CACHE_ALIGN;
     tmp = (intptr_t)alloca( tmp );
-    tmp += CPU_CACHE_ALIGN - tmp % CPU_CACHE_ALIGN;
+    tmp = ( tmp + CPU_CACHE_ALIGN_MASK ) & ~CPU_CACHE_ALIGN_MASK;
     hostMgr = (DzHostsMgr*)tmp;
     tmp += sizeof( DzHostsMgr );
-    tmp += CPU_CACHE_ALIGN - tmp % CPU_CACHE_ALIGN;
+    tmp = ( tmp + CPU_CACHE_ALIGN_MASK ) & ~CPU_CACHE_ALIGN_MASK;
 
     for( i = 0; i < DZ_MAX_HOST; i++ ){
         hostMgr->hostArr[i] = NULL;
@@ -459,17 +480,35 @@ inline int RunHosts(
             }
         }
     }
+    for( i = 0; i < hostCount; i++ ){
+        if( servMask[i] & ( 1 << i ) ){
+            InitSysAutoEvt( hostMgr->sysAutoEvt + i );
+            NotifySysAutoEvt( hostMgr->sysAutoEvt + i );
+        }
+    }
+
     param.result = DS_OK;
     if( hostCount > 1 ){
         param.cs.entry = firstEntry;
         param.cs.context = context;
-        firstEntry = MainHostEntry;
+        firstEntry = MainHostFirstEntry;
         context = (intptr_t)&param;
     }
     ret = RunHost(
         hostMgr, 0, lowestPri, dftPri, dftSSize,
         firstEntry, context
         );
+    while( hostMgr->workerPool ){
+        worker = MEMBER_BASE( hostMgr->workerPool, DzWorker, lItr );
+        hostMgr->workerPool = hostMgr->workerPool->next;
+        worker->dzCot = NULL;
+        NotifySysAutoEvt( &worker->sysEvt );
+    }
+    for( i = 0; i < hostCount; i++ ){
+        if( servMask[i] & ( 1 << i ) ){
+            FreeSysAutoEvt( hostMgr->sysAutoEvt + i );
+        }
+    }
     FreeTlsIndex();
     return ret == DS_OK ? param.result : ret;;
 }
@@ -509,7 +548,16 @@ inline int SetCotPoolDepth( DzHost* host, int sSize, int depth )
 
 inline int SetWorkerPoolDepth( DzHost* host, int depth )
 {
-    return 0;
+    int setDepth;
+    int nowSet;
+
+    setDepth = AtomReadInt( &host->mgr->workerSetDepth );
+    do{
+        nowSet = setDepth;
+        setDepth = AtomCasInt( &host->mgr->workerSetDepth, setDepth, depth );
+    }while( setDepth != nowSet );
+    AtomAddInt( &host->mgr->workerNowDepth, depth - setDepth );
+    return setDepth;
 }
 
 inline int SetHostParam(

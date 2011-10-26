@@ -22,12 +22,10 @@ void __stdcall DelayFreeCotHelper( intptr_t context )
 void __stdcall EventNotifyCotEntry( intptr_t context )
 {
     DzHost* host = GetHost();
-    DzCotParam* param = (DzCotParam*)context;
 
-    param->entry( param->context );
-    SetEvt( host, param->evt );
-    CloseSynObj( host, param->evt );
-    FreeLNode( host, (DzLNode*)param );
+    host->currCot->entry( context );
+    SetEvt( host, host->currCot->evt );
+    CloseSynObj( host, host->currCot->evt );
 }
 
 void __stdcall CallbackTimerEntry( intptr_t context )

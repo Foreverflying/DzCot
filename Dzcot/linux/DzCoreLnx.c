@@ -8,7 +8,7 @@
 #include "../DzInc.h"
 #include "../DzCore.h"
 
-void* SysThreadEntry( void* context )
+void* SysThreadMain( void* context )
 {
     DzSysParam* param = (DzSysParam*)context;
     param->threadEntry( (intptr_t)param );

@@ -37,15 +37,24 @@ struct _DzLNode
     union{
         struct{
             union{
-                DzLItr      lItr;
-                intptr_t    d4;
+                struct{
+                    union{
+                        DzLItr      lItr;
+                        intptr_t    d8;
+                    };
+                    intptr_t        d7;
+                };
+                DzDLItr             dlItr;
             };
-            intptr_t        d3;
+            intptr_t                d6;
+            intptr_t                d5;
+            intptr_t                d4;
+            intptr_t                d3;
+            intptr_t                d2;
+            intptr_t                d1;
         };
-        DzDLItr             dlItr;
+        DzCacheChunk                _padding;
     };
-    intptr_t                d2;
-    intptr_t                d1;
 };
 
 #endif // __DzStructsList_h__

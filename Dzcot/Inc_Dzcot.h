@@ -70,10 +70,62 @@ enum
 
 typedef struct _DzParamNode
 {
-    intptr_t        context3;
-    intptr_t        context2;
-    intptr_t        context1;
-    intptr_t        content;
+    union{
+        struct{
+            int     d8a;
+            int     d8;
+        };
+        void*       p8;
+    };
+    union{
+        struct{
+            int     d7a;
+            int     d7;
+        };
+        void*       p7;
+    };
+    union{
+        struct{
+            int     d6a;
+            int     d6;
+        };
+        void*       p6;
+    };
+    union{
+        struct{
+            int     d5a;
+            int     d5;
+        };
+        void*       p5;
+    };
+    union{
+        struct{
+            int     d4a;
+            int     d4;
+        };
+        void*       p4;
+    };
+    union{
+        struct{
+            int     d3a;
+            int     d3;
+        };
+        void*       p3;
+    };
+    union{
+        struct{
+            int     d2a;
+            int     d2;
+        };
+        void*       p2;
+    };
+    union{
+        struct{
+            int     d1a;
+            int     d1;
+        };
+        void*       p1;
+    };
 }DzParamNode;
 
 #ifdef _WIN32

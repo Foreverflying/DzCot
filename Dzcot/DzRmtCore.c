@@ -11,51 +11,47 @@
 void __stdcall PauseCotHelpEntry( intptr_t context )
 {
     DzHost* host = GetHost();
-    DzLNode* node = (DzLNode*)context;
-    int rmtId = (int)node->d2;
-    DzCot* dzCot = (DzCot*)node->d1;
+    DzCot* cot = host->currCot;
+    DzCot* dzCot = (DzCot*)context;
 
-    if( node->d3 ){
-        SendRmtCot( host, rmtId, node->d3 < 0, dzCot );
+    if( cot->feedType ){
+        SendRmtCot( host, cot->hostId, cot->feedType < 0, dzCot );
     }else{
-        AddLItrToTail( &host->lazyRmtCot[ rmtId ], &dzCot->lItr );
+        AddLItrToTail( &host->lazyRmtCot[ cot->hostId ], &dzCot->lItr );
         if( !host->lazyTimer ){
             StartLazyTimer( host );
         }
     }
 }
 
-inline void MoveCurCotToRmt( DzHost* host, int rmtId, int type )
+inline void MoveCurCotToRmt( DzHost* host, int rmtId, int feedType )
 {
     DzCot* helpCot;
-    DzLNode node;
 
-    node.d1 = (intptr_t)host->currCot;
-    node.d2 = (intptr_t)rmtId;
-    node.d3 = (intptr_t)type;
     helpCot = AllocDzCot( host, SS_FIRST );
-    SetCotEntry( helpCot, PauseCotHelpEntry, (intptr_t)&node );
+    SetCotEntry( helpCot, PauseCotHelpEntry, (intptr_t)host->currCot );
+    helpCot->hostId = rmtId;
+    helpCot->feedType = feedType;
     SwitchToCot( host, helpCot );
 }
 
 void __stdcall RemoteCotEntry( intptr_t context )
 {
     DzHost* host = GetHost();
-    DzCotParam* param = (DzCotParam*)context;
+    DzCot* dzCot = host->currCot;
 
-    param->entry( param->context );
-    host->currCot->priority = CP_DEFAULT;
-    MoveCurCotToRmt( host, param->hostId, param->type );
+    dzCot->entry( context );
+    dzCot->priority = CP_DEFAULT;
+    MoveCurCotToRmt( host, dzCot->hostId, dzCot->feedType );
     host = GetHost();
-    if( param->type > 0 ){
-        if( param->evtType == 0 ){
-            SetEvt( host, param->evt );
-            CloseSynObj( host, param->evt );
+    if( dzCot->feedType > 0 ){
+        if( dzCot->evtType == 0 ){
+            SetEvt( host, dzCot->evt );
+            CloseSynObj( host, dzCot->evt );
         }else{
-            NotifyEasyEvt( host, param->easyEvt );
+            NotifyEasyEvt( host, dzCot->easyEvt );
         }
     }
-    FreeLNode( host, (DzLNode*)param );
 }
 
 void __stdcall LazyFreeMemEntry( intptr_t context )
@@ -115,7 +111,7 @@ void __stdcall DealLazyResEntry( intptr_t context )
     StopLazyTimer( host );
 }
 
-void __stdcall RemoteHostEntry( intptr_t context )
+void __stdcall RmtHostFirstEntry( intptr_t context )
 {
     int i;
     DzHost* host;
@@ -144,10 +140,10 @@ void __stdcall RemoteHostEntry( intptr_t context )
     param->result = DS_OK;
     fifo = host->mgr->hostArr[0]->rmtFifoArr + host->hostId;
     fifo->rmtCotArr[0] = param->hs.returnCot;
-    NotifyRmtFifo( host->mgr->hostArr[0], fifo->writePos );
+    NotifyRmtFifo( host->mgr->hostArr[0], fifo->writePos, 0 );
 }
 
-void __stdcall RunRemoteHost( intptr_t context )
+void __stdcall RunRmtHostMain( intptr_t context )
 {
     int ret;
     DzSysParam* param;
@@ -156,17 +152,17 @@ void __stdcall RunRemoteHost( intptr_t context )
     param = (DzSysParam*)context;
     ret = RunHost(
         param->hs.hostMgr, param->hs.hostId, param->hs.lowestPri,
-        param->hs.dftPri, param->hs.dftSSize, RemoteHostEntry, context
+        param->hs.dftPri, param->hs.dftSSize, RmtHostFirstEntry, context
         );
     if( ret != DS_OK ){
         param->result = ret;
         fifo = param->hs.hostMgr->hostArr[0]->rmtFifoArr + param->hs.hostId;
         fifo->rmtCotArr[0] = param->hs.returnCot;
-        NotifyRmtFifo( param->hs.hostMgr->hostArr[0], fifo->writePos );
+        NotifyRmtFifo( param->hs.hostMgr->hostArr[0], fifo->writePos, 0 );
     }
 }
 
-void __stdcall SysThreadReturnCot( intptr_t context )
+void __stdcall StartRmtHostRetEntry( intptr_t context )
 {
     DzHost* host = GetHost();
     DzSysParam* param = (DzSysParam*)context;
@@ -174,7 +170,7 @@ void __stdcall SysThreadReturnCot( intptr_t context )
     SetEvt( host, param->hs.evt );
 }
 
-void __stdcall MainHostEntry( intptr_t context )
+void __stdcall MainHostFirstEntry( intptr_t context )
 {
     int i;
     DzHost* host;
@@ -197,8 +193,8 @@ void __stdcall MainHostEntry( intptr_t context )
     for( i = 1; i < host->hostCount; i++ ){
         dzCot = AllocDzCot( host, SS_FIRST );
         dzCot->priority = CP_DEFAULT;
-        SetCotEntry( dzCot, SysThreadReturnCot, (intptr_t)&param[i] );
-        param[i].threadEntry = RunRemoteHost;
+        SetCotEntry( dzCot, StartRmtHostRetEntry, (intptr_t)&param[i] );
+        param[i].threadEntry = RunRmtHostMain;
         param[i].hs.evt = evt;
         param[i].hs.hostMgr = host->mgr;
         param[i].hs.returnCot = dzCot;
@@ -208,7 +204,6 @@ void __stdcall MainHostEntry( intptr_t context )
         param[i].hs.dftSSize = host->dftSSize;
         StartSystemThread( param + i );
     }
-
     WaitSynObj( host, evt, -1 );
     CloseSynObj( host, evt );
     for( i = 1; i < host->hostCount; i++ ){
@@ -252,6 +247,11 @@ void __stdcall WaitFifoWritableEntry( intptr_t context )
 
     host = GetHost();
     rmtId = (int)context;
+    if( rmtId == host->hostId ){
+        InitSList( host->pendRmtCot + rmtId );
+        NotifySysAutoEvt( host->mgr->sysAutoEvt + rmtId );
+        return;
+    }
     MoveCurCotToRmt( host, rmtId, -1 );
     host = GetHost();
     lItr = GetChainAndResetSList( &host->pendRmtCot[ rmtId ] );
@@ -268,4 +268,58 @@ DzCot* CreateWaitFifoCot( DzHost* host )
     ret->priority = CP_DEFAULT;
     SetCotEntry( ret, WaitFifoWritableEntry, (intptr_t)host->hostId );
     return ret;
+}
+
+void __stdcall WorkerMain( intptr_t context )
+{
+    DzHostsMgr* hostMgr;
+    DzSysParam* param;
+    DzWorker worker;
+    DzWorker volatile* wk;
+    DzHost* host;
+    DzCot* dzCot;
+    int rmtId;
+    int nowDepth;
+    BOOL eventInit;
+
+    eventInit = FALSE;
+    param = (DzSysParam*)context;
+    hostMgr = param->wk.hostMgr;
+    worker.entry = param->wk.entry;
+    worker.context = param->wk.context;
+    worker.dzCot = param->wk.dzCot;
+    wk = &worker;
+    while( 1 ){
+        dzCot = wk->dzCot;
+        if( !wk->dzCot ){
+            break;
+        }
+        rmtId = dzCot->hostId;
+        wk->entry( wk->context );
+        WaitSysAutoEvt( hostMgr->sysAutoEvt + rmtId );
+        host = hostMgr->hostArr[ rmtId ];
+        SendRmtCot( host, rmtId, FALSE, dzCot );
+        if( !IsSListEmpty( host->pendRmtCot + rmtId ) ){
+            WaitSysAutoEvt( hostMgr->sysAutoEvt + rmtId );
+            SendRmtCot( host, rmtId, FALSE, dzCot );
+        }
+        NotifySysAutoEvt( hostMgr->sysAutoEvt + rmtId );
+
+        nowDepth = AtomDecInt( &hostMgr->workerNowDepth );
+        if( nowDepth <= 0 ){
+            nowDepth = AtomIncInt( &hostMgr->workerNowDepth );
+            break;
+        }else{
+            if( !eventInit ){
+                eventInit = TRUE;
+                InitSysAutoEvt( &worker.sysEvt );
+            }
+            AtomPushSList( &hostMgr->workerPool, &worker.lItr );
+            WaitSysAutoEvt( &worker.sysEvt );
+            wk = &worker;
+        }
+    }
+    if( eventInit ){
+        FreeSysAutoEvt( &worker.sysEvt );
+    }
 }

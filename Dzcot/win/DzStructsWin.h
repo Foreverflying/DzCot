@@ -32,12 +32,12 @@ struct _DzCot
             char*               stackLimit;
             int                 sSize;
             int                 priority;
-            //used for remote cot
             DzRoutine           entry;
             union{
                 DzEasyEvt*      easyEvt;
                 DzSynObj*       evt;
             };
+            //used for remote cot
             int                 hostId;
             short               feedType;
             short               evtType;
@@ -46,6 +46,11 @@ struct _DzCot
     };
 
     __DBG_DATA_DEFINE( DzCot )
+};
+
+struct _DzSysAutoEvt
+{
+    HANDLE              event;
 };
 
 #endif // __DzStructsWin_h__

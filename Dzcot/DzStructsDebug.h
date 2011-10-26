@@ -38,7 +38,12 @@
 
 
 __DBG_DATA_TYPE( DzCot ){
-    int     lastErr;
+    union{
+        struct{
+            int         lastErr;
+        };
+        DzCacheChunk    _padding;
+    };
 };
 
 __DBG_DATA_TYPE_INIT( DzCot )

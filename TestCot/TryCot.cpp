@@ -13,7 +13,7 @@ namespace Inner{
 #include "../Dzcot/DzBase.h"
 }
 
-int gHostCount = 2;
+int gHostCount = 8;
 int gServMask[] = {
     DzMakeServMask( TRUE ),
     DzMakeServMask( TRUE ),
@@ -86,15 +86,61 @@ void __stdcall TestRemoteCot( intptr_t context )
     DzSleep( 1000 );
 }
 
+#pragma comment(lib,"Ws2_32.lib")
+
+void __stdcall GetHostByNameEntry( intptr_t context )
+{
+    u_long* ip = (u_long*)context;
+    struct hostent* ret;
+
+    ret = gethostbyname( "www.baidu.com" );
+    *ip = *(u_long*)ret->h_addr_list;
+}
+
 void __stdcall TestCotTryEntry( intptr_t context )
 {
-    //printf( "Fuck this!\r\n" );
-    //TryCotPool();
+    /*
+    printf( "Fuck this!\r\n" );
+    Inner::DzHost host;
+    Inner::DzCot cot;
+    //*/
+
+    /*
+    printf( "Host size is %d\r\n", (int)sizeof( host ) );
+    printf( "DzCot size is %d\r\n", (int)sizeof( cot ) );
+    TryCotPool();
+    //*/
 
     //*
-    printf( "Host size is %d\r\n", (int)sizeof( Inner::DzHost ) );
+    DzSetWorkerPoolDepth( 2 );
+
+    sockaddr_in addr;
+    addr.sin_addr.S_un.S_addr = 0;
+    DzRunWorker( GetHostByNameEntry, (intptr_t)&addr.sin_addr.S_un.S_addr );
+    printf(
+        "ip is %d %d %d %d\r\n",
+        addr.sin_addr.S_un.S_un_b.s_b1,
+        addr.sin_addr.S_un.S_un_b.s_b2,
+        addr.sin_addr.S_un.S_un_b.s_b3,
+        addr.sin_addr.S_un.S_un_b.s_b4
+        );
+
+    DzSleep( 5000 );
+
+    DzRunWorker( GetHostByNameEntry, (intptr_t)&addr.sin_addr.S_un.S_addr );
+    printf(
+        "ip is %d %d %d %d\r\n",
+        addr.sin_addr.S_un.S_un_b.s_b1,
+        addr.sin_addr.S_un.S_un_b.s_b2,
+        addr.sin_addr.S_un.S_un_b.s_b3,
+        addr.sin_addr.S_un.S_un_b.s_b4
+        );
+
+    //*/
+    return;
+    //*
     for( int i = 1; i < gHostCount; i++ ){
-        auto n = new vector<int>();
+        vector<int>* n = new vector<int>();
         DzStartRemoteCot( i, TestRemoteCot, (intptr_t)n );
     }
     printf( "hahhha, i am sleep now1!\r\n" );
@@ -102,21 +148,23 @@ void __stdcall TestCotTryEntry( intptr_t context )
     printf( "well, awake1\r\n\r\n" );
     //*/
 
-    /*
+    //*
     printf( "hahhha, i am sleep now2!\r\n" );
     DzHandle evt = DzCreateCdEvt( gHostCount - 1 );
     for( int i = 1; i < gHostCount; i++ ){
-        DzEvtStartRemoteCot( evt, i, TestRemoteCot, i );
+        vector<int>* n = new vector<int>();
+        DzEvtStartRemoteCot( evt, i, TestRemoteCot, (intptr_t)n );
     }
     DzWaitSynObj( evt );
     printf( "well, awake2\r\n" );
     DzCloseSynObj( evt );
     //*/
 
-    /*
+    //*
     printf( "hahhha, i am sleep now3!\r\n" );
     for( int i = 1; i < gHostCount; i++ ){
-        DzRunRemoteCot( i, TestRemoteCot, i );
+        vector<int>* n = new vector<int>();
+        DzRunRemoteCot( i, TestRemoteCot, (intptr_t)n );
     }
     printf( "well, awake3\r\n\r\n" );
     //*/

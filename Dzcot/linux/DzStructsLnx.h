@@ -48,4 +48,9 @@ struct _DzCot
     __DBG_DATA_DEFINE( DzCot )
 };
 
+struct _DzSysAutoEvt
+{
+    sem_t               sem;
+};
+
 #endif // __DzStructsLnx_h__

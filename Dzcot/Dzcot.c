@@ -226,9 +226,10 @@ int DzRunWorker( DzRoutine entry, intptr_t context )
 {
     DzHost* host = GetHost();
     assert( host );
+    assert( host->servMask & host->hostMask );
     assert( entry );
 
-    return RunWorker( entry, context );
+    return RunWorker( host, entry, context );
 }
 
 int DzGetCotCount()
@@ -729,7 +730,7 @@ DzParamNode* DzAllocParamNode()
     DzHost* host = GetHost();
     assert( host );
 
-    return (DzParamNode*)AllocLNode( host );
+    return AllocLNode( host );
 }
 
 void DzFreeParamNode( DzParamNode* node )
