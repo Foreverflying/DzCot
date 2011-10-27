@@ -58,22 +58,22 @@ inline void AwakeRemoteHost( DzHost* dstHost )
 
 inline void InitSysAutoEvt( DzSysAutoEvt* sysEvt )
 {
-    sysEvt->sem
+    sem_init( &sysEvt->sem, 0, 0 );
 }
 
 inline void FreeSysAutoEvt( DzSysAutoEvt* sysEvt )
 {
-    CloseHandle( sysEvt->event );
+    sem_destroy( &sysEvt->sem );
 }
 
 inline void WaitSysAutoEvt( DzSysAutoEvt* sysEvt )
 {
-    WaitForSingleObject( sysEvt->event, INFINITE );
+    sem_wait( &sysEvt->sem );
 }
 
 inline void NotifySysAutoEvt( DzSysAutoEvt* sysEvt )
 {
-    SetEvent( sysEvt->event );
+    sem_post( &sysEvt->sem );
 }
 
 inline int AtomReadInt( int volatile* val )

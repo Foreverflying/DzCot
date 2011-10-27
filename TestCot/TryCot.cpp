@@ -90,11 +90,11 @@ void __stdcall TestRemoteCot( intptr_t context )
 
 void __stdcall GetHostByNameEntry( intptr_t context )
 {
-    u_long* ip = (u_long*)context;
+    int* ip = (int*)context;
     struct hostent* ret;
 
     ret = gethostbyname( "www.baidu.com" );
-    *ip = *(u_long*)ret->h_addr_list;
+    *ip = *(int*)ret->h_addr_list;
 }
 
 void __stdcall TestCotTryEntry( intptr_t context )
@@ -114,26 +114,25 @@ void __stdcall TestCotTryEntry( intptr_t context )
     //*
     DzSetWorkerPoolDepth( 2 );
 
-    sockaddr_in addr;
-    addr.sin_addr.S_un.S_addr = 0;
-    DzRunWorker( GetHostByNameEntry, (intptr_t)&addr.sin_addr.S_un.S_addr );
+    int ip;
+    DzRunWorker( GetHostByNameEntry, (intptr_t)&ip );
     printf(
         "ip is %d %d %d %d\r\n",
-        addr.sin_addr.S_un.S_un_b.s_b1,
-        addr.sin_addr.S_un.S_un_b.s_b2,
-        addr.sin_addr.S_un.S_un_b.s_b3,
-        addr.sin_addr.S_un.S_un_b.s_b4
+        ( ip >> 24 ) & 0xff,
+        ( ip >> 16 ) & 0xff,
+        ( ip >> 8 ) & 0xff,
+        ip & 0xff
         );
 
     DzSleep( 5000 );
 
-    DzRunWorker( GetHostByNameEntry, (intptr_t)&addr.sin_addr.S_un.S_addr );
+    DzRunWorker( GetHostByNameEntry, (intptr_t)&ip );
     printf(
         "ip is %d %d %d %d\r\n",
-        addr.sin_addr.S_un.S_un_b.s_b1,
-        addr.sin_addr.S_un.S_un_b.s_b2,
-        addr.sin_addr.S_un.S_un_b.s_b3,
-        addr.sin_addr.S_un.S_un_b.s_b4
+        ( ip >> 24 ) & 0xff,
+        ( ip >> 16 ) & 0xff,
+        ( ip >> 8 ) & 0xff,
+        ip & 0xff
         );
 
     //*/

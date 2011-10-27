@@ -296,13 +296,11 @@ void __stdcall WorkerMain( intptr_t context )
         }
         rmtId = dzCot->hostId;
         wk->entry( wk->context );
-        WaitSysAutoEvt( hostMgr->sysAutoEvt + rmtId );
         host = hostMgr->hostArr[ rmtId ];
-        SendRmtCot( host, rmtId, FALSE, dzCot );
-        if( !IsSListEmpty( host->pendRmtCot + rmtId ) ){
+        do{
             WaitSysAutoEvt( hostMgr->sysAutoEvt + rmtId );
             SendRmtCot( host, rmtId, FALSE, dzCot );
-        }
+        }while( !IsSListEmpty( host->pendRmtCot + rmtId ) );
         NotifySysAutoEvt( hostMgr->sysAutoEvt + rmtId );
 
         nowDepth = AtomDecInt( &hostMgr->workerNowDepth );

@@ -13,6 +13,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
