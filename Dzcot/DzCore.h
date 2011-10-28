@@ -300,7 +300,7 @@ inline int RunWorker( DzHost* host, DzRoutine entry, intptr_t context )
         param.wk.dzCot = host->currCot;
         param.wk.dzCot->hostId = host->hostId;
         param.wk.hostMgr = host->mgr;
-        StartSystemThread( &param );
+        StartSystemThread( &param, WORKER_STACK_SIZE );
     }
     Schedule( host );
     host->cotCount--;
@@ -722,7 +722,7 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
                 DealRmtCot( host, dzCot );
                 readPos++;
                 if( readPos == RMT_CALL_FIFO_SIZE ){
-                    readPos = 0;
+                    readPos = 1;
                 }
                 nowCount--;
                 if( nowCount == 0 ){

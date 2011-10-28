@@ -130,6 +130,13 @@ void __stdcall RmtHostFirstEntry( intptr_t context )
             }
             fifo->rmtCotArr = (DzCot**)
                 AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
+            *fifo->readPos = 1;
+            *fifo->writePos = 1;
+            *fifo->rmtCotArr = NULL;
+        }else{
+            *host->rmtFifoArr[i].readPos = 0;
+            *host->rmtFifoArr[i].writePos = 0;
+            host->rmtFifoArr[i].rmtCotArr = NULL;
         }
     }
     if( host->checkFifo ){
@@ -202,7 +209,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
         param[i].hs.lowestPri = host->lowestPri;
         param[i].hs.dftPri = host->dftPri;
         param[i].hs.dftSSize = host->dftSSize;
-        StartSystemThread( param + i );
+        StartSystemThread( param + i, THREAD_STACK_MIN );
     }
     WaitSynObj( host, evt, -1 );
     CloseSynObj( host, evt );
@@ -214,9 +221,6 @@ void __stdcall MainHostFirstEntry( intptr_t context )
     }
     host->checkFifo = NULL;
     for( i = 0; i < host->hostCount; i++ ){
-        *host->rmtFifoArr[i].readPos = 0;
-        *host->rmtFifoArr[i].writePos = 0;
-        host->rmtFifoArr[i].rmtCotArr = NULL;
         if( host->servMask & ( 1 << i ) ){
             if( !host->checkFifo ){
                 host->checkFifo = host->rmtFifoArr + i;
@@ -227,6 +231,13 @@ void __stdcall MainHostFirstEntry( intptr_t context )
             }
             fifo->rmtCotArr = (DzCot**)
                 AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
+            *fifo->readPos = 1;
+            *fifo->writePos = 1;
+            *fifo->rmtCotArr = NULL;
+        }else{
+            *host->rmtFifoArr[i].readPos = 0;
+            *host->rmtFifoArr[i].writePos = 0;
+            host->rmtFifoArr[i].rmtCotArr = NULL;
         }
     }
     if( host->checkFifo ){
@@ -248,12 +259,14 @@ void __stdcall WaitFifoWritableEntry( intptr_t context )
     host = GetHost();
     rmtId = (int)context;
     if( rmtId == host->hostId ){
+        *host->rmtFifoArr[ rmtId ].rmtCotArr = NULL;
         InitSList( host->pendRmtCot + rmtId );
         NotifySysAutoEvt( host->mgr->sysAutoEvt + rmtId );
         return;
     }
     MoveCurCotToRmt( host, rmtId, -1 );
     host = GetHost();
+    *host->rmtFifoArr[ rmtId ].rmtCotArr = NULL;
     lItr = GetChainAndResetSList( &host->pendRmtCot[ rmtId ] );
     dzCot = MEMBER_BASE( lItr, DzCot, lItr );
     dzCot->priority -= CP_DEFAULT + 1;
@@ -300,7 +313,7 @@ void __stdcall WorkerMain( intptr_t context )
         do{
             WaitSysAutoEvt( hostMgr->sysAutoEvt + rmtId );
             SendRmtCot( host, rmtId, FALSE, dzCot );
-        }while( !IsSListEmpty( host->pendRmtCot + rmtId ) );
+        }while( *host->rmtFifoArr[ rmtId ].rmtCotArr );
         NotifySysAutoEvt( hostMgr->sysAutoEvt + rmtId );
 
         nowDepth = AtomDecInt( &hostMgr->workerNowDepth );

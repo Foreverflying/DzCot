@@ -28,7 +28,7 @@ inline void NotifyRmtFifo( DzHost* rmtHost, int volatile* writePos, int nowPos )
     int nowCheck;
 
     if( nowPos == RMT_CALL_FIFO_SIZE - 1 ){
-        nowPos = 0;
+        nowPos = 1;
     }else{
         nowPos++;
     }
@@ -60,19 +60,20 @@ inline void SendRmtCot(
         fifo->rmtCotArr[ writePos ] = cot;
         NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
         return;
-    }else if( !IsSListEmpty( &host->pendRmtCot[ rmtId ] ) ){
+    }else if( *fifo->rmtCotArr ){
         AddLItrToNonEptTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
         return;
     }
     empty = AtomReadInt( fifo->readPos ) - writePos;
     if( empty <= 0 ){
-        empty += RMT_CALL_FIFO_SIZE;
+        empty += RMT_CALL_FIFO_SIZE - 1;
     }
     if( empty > 2 ){
         fifo->rmtCotArr[ writePos ] = cot;
     }else{
         waitFifoCot = CreateWaitFifoCot( host );
         fifo->rmtCotArr[ writePos ] = waitFifoCot;
+        *fifo->rmtCotArr = (DzCot*)1;
         AddLItrToTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
     }
     NotifyRmtFifo( rmtHost, fifo->writePos, writePos );

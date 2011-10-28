@@ -37,9 +37,9 @@ inline void PageFree( void* p, size_t size )
     VirtualFree( p, 0, MEM_RELEASE );
 }
 
-inline void StartSystemThread( DzSysParam* param )
+inline void StartSystemThread( DzSysParam* param, int stackSize )
 {
-    _beginthread( SysThreadMain, MIN_STACK_SIZE, param );
+    _beginthread( SysThreadMain, stackSize, param );
 }
 
 inline void AwakeRemoteHost( DzHost* dstHost )

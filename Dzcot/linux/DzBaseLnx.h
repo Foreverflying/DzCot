@@ -37,7 +37,7 @@ inline void PageFree( void* p, size_t size )
     munmap( p, size );
 }
 
-inline void StartSystemThread( DzSysParam* param )
+inline void StartSystemThread( DzSysParam* param, int stackSize )
 {
     pthread_t tid;
     pthread_attr_t attr;
@@ -45,7 +45,7 @@ inline void StartSystemThread( DzSysParam* param )
     pthread_attr_init( &attr );
     pthread_attr_setscope( &attr, PTHREAD_SCOPE_SYSTEM );
     pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_DETACHED );
-    pthread_attr_setstacksize( &attr, PTHREAD_STACK_MIN );
+    pthread_attr_setstacksize( &attr, stackSize );
     pthread_create( &tid, &attr, SysThreadMain, param );
     pthread_attr_destroy( &attr );
 }

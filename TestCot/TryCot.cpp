@@ -111,7 +111,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
     TryCotPool();
     //*/
 
-    //*
+    /*
     DzSetWorkerPoolDepth( 2 );
 
     int ip;
@@ -135,8 +135,9 @@ void __stdcall TestCotTryEntry( intptr_t context )
         ip & 0xff
         );
 
-    //*/
     return;
+    //*/
+
     //*
     for( int i = 1; i < gHostCount; i++ ){
         vector<int>* n = new vector<int>();

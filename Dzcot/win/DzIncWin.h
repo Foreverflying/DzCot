@@ -50,10 +50,11 @@ typedef long long int64;
 
 
 //global constants on windows
+#define THREAD_STACK_MIN            ( 64 * 1024 )
+#define DZ_MAX_PERSIST_STACK_SIZE   ( SS_16K )
 
 
 //windows specific constants
-#define MIN_STACK_SIZE          ( 64 * 1024 )
 
 //switchers
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER

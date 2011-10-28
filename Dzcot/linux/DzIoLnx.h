@@ -26,7 +26,6 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     struct epoll_event evt;
 
     fd = socket( domain, type, protocol );
-    __DbgSetLastErr( host, errno );
     if( fd >= 0 ){
         host->os.fdTable[ fd ] = CreateAsyncIo( host );
         if( !host->os.fdTable[ fd ] ){
@@ -38,6 +37,8 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
         flag = fcntl( fd, F_GETFL, 0 );
         fcntl( fd, F_SETFL, flag | O_NONBLOCK );
         epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, fd, &evt );
+    }else{
+        __DbgSetLastErr( host, errno );
     }
     return fd;
 }
@@ -124,7 +125,6 @@ inline int Connect( DzHost* host, int fd, struct sockaddr* addr, int addrLen )
             return -1;
         }
     }
-    __DbgSetLastErr( host, 0 );
     return 0;
 }
 
@@ -168,7 +168,6 @@ inline int Accept( DzHost* host, int fd, struct sockaddr* addr, int* addrLen )
     flag = fcntl( ret, F_GETFL, 0 );
     fcntl( ret, F_SETFL, flag | O_NONBLOCK );
     epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, ret, &evt );
-    __DbgSetLastErr( host, 0 );
     return ret;
 }
 
@@ -199,7 +198,6 @@ inline int SendMsg( DzHost* host, int fd, struct msghdr* msg, int flags )
             return -1;
         }
     }
-    __DbgSetLastErr( host, 0 );
     return ret;
 }
 
@@ -230,7 +228,6 @@ inline int RecvMsg( DzHost* host, int fd, struct msghdr* msg, int flags )
             return -1;
         }
     }
-    __DbgSetLastErr( host, 0 );
     return ret;
 }
 
@@ -362,11 +359,9 @@ inline int RecvFrom(
 inline int OpenA( DzHost* host, const char* fileName, int flags )
 {
     int fd;
-    int flag;
     struct epoll_event evt;
 
-    fd = open( fileName, flags );
-    __DbgSetLastErr( host, errno );
+    fd = open( fileName, flags | O_NONBLOCK );
     if( fd >= 0 ){
         host->os.fdTable[ fd ] = CreateAsyncIo( host );
         if( !host->os.fdTable[ fd ] ){
@@ -375,9 +370,9 @@ inline int OpenA( DzHost* host, const char* fileName, int flags )
         }
         evt.data.ptr = host->os.fdTable[ fd ];
         evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
-        flag = fcntl( fd, F_GETFL, 0 );
-        fcntl( fd, F_SETFL, flag | O_NONBLOCK );
         epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, fd, &evt );
+    }else{
+        __DbgSetLastErr( host, errno );
     }
     return fd;
 }
@@ -439,7 +434,6 @@ inline size_t Read( DzHost* host, int fd, void* buf, size_t count )
             return -1;
         }
     }
-    __DbgSetLastErr( host, 0 );
     return ret;
 }
 
@@ -473,7 +467,6 @@ inline size_t Write( DzHost* host, int fd, const void* buf, size_t count )
             return -1;
         }
     }
-    __DbgSetLastErr( host, 0 );
     return ret;
 }
 
