@@ -80,11 +80,26 @@ void __stdcall TestRemoteCot( intptr_t context )
     printf( "%s--%d--PRINT\r\n", buff, hostId );
     for( int i = 0; i < hostId; i++ ){
         DzStartRemoteCot( i, TestRemoteCot1, hostId );
-//         DzStartRemoteCot( i, TestRemoteCot1, hostId );
-//         DzStartRemoteCot( i, TestRemoteCot1, hostId );
+        DzStartRemoteCot( i, TestRemoteCot1, hostId );
+        DzStartRemoteCot( i, TestRemoteCot1, hostId );
     }
     DzSleep( 1000 );
 }
+
+/*/
+void __stdcall SimplePrint( intptr_t context )
+{
+    int delay = (int)context;
+
+    Sleep( delay );
+    printf ( "Hello world\r\n" );
+}
+
+void __stdcall RunSimplePrintCot( intptr_t context )
+{
+    DzRunWorker( SimplePrint, context );
+}
+//*/
 
 #pragma comment(lib,"Ws2_32.lib")
 
@@ -97,8 +112,20 @@ void __stdcall GetHostByNameEntry( intptr_t context )
     *ip = *(int*)ret->h_addr_list;
 }
 
+
 void __stdcall TestCotTryEntry( intptr_t context )
 {
+    /*
+    for( int i = 0; i < 5; i++ ){
+        DzStartCot( RunSimplePrintCot, 1000 + i * 200 );
+    }
+    DzSleep( 100 );
+    printf( "main thread fall sleep\r\n" );
+    Sleep( 5000 );
+    printf( "main thread wake up\r\n" );
+    return;
+    //*/
+
     /*
     printf( "Fuck this!\r\n" );
     Inner::DzHost host;

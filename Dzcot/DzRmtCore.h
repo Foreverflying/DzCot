@@ -40,7 +40,7 @@ inline void NotifyRmtFifo( DzHost* rmtHost, int volatile* writePos, int nowPos )
     }
 }
 
-inline void SendRmtCot(
+inline BOOL SendRmtCot(
     DzHost*         host,
     int             rmtId,
     BOOL            emergency,
@@ -59,10 +59,10 @@ inline void SendRmtCot(
     if( emergency ){
         fifo->rmtCotArr[ writePos ] = cot;
         NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
-        return;
-    }else if( *fifo->rmtCotArr ){
+        return TRUE;
+    }else if( fifo->rmtCotArr[0] ){
         AddLItrToNonEptTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
-        return;
+        return FALSE;
     }
     empty = AtomReadInt( fifo->readPos ) - writePos;
     if( empty <= 0 ){
@@ -70,13 +70,16 @@ inline void SendRmtCot(
     }
     if( empty > 2 ){
         fifo->rmtCotArr[ writePos ] = cot;
+        NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
+        return TRUE;
     }else{
         waitFifoCot = CreateWaitFifoCot( host );
         fifo->rmtCotArr[ writePos ] = waitFifoCot;
-        *fifo->rmtCotArr = (DzCot*)1;
-        AddLItrToTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
+        fifo->rmtCotArr[0] = (DzCot*)1;
+        AddLItrToEptSList( &host->pendRmtCot[ rmtId ], &cot->lItr );
+        NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
+        return FALSE;
     }
-    NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
 }
 
 inline void StartLazyTimer( DzHost* host )

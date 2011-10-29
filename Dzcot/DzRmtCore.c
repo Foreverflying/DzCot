@@ -91,8 +91,8 @@ void __stdcall DealLazyResEntry( intptr_t context )
             lItr = GetChainAndResetSList( host->lazyRmtCot + i );
             dzCot = MEMBER_BASE( lItr, DzCot, lItr );
             dzCot->priority -= CP_DEFAULT + 1;
-            SendRmtCot( host, i, FALSE, dzCot );
-            if( !IsSListEmpty( &host->pendRmtCot[i] ) ){
+            if( SendRmtCot( host, i, FALSE, dzCot ) == FALSE ){
+                dzCot->priority += CP_DEFAULT + 1;
                 host->pendRmtCot[i].tail = tail;
             }
         }
@@ -132,7 +132,7 @@ void __stdcall RmtHostFirstEntry( intptr_t context )
                 AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
             *fifo->readPos = 1;
             *fifo->writePos = 1;
-            *fifo->rmtCotArr = NULL;
+            fifo->rmtCotArr[0] = NULL;
         }else{
             *host->rmtFifoArr[i].readPos = 0;
             *host->rmtFifoArr[i].writePos = 0;
@@ -233,7 +233,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
                 AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
             *fifo->readPos = 1;
             *fifo->writePos = 1;
-            *fifo->rmtCotArr = NULL;
+            fifo->rmtCotArr[0] = NULL;
         }else{
             *host->rmtFifoArr[i].readPos = 0;
             *host->rmtFifoArr[i].writePos = 0;
@@ -259,18 +259,19 @@ void __stdcall WaitFifoWritableEntry( intptr_t context )
     host = GetHost();
     rmtId = (int)context;
     if( rmtId == host->hostId ){
-        *host->rmtFifoArr[ rmtId ].rmtCotArr = NULL;
+        host->rmtFifoArr[ rmtId ].rmtCotArr[0] = NULL;
         InitSList( host->pendRmtCot + rmtId );
         NotifySysAutoEvt( host->mgr->sysAutoEvt + rmtId );
         return;
     }
     MoveCurCotToRmt( host, rmtId, -1 );
+    host->rmtFifoArr[ rmtId ].rmtCotArr[0] = NULL;
+    rmtId = host->hostId;
     host = GetHost();
-    *host->rmtFifoArr[ rmtId ].rmtCotArr = NULL;
     lItr = GetChainAndResetSList( &host->pendRmtCot[ rmtId ] );
     dzCot = MEMBER_BASE( lItr, DzCot, lItr );
     dzCot->priority -= CP_DEFAULT + 1;
-    SendRmtCot( host, rmtId, FALSE, dzCot );
+    SendRmtCot( host, rmtId, TRUE, dzCot );
 }
 
 DzCot* CreateWaitFifoCot( DzHost* host )
@@ -312,8 +313,7 @@ void __stdcall WorkerMain( intptr_t context )
         host = hostMgr->hostArr[ rmtId ];
         do{
             WaitSysAutoEvt( hostMgr->sysAutoEvt + rmtId );
-            SendRmtCot( host, rmtId, FALSE, dzCot );
-        }while( *host->rmtFifoArr[ rmtId ].rmtCotArr );
+        }while( SendRmtCot( host, rmtId, FALSE, dzCot ) == FALSE );
         NotifySysAutoEvt( hostMgr->sysAutoEvt + rmtId );
 
         nowDepth = AtomDecInt( &hostMgr->workerNowDepth );

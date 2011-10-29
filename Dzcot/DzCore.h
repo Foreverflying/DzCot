@@ -717,26 +717,23 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
         readPos = AtomReadInt( host->checkFifo->readPos );
         writePos = AtomReadInt( host->checkFifo->writePos );
         if( readPos != writePos ){
-            do{
-                dzCot = host->checkFifo->rmtCotArr[ readPos ];
-                DealRmtCot( host, dzCot );
-                readPos++;
-                if( readPos == RMT_CALL_FIFO_SIZE ){
-                    readPos = 1;
-                }
-                nowCount--;
-                if( nowCount == 0 ){
-                    nowCount = AtomSubInt( host->rmtCheckSignPtr, count );
-                    nowCount -= count;
-                    if( nowCount == 0 ){
-                        host->scheduleCd = scheduleCd;
-                        AtomSetInt( host->checkFifo->readPos, readPos );
-                        return 0;
-                    }
-                    count = nowCount;
-                }
-            }while( readPos != writePos );
+            dzCot = host->checkFifo->rmtCotArr[ readPos ];
+            readPos++;
+            if( readPos == RMT_CALL_FIFO_SIZE ){
+                readPos = 1;
+            }
             AtomSetInt( host->checkFifo->readPos, readPos );
+            DealRmtCot( host, dzCot );
+            nowCount--;
+            if( nowCount == 0 ){
+                nowCount = AtomSubInt( host->rmtCheckSignPtr, count );
+                nowCount -= count;
+                if( nowCount == 0 ){
+                    host->scheduleCd = scheduleCd;
+                    return 0;
+                }
+                count = nowCount;
+            }
         }
         host->checkFifo = host->checkFifo->next;
     }
