@@ -11,7 +11,7 @@
 
 #ifdef TEST_COT_JUST_RUN_TRY
 
-//#include "../Dzcot/Inc_DzFastNewDelEx.h"
+//#include "../DzCot/Inc_DzFastNewDelEx.h"
 
 int MainEntry( int argc, _TCHAR* argv[] )
 {

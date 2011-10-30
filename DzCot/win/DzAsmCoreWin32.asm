@@ -7,23 +7,23 @@
 
     .386
 
-;PUBLIC _CallDzcotEntry@0 PROC  ; CallDzcotEntry
+;PUBLIC _CallDzCotEntry@0 PROC  ; CallDzCotEntry
 ;PUBLIC @DzSwitch@8 PROC        ; DzSwitch
 
-EXTRN   _DzcotEntry@12 : PROC
+EXTRN   _DzCotEntry@12 : PROC
 
 _TEXT   SEGMENT
 
-; void __stdcall CallDzcotEntry( void );
-_CallDzcotEntry@0 PROC  ;CallDzcotEntry
+; void __stdcall CallDzCotEntry( void );
+_CallDzCotEntry@0 PROC  ;CallDzCotEntry
     lea     edx, [esp+8]
     lea     ecx, [esp+4]
     mov     eax, [esp]
     push    edx
     push    ecx
     push    eax
-    call    _DzcotEntry@12
-_CallDzcotEntry@0 ENDP  ;CallDzcotEntry
+    call    _DzCotEntry@12
+_CallDzCotEntry@0 ENDP  ;CallDzCotEntry
 
 ; void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 ; host$ = ecx

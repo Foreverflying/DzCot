@@ -35,9 +35,6 @@
     <ClCompile Include="win\DzCoreWin.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Dzcot.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="DzResourceMgr.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -51,6 +48,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="linux\DzCoreLnx.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DzCot.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -169,12 +169,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="Dzcot.def">
+    <None Include="DzCot.def">
       <Filter>源文件</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuildStep Include="Inc_Dzcot.h">
+    <CustomBuildStep Include="Inc_DzCot.h">
       <Filter>头文件</Filter>
     </CustomBuildStep>
   </ItemGroup>

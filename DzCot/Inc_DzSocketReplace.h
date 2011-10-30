@@ -8,7 +8,7 @@
 #ifndef __Inc_DzSocketReplace_h__
 #define __Inc_DzSocketReplace_h__
 
-#include "Inc_Dzcot.h"
+#include "Inc_DzCot.h"
 
 #undef socket
 #undef connect

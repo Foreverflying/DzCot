@@ -5,21 +5,21 @@
 ;    purpose:    funciton used for switch cot on win64
 ;********************************************************************
 
-;PUBLIC CallDzcotEntry PROC     ; CallDzcotEntry
+;PUBLIC CallDzCotEntry PROC     ; CallDzCotEntry
 ;PUBLIC DzSwitch PROC           ; DzSwitch
 
-EXTRN   DzcotEntry : PROC
+EXTRN   DzCotEntry : PROC
 
 _TEXT   SEGMENT
 
-; void CallDzcotEntry( void );
-CallDzcotEntry PROC     ;CallDzcotEntry
+; void CallDzCotEntry( void );
+CallDzCotEntry PROC     ;CallDzCotEntry
     lea     r8, [rsp+16]
     lea     rdx, [rsp+8]
     mov     rcx, [rsp]
     sub     rsp, 32
-    call    DzcotEntry
-CallDzcotEntry ENDP     ;CallDzcotEntry
+    call    DzCotEntry
+CallDzCotEntry ENDP     ;CallDzCotEntry
 
 ; void DzSwitch( DzHost* host, DzCot* dzCot );
 ; host$ = rcx

@@ -1,5 +1,5 @@
 
-#include "../Dzcot/Inc_Dzcot.h"
+#include "../DzCot/Inc_DzCot.h"
 #include "TryCompileInC.h"
 
 

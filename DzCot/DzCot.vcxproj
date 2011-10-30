@@ -52,8 +52,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8831D583-8EF8-4406-B736-6F84C5AC4E54}</ProjectGuid>
-    <RootNamespace>Dzcot</RootNamespace>
+    <RootNamespace>DzCot</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <ProjectName>DzCot</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|Win32'" Label="Configuration">
@@ -565,7 +566,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="win\DzCoreWin.c" />
-    <ClCompile Include="Dzcot.c">
+    <ClCompile Include="DzCot.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|Win32'">true</ExcludedFromBuild>
@@ -674,7 +675,7 @@
     <ClInclude Include="win\DzBaseWin.h" />
     <ClInclude Include="win\DzCoreWin.h" />
     <ClInclude Include="DzDebug.h" />
-    <CustomBuildStep Include="Inc_Dzcot.h">
+    <CustomBuildStep Include="Inc_DzCot.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|Win32'">true</ExcludedFromBuild>
@@ -698,7 +699,7 @@
     <ClInclude Include="DzTimer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Dzcot.def" />
+    <None Include="DzCot.def" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

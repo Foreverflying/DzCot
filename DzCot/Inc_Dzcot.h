@@ -1,12 +1,12 @@
 /********************************************************************
     created:    2010/02/11 21:50
-    file:       Inc_Dzcot.h
+    file:       Inc_DzCot.h
     author:     Foreverflying
     purpose:    
 *********************************************************************/
 
-#ifndef __Inc_Dzcot_h__
-#define __Inc_Dzcot_h__
+#ifndef __Inc_DzCot_h__
+#define __Inc_DzCot_h__
 
 #if defined( _WIN32 )
 #include <stdarg.h>
@@ -400,4 +400,4 @@ int __DzDbgLastErr();
 };
 #endif
 
-#endif // __Inc_Dzcot_h__
+#endif // __Inc_DzCot_h__

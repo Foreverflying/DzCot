@@ -46,11 +46,11 @@ BOOL AllocAsyncIoPool( DzHost* host )
     return TRUE;
 }
 
-// DzcotEntry:
+// DzCotEntry:
 // the real function entry the cot starts, it call the user entry
 // after that, when the cot is finished, put it into the cot pool
 // schedule next cot
-void __stdcall DzcotEntry(
+void __stdcall DzCotEntry(
     DzHost*             host,
     DzRoutine volatile* entryPtr,
     intptr_t volatile*  contextPtr

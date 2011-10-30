@@ -6,25 +6,25 @@
 #********************************************************************
 
 
-#PUBLIC CallDzcotEntry PROC     ; CallDzcotEntry
+#PUBLIC CallDzCotEntry PROC     ; CallDzCotEntry
 #PUBLIC DzSwitch PROC           ; DzSwitch
 
-.extern DzcotEntry
+.extern DzCotEntry
 
 .text
 
-.globl CallDzcotEntry
+.globl CallDzCotEntry
 .globl DzSwitch
 
-# void __stdcall CallDzcotEntry( void )
-CallDzcotEntry:
+# void __stdcall CallDzCotEntry( void )
+CallDzCotEntry:
     leal    8(%esp), %edx
     leal    4(%esp), %ecx
     movl    (%esp), %eax
     pushl   %edx
     pushl   %ecx
     pushl   %eax
-    call    DzcotEntry
+    call    DzCotEntry
 
 # void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 # host$ = ecx

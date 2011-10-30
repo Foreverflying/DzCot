@@ -16,8 +16,8 @@
 extern "C"{
 #endif
 
-void __stdcall CallDzcotEntry( void );
-void __stdcall DzcotEntry(
+void __stdcall CallDzCotEntry( void );
+void __stdcall DzCotEntry(
     DzHost*             host,
     DzRoutine volatile* entryPtr,
     intptr_t volatile*  contextPtr
@@ -127,7 +127,7 @@ inline void InitCotStack( DzHost* host, DzCot* dzCot )
 
     bottom = ( (struct DzStackBottom*)dzCot->stack ) - 1;
     bottom->host = host;
-    bottom->ipEntry = CallDzcotEntry;
+    bottom->ipEntry = CallDzCotEntry;
 #ifdef _X86_
     bottom->exceptPtr = host->os.originExceptPtr;
 #endif

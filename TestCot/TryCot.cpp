@@ -1,6 +1,6 @@
 
 #include "stdafx.h"
-#include "../Dzcot/Inc_Dzcot.h"
+#include "../DzCot/Inc_DzCot.h"
 #include "TryCot.h"
 #include <vector>
 
@@ -9,8 +9,8 @@ using namespace std;
 namespace Inner{
 #undef DZ_MAX_IOV
 #undef DZ_MAX_HOST
-#include "../Dzcot/DzStructs.h"
-#include "../Dzcot/DzBase.h"
+#include "../DzCot/DzStructs.h"
+#include "../DzCot/DzBase.h"
 }
 
 int gHostCount = 8;

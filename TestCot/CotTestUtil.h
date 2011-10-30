@@ -9,7 +9,7 @@
 
 #include "stdafx.h"
 #include "DzDbgTrace.h"
-#include "../Dzcot/Inc_Dzcot.h"
+#include "../DzCot/Inc_DzCot.h"
 
 #ifdef TEST_COT_JUST_RUN_TRY
 
