@@ -800,6 +800,25 @@ unsigned long long DzMilUnixTime()
     return (unsigned long long)MilUnixTime();
 }
 
+int __DzMakeServMask( BOOL notServ, ... )
+{
+    va_list ap;
+    int ret;
+    int op;
+
+    ret = notServ ? -1 : 0;
+    va_start( ap, notServ );
+    for( op = va_arg( ap, int ); op != -1; op = va_arg( ap, int ) ){
+        if( notServ ){
+            ret &= ~( 1 << op );
+        }else{
+            ret |= ( 1 << op );
+        }
+    }
+    va_end( ap );
+    return ret;
+}
+
 int __DzDbgLastErr()
 {
     DzHost* host = GetHost();

@@ -9,12 +9,9 @@
 #define __Inc_DzCot_h__
 
 #if defined( _WIN32 )
-#include <stdarg.h>
 #include <WinSock2.h>
 #elif defined( __linux__ )
 #include <stddef.h>
-#include <stdarg.h>
-#include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
@@ -194,28 +191,6 @@ typedef void (__stdcall *DzRoutine)( intptr_t context );
 extern "C"{
 #endif
 
-static int __DzMakeServMask__( BOOL notServ, ... )
-{
-    va_list ap;
-    int ret;
-    int op;
-
-    ret = notServ ? -1 : 0;
-    va_start( ap, notServ );
-    for( op = va_arg( ap, int ); op != -1; op = va_arg( ap, int ) ){
-        if( notServ ){
-            ret &= ~( 1 << op );
-        }else{
-            ret |= ( 1 << op );
-        }
-    }
-    va_end( ap );
-    return ret;
-}
-
-#define DzMakeServMask( notServ, ... )\
-    __DzMakeServMask__( notServ, ##__VA_ARGS__, -1 )
-
 int DzRunHosts(
     int         hostCount,
     int*        servMask,
@@ -394,7 +369,11 @@ void DzFreeEx( void* mem );
 unsigned long long DzUnixTime();
 unsigned long long DzMilUnixTime();
 
+int __DzMakeServMask( BOOL notServ, ... );
 int __DzDbgLastErr();
+
+#define DzMakeServMask( notServ, ... )\
+    __DzMakeServMask( notServ, ##__VA_ARGS__, -1 )
 
 #ifdef __cplusplus
 };

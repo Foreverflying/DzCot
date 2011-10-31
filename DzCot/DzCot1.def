@@ -68,4 +68,5 @@ EXPORTS
     DzFreeEx
     DzUnixTime
     DzMilUnixTime
+    __DzMakeServMask
     __DzDbgLastErr
