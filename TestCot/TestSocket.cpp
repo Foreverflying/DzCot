@@ -415,14 +415,14 @@ int TcpReadOneStream( FuncRead readFunc, int lisFd )
     int recvTimeCount = 0;
     int recvLen = 0;
     do{
-        __DbgTce5( "recv start %d\r\n", recvTimeCount++ );
+        __DzTce5( "recv start %d\r\n", recvTimeCount++ );
         tmp = readFunc( lisFd, buff, buffLen, NULL, NULL );
         if( tmp < 0 ){
             delete[] buff;
             throw (int)__LINE__;
         }
         recvLen += tmp;
-        __DbgTce5( "recv : %d,\t total : %d\r\n", tmp, recvLen );
+        __DzTce5( "recv : %d,\t total : %d\r\n", tmp, recvLen );
         if( !cmp ){
             if( recvLen < (int)sizeof( TestStream ) ){
                 int tmp1;
@@ -470,13 +470,13 @@ void TcpWriteOneStream( FuncWrite writeFunc, int fd, int idx )
         if( emptyLen > buffLen - sendLen ){
             emptyLen = buffLen - sendLen;
         }
-        __DbgTce5( "send start %d\r\n", sendTimeCount++ );
+        __DzTce5( "send start %d\r\n", sendTimeCount++ );
         tmp = writeFunc( fd, buff + sendLen, emptyLen, NULL, NULL );
         if( tmp < 0 ){
             throw (int)__LINE__;
         }
         sendLen += tmp;
-        __DbgTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
+        __DzTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
         if( gSendInterval ){
             DzSleep( gSendInterval );
         }

@@ -306,7 +306,7 @@
   <ItemGroup>
     <ClInclude Include="ConfigTestCot.h" />
     <ClInclude Include="DRandom.h" />
-    <ClInclude Include="DzDbgTrace.h" />
+    <ClInclude Include="DzTrace.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TryCompileInC.h" />
