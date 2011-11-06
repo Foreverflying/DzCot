@@ -742,6 +742,15 @@ void DzFreeParamNode( DzParamNode* node )
     FreeLNode( host, (DzLNode*)node );
 }
 
+void* DzAllocPermanentChunk( size_t size )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( size % PAGE_SIZE == 0 );
+
+    return AllocChunk( host, size );
+}
+
 void* DzMalloc( size_t size )
 {
     DzHost* host = GetHost();

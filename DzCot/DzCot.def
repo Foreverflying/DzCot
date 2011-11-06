@@ -60,6 +60,7 @@ EXPORTS
     DzRecvFrom
     DzAllocParamNode
     DzFreeParamNode
+    DzAllocPermanentChunk
     DzMalloc
     DzCalloc
     DzReAlloc
