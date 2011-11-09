@@ -366,7 +366,8 @@ inline int RunHost(
         InitSList( &host->taskLs[i] );
     }
     host->mgr = hostMgr;
-    host->checkFifo = NULL;
+    host->checkFifo = host->rmtFifoArr + hostId;
+    host->checkFifo->next = host->checkFifo;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host->cotPools[i] = NULL;
         host->cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;

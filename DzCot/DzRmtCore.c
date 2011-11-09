@@ -119,9 +119,10 @@ void __stdcall RmtHostFirstEntry( intptr_t context )
     DzSysParam* param;
     
     host = GetHost();
+    fifo = NULL;
     for( i = 0; i < host->hostCount; i++ ){
         if( host->servMask & ( 1 << i ) ){
-            if( !host->checkFifo ){
+            if( !fifo ){
                 host->checkFifo = host->rmtFifoArr + i;
                 fifo = host->checkFifo;
             }else{
@@ -139,7 +140,7 @@ void __stdcall RmtHostFirstEntry( intptr_t context )
             host->rmtFifoArr[i].rmtCotArr = NULL;
         }
     }
-    if( host->checkFifo ){
+    if( fifo ){
         fifo->next = host->checkFifo;
     }
 
@@ -219,10 +220,10 @@ void __stdcall MainHostFirstEntry( intptr_t context )
             return;
         }
     }
-    host->checkFifo = NULL;
+    fifo = NULL;
     for( i = 0; i < host->hostCount; i++ ){
         if( host->servMask & ( 1 << i ) ){
-            if( !host->checkFifo ){
+            if( !fifo ){
                 host->checkFifo = host->rmtFifoArr + i;
                 fifo = host->checkFifo;
             }else{
@@ -240,7 +241,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
             host->rmtFifoArr[i].rmtCotArr = NULL;
         }
     }
-    if( host->checkFifo ){
+    if( fifo ){
         fifo->next = host->checkFifo;
     }
     cotParam->result = StartCot(
