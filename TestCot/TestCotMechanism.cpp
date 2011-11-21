@@ -30,7 +30,7 @@ void __stdcall TestCotStackGrow( intptr_t context )
     gCount = 0;
     int count = (int)context;
     gRand = new DRandom( 542234 );
-    DzHandle evt = DzCreateCdEvt( count );
+    int evt = DzCreateCdEvt( count );
     for( int i = 0; i < count; i++ ){
         DzEvtStartCot( evt, CotStackGrowRoutine, (intptr_t)32768 );
     }

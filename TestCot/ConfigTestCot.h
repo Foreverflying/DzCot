@@ -13,7 +13,7 @@ const char* gArgv[] = {
     //"--gtest_filter=TestUdpSocket.MultiSendRecvNoConn",
     //"--gtest_filter=TestUdpSocket.RecvClose",
     //"--gtest_filter=TestTcpSocket.*",
-    "--gtest_filter=TestTcpSocket.Simple*",
+    //"--gtest_filter=TestTcpSocket.Simple*",
     //"--gtest_filter=TestTcpSocket.SimpleSend",
     //"--gtest_filter=TestTcpSocket.SimpleRecv",
     //"--gtest_filter=TestTcpSocket.SendRecvSendRecv",
@@ -21,6 +21,6 @@ const char* gArgv[] = {
     //"--gtest_filter=TestTcpSocket.RecvOpCloseValue",
     //"--gtest_filter=TestTcpSocket.SendOpCloseValue",
     //"--gtest_filter=TestTcpSocket.SendRecvClose",
-    //"--gtest_filter=TestTcpSocket.ConnectAcceptClose",
+    "--gtest_filter=TestTcpSocket.ConnectAcceptClose",
     ""
 };

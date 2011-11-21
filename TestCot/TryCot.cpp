@@ -177,7 +177,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
 
     //*
     printf( "hahhha, i am sleep now2!\r\n" );
-    DzHandle evt = DzCreateCdEvt( gHostCount - 1 );
+    int evt = DzCreateCdEvt( gHostCount - 1 );
     for( int i = 1; i < gHostCount; i++ ){
         vector<int>* n = new vector<int>();
         DzEvtStartRemoteCot( evt, i, TestRemoteCot, (intptr_t)n );

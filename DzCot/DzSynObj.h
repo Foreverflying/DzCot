@@ -410,27 +410,27 @@ inline int WaitSynObj( DzHost* host, DzSynObj* obj, int timeout )
     return helper.checkIdx;
 }
 
-inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** obj, BOOL waitAll, int timeout )
+inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** objs, BOOL waitAll, int timeout )
 {
     DzWaitHelper helper;
     int i;
 
     if( waitAll ){
         for( i = 0; i < count; i++ ){
-            if( !IsNotified( obj[i] ) ){
+            if( !IsNotified( objs[i] ) ){
                 break;
             }
         }
         if( i == count ){
             for( i = 0; i < count; i++ ){
-                WaitNotified( obj[i] );
+                WaitNotified( objs[i] );
             }
             return 0;
         }
     }else{
         for( i = 0; i < count; i++ ){
-            if( IsNotified( obj[i] ) ){
-                WaitNotified( obj[i] );
+            if( IsNotified( objs[i] ) ){
+                WaitNotified( objs[i] );
                 return i;
             }
         }
@@ -444,7 +444,7 @@ inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** obj, BOOL waitAl
     helper.checkIdx = i == count ? -1 : i;
     for( i = 0; i < count; i++ ){
         helper.nodeArray[i].helper = &helper;
-        helper.nodeArray[i].synObj = obj[i];
+        helper.nodeArray[i].synObj = objs[i];
     }
     if( timeout > 0 ){
         InitTimeOut( &helper.timeout, timeout, &helper );
@@ -453,7 +453,7 @@ inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** obj, BOOL waitAl
         helper.timeout.timerNode.index = -1;
     }
     for( i = 0; i < count; i++ ){
-        AppendToWaitQ( &obj[i]->waitQ[ host->currCot->priority ], &helper.nodeArray[i] );
+        AppendToWaitQ( &objs[i]->waitQ[ host->currCot->priority ], &helper.nodeArray[i] );
     }
     Schedule( host );
     return helper.checkIdx;

@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#define TCE_EOL     "\r\n"
+
 namespace __DzTrace
 {
 
@@ -88,11 +90,11 @@ using namespace __DzTrace;
         __Inner::DbgTceTml< __DzDbgTce##lev, lev, 2 >::BASE\
     >::Tracer::Tce
 
-#define __DzTce1    __z_DbgTceFunc( 1 )
-#define __DzTce2    __z_DbgTceFunc( 2 )
-#define __DzTce3    __z_DbgTceFunc( 3 )
-#define __DzTce4    __z_DbgTceFunc( 4 )
-#define __DzTce5    __z_DbgTceFunc( 5 )
+#define __DzTce1( fmt, ... )    __z_DbgTceFunc( 1 )( fmt TCE_EOL, ##__VA_ARGS__ )
+#define __DzTce2( fmt, ... )    __z_DbgTceFunc( 2 )( fmt TCE_EOL, ##__VA_ARGS__ )
+#define __DzTce3( fmt, ... )    __z_DbgTceFunc( 3 )( fmt TCE_EOL, ##__VA_ARGS__ )
+#define __DzTce4( fmt, ... )    __z_DbgTceFunc( 4 )( fmt TCE_EOL, ##__VA_ARGS__ )
+#define __DzTce5( fmt, ... )    __z_DbgTceFunc( 5 )( fmt TCE_EOL, ##__VA_ARGS__ )
 
 #define __DzTceEnableGloblePrint( level )\
     namespace __DzTrace{ namespace __Inner{\

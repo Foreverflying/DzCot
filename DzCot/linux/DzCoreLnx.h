@@ -16,7 +16,6 @@
 extern "C"{
 #endif
 
-BOOL AllocAsyncIoPool( DzHost* host );
 void __stdcall CallDzCotEntry( void );
 void __stdcall DzCotEntry(
     DzHost*             host,
@@ -31,33 +30,41 @@ inline void InitDzCot( DzHost* host, DzCot* dzCot )
     __DBG_INIT_INFO( DzCot, NULL, dzCot );
 }
 
-inline DzAsyncIo* CreateAsyncIo( DzHost* host )
+inline void InitDzFd( DzFd* dzFd )
 {
-    DzAsyncIo* asyncIo;
+    CleanEasyEvt( &dzFd->inEvt );
+    CleanEasyEvt( &dzFd->outEvt );
+    dzFd->ref = 0;
+    dzFd->isSock = TRUE;
+}
 
-    if( !host->asyncIoPool ){
-        if( !AllocAsyncIoPool( host ) ){
+inline DzFd* CreateDzFd( DzHost* host )
+{
+    DzFd* dzFd;
+
+    if( !host->dzFdPool ){
+        if( !AllocDzFdPool( host ) ){
             return NULL;
         }
     }
-    asyncIo = MEMBER_BASE( host->asyncIoPool, DzAsyncIo, lItr );
-    host->asyncIoPool = host->asyncIoPool->next;
-    asyncIo->err = 0;
-    asyncIo->ref++;
-    return asyncIo;
+    dzFd = MEMBER_BASE( host->dzFdPool, DzFd, lItr );
+    host->dzFdPool = host->dzFdPool->next;
+    dzFd->err = 0;
+    dzFd->ref++;
+    return dzFd;
 }
 
-inline void CloneAsyncIo( DzAsyncIo* asyncIo )
+inline void CloneDzFd( DzFd* dzFd )
 {
-    asyncIo->ref++;
+    dzFd->ref++;
 }
 
-inline void CloseAsyncIo( DzHost* host, DzAsyncIo* asyncIo )
+inline void CloseDzFd( DzHost* host, DzFd* dzFd )
 {
-    asyncIo->ref--;
-    if( asyncIo->ref == 0 ){
-        asyncIo->lItr.next = host->asyncIoPool;
-        host->asyncIoPool = &asyncIo->lItr;
+    dzFd->ref--;
+    if( dzFd->ref == 0 ){
+        dzFd->lItr.next = host->dzFdPool;
+        host->dzFdPool = &dzFd->lItr;
     }
 }
 

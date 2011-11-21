@@ -10,13 +10,17 @@
 
 #include "../DzStructs.h"
 
-struct _DzAsyncIo
+struct _DzFd
 {
-    DzLItr          lItr;
-    DzEasyEvt       inEvt;
-    DzEasyEvt       outEvt;
+    union{
+        DzLItr      lItr;
+        int         fd;
+    };
     int             ref;
     int             err;
+    BOOL            isSock;
+    DzEasyEvt       inEvt;
+    DzEasyEvt       outEvt;
 };
 
 #endif // __DzStructsIoLnx_h__

@@ -225,7 +225,7 @@ inline int StartRemoteCot(
 
 inline int EvtStartRemoteCot(
     DzHost*     host,
-    DzHandle    evt,
+    DzSynObj*   evt,
     int         rmtId,
     DzRoutine   entry,
     intptr_t    context,
@@ -324,6 +324,7 @@ inline int RunHost(
     int i;
     int ret;
     void* mallocSpace;
+    char* handlePool;
     uintptr_t tmp;
     DzHost* host;
 
@@ -332,11 +333,15 @@ inline int RunHost(
 
     tmp = (uintptr_t)PageReserv( sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     if( !tmp ){
-        PageFree( (void*)tmp, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
         return DS_NO_MEMORY;
     }
     mallocSpace = create_mspace( 0, 0 );
     if( !mallocSpace ){
+        PageFree( (void*)tmp, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
+        return DS_NO_MEMORY;
+    }
+    handlePool = (char*)PageReserv( HANDLE_POOL_SIZE );
+    if( !handlePool ){
         destroy_mspace( mallocSpace );
         PageFree( (void*)tmp, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
         return DS_NO_MEMORY;
@@ -366,8 +371,7 @@ inline int RunHost(
         InitSList( &host->taskLs[i] );
     }
     host->mgr = hostMgr;
-    host->checkFifo = host->rmtFifoArr + hostId;
-    host->checkFifo->next = host->checkFifo;
+    host->handleBase = (intptr_t)handlePool;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host->cotPools[i] = NULL;
         host->cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
@@ -379,7 +383,9 @@ inline int RunHost(
     host->cotPool = NULL;
     host->synObjPool = NULL;
     host->lNodePool = NULL;
-    host->asyncIoPool = NULL;
+    host->dzFdPool = NULL;
+    host->checkFifo = host->rmtFifoArr + hostId;
+    host->checkFifo->next = host->checkFifo;
     host->pendRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
     host->lazyRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
     host->lazyFreeMem = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
@@ -392,6 +398,8 @@ inline int RunHost(
     host->memPoolPos = NULL;
     host->memPoolEnd = NULL;
     host->poolGrowList = NULL;
+    host->handlePoolPos = handlePool;
+    host->handlePoolEnd = handlePool + HANDLE_POOL_SIZE;
     host->hostCount = hostMgr->hostCount;
     host->servMask = hostMgr->servMask[ hostId ];
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){

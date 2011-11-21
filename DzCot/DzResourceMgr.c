@@ -83,13 +83,47 @@ BOOL AllocListNodePool( DzHost* host )
     return TRUE;
 }
 
+BOOL AllocDzCotPool( DzHost* host )
+{
+    DzCot* p;
+    DzCot* end;
+    DzLItr* lItr;
+
+    p = (DzCot*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzCot ) );
+    if( !p ){
+        return FALSE;
+    }
+
+    host->cotPool = &p->lItr;
+    end = p + OBJ_POOL_GROW_COUNT - 1;
+    end->lItr.next = NULL;
+    InitDzCot( host, end );
+    while( p != end ){
+        InitDzCot( host, p );
+        lItr = &p->lItr;
+        lItr->next = &(++p)->lItr;
+    }
+    return TRUE;
+}
+
+inline void* AllocHandleChunk( DzHost* host, size_t size )
+{
+    char* p = host->handlePoolPos;
+
+    host->handlePoolPos += size;
+    if( host->handlePoolPos > host->handlePoolEnd ){
+        return NULL;
+    }
+    return PageCommit( p, size );
+}
+
 BOOL AllocSynObjPool( DzHost* host )
 {
     DzSynObj* p;
     DzSynObj* end;
     DzLItr* lItr;
 
-    p = (DzSynObj*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzSynObj ) );
+    p = (DzSynObj*)AllocHandleChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzSynObj ) );
     if( !p ){
         return FALSE;
     }
@@ -112,23 +146,23 @@ BOOL AllocSynObjPool( DzHost* host )
     return TRUE;
 }
 
-BOOL AllocDzCotPool( DzHost* host )
+BOOL AllocDzFdPool( DzHost* host )
 {
-    DzCot* p;
-    DzCot* end;
+    DzFd* p;
+    DzFd* end;
     DzLItr* lItr;
 
-    p = (DzCot*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzCot ) );
+    p = (DzFd*)AllocHandleChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzFd ) );
     if( !p ){
         return FALSE;
     }
 
-    host->cotPool = &p->lItr;
+    host->dzFdPool = &p->lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
-    InitDzCot( host, end );
+    InitDzFd( end );
     while( p != end ){
-        InitDzCot( host, p );
+        InitDzFd( p );
         lItr = &p->lItr;
         lItr->next = &(++p)->lItr;
     }

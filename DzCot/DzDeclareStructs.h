@@ -68,12 +68,11 @@ typedef struct _DzCot           DzCot;
 typedef struct _DzSysAutoEvt    DzSysAutoEvt;
 
 //define in DzStructsIoOs.h
-struct _DzAsyncIo;
+struct _DzFd;
 
-typedef struct _DzAsyncIo       DzAsyncIo;
+typedef struct _DzFd            DzFd;
 
 //alias struct names when using in the interface
-typedef struct _DzSynObj*       DzHandle;
 typedef struct _DzLNode         DzParamNode;
 
 #endif // __DzDeclareStructs_h__

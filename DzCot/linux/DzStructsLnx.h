@@ -18,8 +18,7 @@ struct _DzOsStruct
     int                         epollFd;
     int                         maxFdCount;
     int                         pipe[2];
-    DzAsyncIo**                 fdTable;
-    DzAsyncIo*                  pipeAsyncIo;
+    DzFd*                       pipeFd;
     struct epoll_event*         evtList;
 };
 

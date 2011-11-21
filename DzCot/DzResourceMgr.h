@@ -22,8 +22,9 @@ void ReleaseMemoryPool( DzHost* host );
 BOOL AllocListNodePool( DzHost* host );
 BOOL AllocSynObjPool( DzHost* host );
 BOOL AllocDzCotPool( DzHost* host );
+BOOL AllocDzFdPool( DzHost* host );
 
-inline void* AllocChunk( DzHost* host, int size )
+inline void* AllocChunk( DzHost* host, size_t size )
 {
     char* p = host->memPoolPos;
 

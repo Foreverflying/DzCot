@@ -30,6 +30,41 @@ inline void InitDzCot( DzHost* host, DzCot* dzCot )
     __DBG_INIT_INFO( DzCot, NULL, dzCot );
 }
 
+inline void InitDzFd( DzFd* dzFd )
+{
+    dzFd->ref = 0;
+}
+
+inline DzFd* CreateDzFd( DzHost* host )
+{
+    DzFd* dzFd;
+
+    if( !host->dzFdPool ){
+        if( !AllocDzFdPool( host ) ){
+            return NULL;
+        }
+    }
+    dzFd = MEMBER_BASE( host->dzFdPool, DzFd, lItr );
+    host->dzFdPool = host->dzFdPool->next;
+    dzFd->err = 0;
+    dzFd->ref++;
+    return dzFd;
+}
+
+inline void CloneDzFd( DzFd* dzFd )
+{
+    dzFd->ref++;
+}
+
+inline void CloseDzFd( DzHost* host, DzFd* dzFd )
+{
+    dzFd->ref--;
+    if( dzFd->ref == 0 ){
+        dzFd->lItr.next = host->dzFdPool;
+        host->dzFdPool = &dzFd->lItr;
+    }
+}
+
 #if defined( _X86_ )
 
 struct DzStackBottom

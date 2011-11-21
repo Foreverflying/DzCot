@@ -151,8 +151,6 @@ typedef enum{
 
 #endif
 
-typedef void* DzHandle;
-
 #if defined( __linux__ )
 #if defined( __i386 )
 #define __stdcall __attribute__((stdcall))
@@ -213,14 +211,14 @@ int DzStartCotInstant(
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzEvtStartCot(
-    DzHandle    evt,
+    int         evt,
     DzRoutine   entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzEvtStartCotInstant(
-    DzHandle    evt,
+    int         evt,
     DzRoutine   entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
@@ -234,7 +232,7 @@ int DzStartRemoteCot(
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
 int DzEvtStartRemoteCot(
-    DzHandle    evt,
+    int         evt,
     int         rmtId,
     DzRoutine   entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
@@ -259,29 +257,29 @@ int DzSetWorkerPoolDepth( int depth );
 int DzSetHostParam( int lowestPri, int dftPri, int dftSSize );
 
 int DzWaitSynObj(
-    DzHandle    obj,
+    int         obj,
     int         timeout         __DZ_DFT_ARG( -1 )
     );
 int DzWaitMultiSynObj(
     int         count,
-    DzHandle*   obj,
+    int*        obj,
     BOOL        waitAll,
     int         timeout         __DZ_DFT_ARG( -1 )
     );
-DzHandle DzCreateMtx( BOOL owner );
-BOOL DzReleaseMtx( DzHandle mtx );
-DzHandle DzCreateManualEvt( BOOL notified );
-DzHandle DzCreateAutoEvt( BOOL notified );
-DzHandle DzCreateCdEvt( u_int count );
-BOOL DzSetEvt( DzHandle evt );
-BOOL DzResetEvt( DzHandle evt );
-DzHandle DzCreateSem( int count );
-int DzReleaseSem( DzHandle sem, int count );
-DzHandle DzCloneSynObj( DzHandle obj );
-BOOL DzCloseSynObj( DzHandle obj );
-DzHandle DzCreateTimer( int milSec, int repeat );
-BOOL DzCloseTimer( DzHandle timer );
-DzHandle DzCreateCallbackTimer(
+int DzCreateMtx( BOOL owner );
+BOOL DzReleaseMtx( int mtx );
+int DzCreateManualEvt( BOOL notified );
+int DzCreateAutoEvt( BOOL notified );
+int DzCreateCdEvt( u_int count );
+BOOL DzSetEvt( int evt );
+BOOL DzResetEvt( int evt );
+int DzCreateSem( int count );
+int DzReleaseSem( int sem, int count );
+int DzCloneSynObj( int obj );
+BOOL DzCloseSynObj( int obj );
+int DzCreateTimer( int milSec, int repeat );
+BOOL DzCloseTimer( int timer );
+int DzCreateCallbackTimer(
     int         milSec,
     int         repeat,
     DzRoutine   callback,
@@ -289,7 +287,7 @@ DzHandle DzCreateCallbackTimer(
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
     );
-BOOL DzCloseCallbackTimer( DzHandle timer );
+BOOL DzCloseCallbackTimer( int timer );
 void DzSleep( int milSec );
 
 int DzOpenFileA( const char* fileName, int flags );

@@ -38,8 +38,8 @@ static sockaddr* gHelloAddr = NULL;
 static int gAddrLen = 0;
 static int gCotCount = 0;
 static int gMaxCotCount = 0;
-static DzHandle gEndEvt = 0;
-static DzHandle gHelloEvt = 0;
+static int gEndEvt = 0;
+static int gHelloEvt = 0;
 
 void InitParam()
 {
@@ -163,7 +163,7 @@ void __stdcall WaitHello( intptr_t context )
 {
     int lisFd = -1;
     int fd = -1;
-    DzHandle helloEvt = DzCloneSynObj( gHelloEvt );
+    int helloEvt = DzCloneSynObj( gHelloEvt );
     try{
         BOOL opt = TRUE;
         lisFd = DzSocket( gHelloAddr->sa_family, SOCK_STREAM, 0 );
@@ -415,14 +415,14 @@ int TcpReadOneStream( FuncRead readFunc, int lisFd )
     int recvTimeCount = 0;
     int recvLen = 0;
     do{
-        __DzTce5( "recv start %d\r\n", recvTimeCount++ );
+        __DzTce5( "recv start %d", recvTimeCount++ );
         tmp = readFunc( lisFd, buff, buffLen, NULL, NULL );
         if( tmp < 0 ){
             delete[] buff;
             throw (int)__LINE__;
         }
         recvLen += tmp;
-        __DzTce5( "recv : %d,\t total : %d\r\n", tmp, recvLen );
+        __DzTce5( "recv : %d,\t total : %d", tmp, recvLen );
         if( !cmp ){
             if( recvLen < (int)sizeof( TestStream ) ){
                 int tmp1;
@@ -470,13 +470,13 @@ void TcpWriteOneStream( FuncWrite writeFunc, int fd, int idx )
         if( emptyLen > buffLen - sendLen ){
             emptyLen = buffLen - sendLen;
         }
-        __DzTce5( "send start %d\r\n", sendTimeCount++ );
+        __DzTce5( "send start %d", sendTimeCount++ );
         tmp = writeFunc( fd, buff + sendLen, emptyLen, NULL, NULL );
         if( tmp < 0 ){
             throw (int)__LINE__;
         }
         sendLen += tmp;
-        __DzTce5( "send : %d,\t total : %d\r\n", tmp, sendLen );
+        __DzTce5( "send : %d,\t total : %d", tmp, sendLen );
         if( gSendInterval ){
             DzSleep( gSendInterval );
         }
@@ -839,7 +839,7 @@ void __stdcall TcpSvrRecvCloseRoutine( intptr_t context )
             EXPECT_EQ( sizeof( idx ), ret );
             DzCloseSocket( fd );
         }else if( type == 1 ){
-            DzHandle timer = DzCreateCallbackTimer( 2000, 1, HelpCloseSocket, (intptr_t)fd );
+            int timer = DzCreateCallbackTimer( 2000, 1, HelpCloseSocket, (intptr_t)fd );
             unsigned long long start = DzMilUnixTime();
             ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
             unsigned long long stop = DzMilUnixTime();
@@ -893,7 +893,7 @@ void __stdcall TcpCltSendCloseRoutine( intptr_t context )
             DzSleep( 1000 );
             DzCloseSocket( fd );
         }else{
-            DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
+            int timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
             unsigned long long start = DzMilUnixTime();
             do{
                 ret = writeFunc( fd, buff, sizeof( buff ), NULL, NULL );
@@ -1138,7 +1138,7 @@ void __stdcall TcpSvrAcceptCloseMain( intptr_t context )
             throw (int)__LINE__;
         }
 
-        DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)lisFd );
+        int timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)lisFd );
         sockaddr acptAddr;
         int acptAddrLen = sizeof( sockaddr );
         int fd = DzAccept( lisFd, &acptAddr, &acptAddrLen );
@@ -1147,9 +1147,9 @@ void __stdcall TcpSvrAcceptCloseMain( intptr_t context )
         DzCloseCallbackTimer( timer );
     }catch( int line ){
         ADD_FAILURE() << "socket error, line : " << line;
-    }
-    if( lisFd != -1 ){
-        DzCloseSocket( lisFd );
+        if( lisFd != -1 ){
+            DzCloseSocket( lisFd );
+        }
     }
     CotStop();
 }
@@ -1162,15 +1162,12 @@ void __stdcall TcpCltConnectCloseMain( intptr_t context )
         if( fd == -1 ){
             throw (int)__LINE__;
         }
-        DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
+        int timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
         int ret = DzConnect( fd, gAddr, gAddrLen );
         EXPECT_EQ( -1, ret );
         DzCloseCallbackTimer( timer );
     }catch( int line ){
         ADD_FAILURE() << "socket error, line : " << line;
-    }
-    if( fd != -1 ){
-        DzCloseSocket( fd );
     }
     CotStop();
 }
@@ -1312,7 +1309,7 @@ void __stdcall UdpTestRecvClose( intptr_t context )
 
             FuncRead readFunc = GetReadFunc();
             char buff[32];
-            DzHandle timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
+            int timer = DzCreateCallbackTimer( 200, 1, HelpCloseSocket, (intptr_t)fd );
             unsigned long long start = DzMilUnixTime();
             int ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
             unsigned long long stop = DzMilUnixTime();

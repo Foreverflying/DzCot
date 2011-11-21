@@ -32,8 +32,8 @@ struct _DzTimerNode
     int             type;
     int             index;
     int64           timestamp;
-    int             interval;
-    int             repeat;       //for repeat timer, should set minus
+    int             interval;       //should set minus
+    int             repeat;
 };
 
 struct _DzEasyEvt
@@ -168,7 +168,7 @@ struct _DzHost
 
             //dlmalloc heap
             void*           mSpace;
-       };
+        };
 
         //the host thread's original stack info
         DzCot               centerCot;
@@ -210,8 +210,8 @@ struct _DzHost
     //multi hosts manager
     DzHostsMgr*     mgr;
 
-    //checking FIFO chain
-    DzRmtCotFifo*   checkFifo;
+    //address prefix of handle struct
+    intptr_t        handleBase;
 
     //the fourth and fifth cache align on 64 bit platform
     //resource pools, local access only, frequently
@@ -227,10 +227,13 @@ struct _DzHost
     //DzDqNode struct pool
     DzLItr*         lNodePool;
 
-    //DzAsyncIo struct Pool
-    DzLItr*         asyncIoPool;
+    //DzFd struct Pool
+    DzLItr*         dzFdPool;
 
     //the sixth cache align on 64 bit platform
+
+    //checking FIFO chain
+    DzRmtCotFifo*   checkFifo;
 
     //pending remote cots
     DzSList*        pendRmtCot;
@@ -251,12 +254,16 @@ struct _DzHost
     //record pool alloc history
     DzLItr*         poolGrowList;
 
+    //the seventh cache align on 64 bit platform begin
+
+    //handle like struct chunk pool
+    char*           handlePoolPos;
+    char*           handlePoolEnd;
+
     //host count and serve mask local copy,
     //avoid reading global hostCount leads false sharing
     int             hostCount;
     int             servMask;
-
-    //the seventh cache align on 64 bit platform begin
 
     //configure data
     int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
@@ -268,7 +275,7 @@ struct _DzSysParam
     int                 result;
     union{
         struct{
-            DzHandle    evt;
+            DzSynObj*   evt;
             DzHostsMgr* hostMgr;
             DzCot*      returnCot;
             int         hostId;

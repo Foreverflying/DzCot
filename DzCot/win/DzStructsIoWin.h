@@ -10,10 +10,23 @@
 
 #include "../DzStructs.h"
 
-struct _DzAsyncIo
+struct _DzFd
+{
+    union{
+        DzLItr      lItr;
+        HANDLE      fd;
+        SOCKET      s;
+    };
+    int             ref;
+    int             err;
+};
+
+struct _DzIoHelper
 {
     OVERLAPPED      overlapped;
     DzEasyEvt       easyEvt;
 };
+
+typedef struct _DzIoHelper DzIoHelper;
 
 #endif // __DzStructsIoWin_h__

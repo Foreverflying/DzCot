@@ -15,37 +15,6 @@ void* SysThreadMain( void* context )
     return NULL;
 }
 
-BOOL AllocAsyncIoPool( DzHost* host )
-{
-    DzAsyncIo* p;
-    DzAsyncIo* end;
-    DzLItr* lItr;
-
-    p = (DzAsyncIo*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzAsyncIo ) );
-    if( !p ){
-        return FALSE;
-    }
-
-    host->asyncIoPool = &p->lItr;
-    end = p + OBJ_POOL_GROW_COUNT - 1;
-    end->lItr.next = NULL;
-    CleanEasyEvt( &end->inEvt );
-    CleanEasyEvt( &end->outEvt );
-    end->inEvt.dzCot = NULL;
-    end->outEvt.dzCot = NULL;
-    end->ref = 0;
-    while( p != end ){
-        CleanEasyEvt( &p->inEvt );
-        CleanEasyEvt( &p->outEvt );
-        p->inEvt.dzCot = NULL;
-        p->outEvt.dzCot = NULL;
-        p->ref = 0;
-        lItr = &p->lItr;
-        lItr->next = &(++p)->lItr;
-    }
-    return TRUE;
-}
-
 // DzCotEntry:
 // the real function entry the cot starts, it call the user entry
 // after that, when the cot is finished, put it into the cot pool
@@ -74,15 +43,14 @@ BOOL InitOsStruct( DzHost* host )
     int flag;
     struct rlimit fdLimit;
     struct epoll_event evt;
-    DzHost* firstHost = host->hostId == 0 ? NULL : host->mgr->hostArr[0];
 
-    if( !firstHost ){
+    if( host->hostId == 0 ){
         if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
             return FALSE;
         }
         host->os.maxFdCount = fdLimit.rlim_cur;
     }else{
-        host->os.maxFdCount = firstHost->os.maxFdCount;
+        host->os.maxFdCount = host->mgr->hostArr[0]->os.maxFdCount;
     }
     host->os.epollFd = epoll_create( host->os.maxFdCount );
     if( host->os.epollFd < 0 ){
@@ -92,20 +60,8 @@ BOOL InitOsStruct( DzHost* host )
         close( host->os.epollFd );
         return FALSE;
     }
-    if( !firstHost ){
-        host->os.fdTable = ( DzAsyncIo** )
-            PageAlloc( sizeof( DzAsyncIo* ) * host->os.maxFdCount );
-        if( !host->os.fdTable ){
-            close( host->os.pipe[1] );
-            close( host->os.pipe[0] );
-            close( host->os.epollFd );
-            return FALSE;
-        }
-    }else{
-        host->os.fdTable = firstHost->os.fdTable;
-    }
-    host->os.pipeAsyncIo = CreateAsyncIo( host );
-    evt.data.ptr = host->os.pipeAsyncIo;
+    host->os.pipeFd = CreateDzFd( host );
+    evt.data.ptr = host->os.pipeFd;
     evt.events = EPOLLIN;
     flag = fcntl( host->os.pipe[0], F_GETFL, 0 );
     fcntl( host->os.pipe[0], F_SETFL, flag | O_NONBLOCK );
@@ -119,13 +75,7 @@ BOOL InitOsStruct( DzHost* host )
 
 void DeleteOsStruct( DzHost* host )
 {
-    CloseAsyncIo( host, host->os.pipeAsyncIo );
-    if( host->hostId == 0 ){
-        PageFree(
-            host->os.fdTable,
-            sizeof( DzAsyncIo* ) * host->os.maxFdCount
-            );
-    }
+    CloseDzFd( host, host->os.pipeFd );
     close( host->os.pipe[1] );
     close( host->os.pipe[0] );
     close( host->os.epollFd );

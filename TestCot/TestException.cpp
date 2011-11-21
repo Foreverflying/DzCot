@@ -86,7 +86,7 @@ void __stdcall TestCppException( intptr_t context )
     gCount = 0;
     int n = (int)context;
     int delay = 10;
-    DzHandle evt[16];
+    int evt[16];
     for( int i = 0; i < n; i++ ){
         evt[i] = DzCreateManualEvt( FALSE );
         DzEvtStartCot( evt[i], CppExpRoutine, (intptr_t)delay );
@@ -164,7 +164,7 @@ void __stdcall TestWinSehException( intptr_t context )
     gCount = 0;
     int n = (int)context;
     int delay = 10;
-    DzHandle evt[16];
+    int evt[16];
     for( int i = 0; i < n; i++ ){
         evt[i] = DzCreateManualEvt( FALSE );
         DzEvtStartCot( evt[i], SehExpRoutine, (intptr_t)delay );
