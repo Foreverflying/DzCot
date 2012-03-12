@@ -3,7 +3,7 @@
     file:       DzStructsOs.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzStructsOs_h__
 #define __DzStructsOs_h__

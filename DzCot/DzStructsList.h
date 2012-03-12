@@ -3,7 +3,7 @@
     file:       DzStructsList.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzStructsList_h__
 #define __DzStructsList_h__

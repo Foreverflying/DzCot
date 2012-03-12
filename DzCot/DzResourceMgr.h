@@ -3,7 +3,7 @@
     file:       DzResourceMgr.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzResourceMgr_h__
 #define __DzResourceMgr_h__

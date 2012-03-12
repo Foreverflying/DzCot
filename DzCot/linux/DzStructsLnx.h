@@ -3,7 +3,7 @@
     file:       DzStructsLnx.h
     author:     Foreverflying
     purpose:
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzStructsLnx_h__
 #define __DzStructsLnx_h__

@@ -3,7 +3,7 @@
     file:       DzDebug.c
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #include "DzDebug.h"
 #include "DzStructsDebug.h"

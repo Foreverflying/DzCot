@@ -5,7 +5,7 @@
     purpose:    Override the global new delete operator with faster
                 function DzMalloc DzFree while using DzCot.
                 just include this file in only one cpp file.
-*********************************************************************/
+********************************************************************/
 
 #ifdef __cplusplus
 

@@ -3,7 +3,7 @@
     file:       DzDeclareStructs.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzDeclareStructs_h__
 #define __DzDeclareStructs_h__

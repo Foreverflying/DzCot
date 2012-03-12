@@ -3,7 +3,7 @@
     file:       DzSchedule.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzSchedule_h__
 #define __DzSchedule_h__

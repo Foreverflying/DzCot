@@ -3,7 +3,7 @@
     file:       Inc_DzSocketReplace.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __Inc_DzSocketReplace_h__
 #define __Inc_DzSocketReplace_h__

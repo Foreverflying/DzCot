@@ -3,7 +3,7 @@
     file:       CotTestUtil.cpp
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #include "stdafx.h"
 #include "CotTestUtil.h"

@@ -3,7 +3,7 @@
     file:       DzStructsDebug.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzStructsDebug_h__
 #define __DzStructsDebug_h__

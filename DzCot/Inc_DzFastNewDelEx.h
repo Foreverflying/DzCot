@@ -6,7 +6,7 @@
                 function DzMallocExEx DzFreeExEx while using DzCot and
                 need delete objects which new by another CotHost.
                 just include this file in only one cpp file.
-*********************************************************************/
+********************************************************************/
 
 #ifdef __cplusplus
 

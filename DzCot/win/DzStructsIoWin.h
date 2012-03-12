@@ -3,7 +3,7 @@
     file:       DzStructsIoWin.h
     author:     Foreverflying
     purpose:    
-*********************************************************************/
+********************************************************************/
 
 #ifndef __DzStructsIoWin_h__
 #define __DzStructsIoWin_h__
