@@ -21,6 +21,6 @@ const char* gArgv[] = {
     //"--gtest_filter=TestTcpSocket.RecvOpCloseValue",
     //"--gtest_filter=TestTcpSocket.SendOpCloseValue",
     //"--gtest_filter=TestTcpSocket.SendRecvClose",
-    "--gtest_filter=TestTcpSocket.ConnectAcceptClose",
+    //"--gtest_filter=TestTcpSocket.ConnectAcceptClose",
     ""
 };

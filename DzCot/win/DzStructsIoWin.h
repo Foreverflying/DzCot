@@ -16,6 +16,7 @@ struct _DzFd
         DzLItr      lItr;
         HANDLE      fd;
         SOCKET      s;
+        int64       unused;
     };
     int             ref;
     int             err;

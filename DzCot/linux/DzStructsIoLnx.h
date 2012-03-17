@@ -12,15 +12,14 @@
 
 struct _DzFd
 {
-    union{
-        DzLItr      lItr;
-        int         fd;
-    };
+    DzLItr          lItr;
+    DzEasyEvt       inEvt;
+    DzEasyEvt       outEvt;
+    void*           unused;
+    int             fd;
     int             ref;
     int             err;
     BOOL            isSock;
-    DzEasyEvt       inEvt;
-    DzEasyEvt       outEvt;
 };
 
 #endif // __DzStructsIoLnx_h__

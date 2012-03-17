@@ -23,6 +23,7 @@ extern "C"{
 void __stdcall DelayFreeCotHelper( intptr_t context );
 void __stdcall EventNotifyCotEntry( intptr_t context );
 void CotScheduleCenter( DzHost* host );
+void CotScheduleCenterNoRmtCheck( DzHost* host );
 
 inline void ReleaseAllPoolStack( DzHost* host )
 {
@@ -146,7 +147,7 @@ inline int StartCotInstant(
 // equal to StartCot, notify an manual event SynObj when cot finished
 inline int EvtStartCot(
     DzHost*     host,
-    DzSynObj*   evt,
+    int         evt,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
@@ -166,7 +167,8 @@ inline int EvtStartCot(
     host->cotCount++;
     SetCotEntry( dzCot, EventNotifyCotEntry, context );
     dzCot->entry = entry;
-    dzCot->evt = CloneSynObj( evt );
+    dzCot->evt = (DzSynObj*)( host->handleBase + evt );
+    dzCot->evt->ref++;
     DispatchCot( host, dzCot );
     return DS_OK;
 }
@@ -175,7 +177,7 @@ inline int EvtStartCot(
 // equal to StartCotInstant, notify an manual event SynObj when cot finished
 inline int EvtStartCotInstant(
     DzHost*     host,
-    DzSynObj*   evt,
+    int         evt,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
@@ -192,8 +194,8 @@ inline int EvtStartCotInstant(
     host->cotCount++;
     host->scheduleCd++;
     SetCotEntry( dzCot, EventNotifyCotEntry, context );
-    dzCot->entry = entry;
-    dzCot->evt = CloneSynObj( evt );
+    dzCot->evt = (DzSynObj*)( host->handleBase + evt );
+    dzCot->evt->ref++;
     TemporaryPushCot( host, host->currCot );
     SwitchToCot( host, dzCot );
     return DS_OK;
@@ -225,7 +227,7 @@ inline int StartRemoteCot(
 
 inline int EvtStartRemoteCot(
     DzHost*     host,
-    DzSynObj*   evt,
+    int         evt,
     int         rmtId,
     DzRoutine   entry,
     intptr_t    context,
@@ -243,7 +245,8 @@ inline int EvtStartRemoteCot(
     dzCot->entry = entry;
     dzCot->feedType = 1;
     dzCot->evtType = 0;
-    dzCot->evt = CloneSynObj( evt );
+    dzCot->evt = (DzSynObj*)( host->handleBase + evt );
+    dzCot->evt->ref++;
     dzCot->priority = priority;
     SetCotEntry( dzCot, RemoteCotEntry, context );
     SendRmtCot( host, rmtId, FALSE, dzCot );
@@ -318,7 +321,8 @@ inline int RunHost(
     int         dftPri,
     int         dftSSize,
     DzRoutine   firstEntry,
-    intptr_t    context
+    intptr_t    context,
+    DzRoutine   cleanEntry
     )
 {
     int i;
@@ -371,7 +375,7 @@ inline int RunHost(
         InitSList( &host->taskLs[i] );
     }
     host->mgr = hostMgr;
-    host->handleBase = (intptr_t)handlePool;
+    host->handleBase = (intptr_t)handlePool - host->hostId;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host->cotPools[i] = NULL;
         host->cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
@@ -394,12 +398,12 @@ inline int RunHost(
         InitSList( host->lazyRmtCot + i );
         InitSList( host->lazyFreeMem + i );
     }
-    host->lazyTimer = NULL;
     host->memPoolPos = NULL;
     host->memPoolEnd = NULL;
     host->poolGrowList = NULL;
     host->handlePoolPos = handlePool;
     host->handlePoolEnd = handlePool + HANDLE_POOL_SIZE;
+    host->lazyTimer = -1;
     host->hostCount = hostMgr->hostCount;
     host->servMask = hostMgr->servMask[ hostId ];
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){
@@ -419,11 +423,17 @@ inline int RunHost(
         if( ret == DS_OK ){
             Schedule( host );
         }
-        CotScheduleCenter( host );
+        if( host->servMask ){
+            CotScheduleCenter( host );
+        }else{
+            CotScheduleCenterNoRmtCheck( host );
+        }
+        if( cleanEntry ){
+            cleanEntry( context );
+        }
 
-        //after all cot finished, IoMgrRoutine will return.
+        //after all cot finished, CotScheduleCenter will return.
         //so cleanup the host struct
-        host->mgr->hostArr[ hostId ] = NULL;
         SetHost( NULL );
         DeleteOsStruct( host );
     }else{
@@ -445,7 +455,8 @@ inline int RunHosts(
     int         dftPri,
     int         dftSSize,
     DzRoutine   firstEntry,
-    intptr_t    context
+    intptr_t    context,
+    DzRoutine   cleanEntry
     )
 {
     int i;
@@ -505,7 +516,7 @@ inline int RunHosts(
     }
     ret = RunHost(
         hostMgr, 0, lowestPri, dftPri, dftSSize,
-        firstEntry, context
+        firstEntry, context, cleanEntry
         );
     while( hostMgr->workerPool ){
         worker = MEMBER_BASE( hostMgr->workerPool, DzWorker, lItr );
@@ -632,7 +643,7 @@ inline void FreeEx( DzHost* host, void* mem )
         node = AllocLNode( host );
         node->d1 = (intptr_t)base;
         AddLItrToTail( host->lazyFreeMem + base->hostId, &node->lItr );
-        if( !host->lazyTimer ){
+        if( host->lazyTimer < 0 ){
             StartLazyTimer( host );
         }
     }

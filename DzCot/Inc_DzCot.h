@@ -10,10 +10,12 @@
 
 #if defined( _WIN32 )
 #include <WinSock2.h>
+#include <Ws2tcpip.h>
 #elif defined( __linux__ )
 #include <stddef.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/ip6.h>
 #endif
 
 enum
@@ -196,7 +198,8 @@ int DzRunHosts(
     int         dftPri,
     int         dftSSize,
     DzRoutine   firstEntry,
-    intptr_t    context         __DZ_DFT_ARG( 0 )
+    intptr_t    context         __DZ_DFT_ARG( 0 ),
+    DzRoutine   cleanEntry      __DZ_DFT_ARG( NULL )
     );
 int DzStartCot(
     DzRoutine   entry,

@@ -72,18 +72,12 @@ struct _DzSynObj
             int         _unused2;
         };
     };
-    int                 ref;
-    union{
-        struct{
-            DzRoutine   routine;    //for CallbackTimer, must reset
-            intptr_t    context;    //the waitQ[ CP_HIGH ] and waitQ[ CP_NORMAL ]
-            int         priority;   //when release CallbackTimer
-            int         sSize;
-        };
-        struct{
-            DzDList     waitQ[ COT_PRIORITY_COUNT ];
-        };
-    };
+    int         ref;
+    short       priority;   //for CallbackTimer
+    short       sSize;      //for CallbackTimer
+    DzDList     waitQ[ COT_PRIORITY_COUNT ];
+    DzRoutine   routine;    //for CallbackTimer
+    intptr_t    context;    //for CallbackTimer
 };
 
 struct _DzWaitNode
@@ -244,9 +238,6 @@ struct _DzHost
     //lazy free memory list
     DzSList*        lazyFreeMem;
 
-    //lazy checking timer
-    DzSynObj*       lazyTimer;
-
     //memory chunk pool
     char*           memPoolPos;
     char*           memPoolEnd;
@@ -259,6 +250,9 @@ struct _DzHost
     //handle like struct chunk pool
     char*           handlePoolPos;
     char*           handlePoolEnd;
+
+    //lazy checking timer
+    int             lazyTimer;
 
     //host count and serve mask local copy,
     //avoid reading global hostCount leads false sharing
@@ -275,7 +269,7 @@ struct _DzSysParam
     int                 result;
     union{
         struct{
-            DzSynObj*   evt;
+            int         evt;
             DzHostsMgr* hostMgr;
             DzCot*      returnCot;
             int         hostId;

@@ -19,7 +19,7 @@
 extern "C"{
 #endif
 
-inline DzFd* Socket( DzHost* host, int domain, int type, int protocol )
+inline int Socket( DzHost* host, int domain, int type, int protocol )
 {
     SOCKET fd;
     DzFd* dzFd;
@@ -27,16 +27,17 @@ inline DzFd* Socket( DzHost* host, int domain, int type, int protocol )
     fd = socket( domain, type, protocol );
     if( fd == INVALID_SOCKET ){
         __DbgSetLastErr( host, WSAGetLastError() );
-        return NULL;
+        return -1;
     }
     CreateIoCompletionPort( (HANDLE)fd, host->os.iocp, (ULONG_PTR)NULL, 0 );
     dzFd = CreateDzFd( host );
     dzFd->s = fd;
-    return dzFd;
+    return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int CloseSocket( DzHost* host, DzFd* dzFd )
+inline int CloseSocket( DzHost* host, int hFd )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     int ret;
 
     ret = closesocket( dzFd->s );
@@ -45,33 +46,39 @@ inline int CloseSocket( DzHost* host, DzFd* dzFd )
     return ret;
 }
 
-inline int GetSockOpt( DzFd* dzFd, int level, int name, void* option, int* len )
+inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockopt( dzFd->s, level, name, (char*)option, len );
 }
 
-inline int SetSockOpt( DzFd* dzFd, int level, int name, const void* option, int len )
+inline int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, int len )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return setsockopt( dzFd->s, level, name, (const char*)option, len );
 }
 
-inline int GetSockName( DzFd* dzFd, struct sockaddr* addr, int* addrLen )
+inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockname( dzFd->s, addr, addrLen );
 }
 
-inline int Bind( DzFd* dzFd, struct sockaddr* addr, int addrLen )
+inline int Bind( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return bind( dzFd->s, addr, addrLen );
 }
 
-inline int Listen( DzFd* dzFd, int backlog )
+inline int Listen( DzHost* host, int hFd, int backlog )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return listen( dzFd->s, backlog );
 }
 
-inline int Shutdown( DzFd* dzFd, int how )
+inline int Shutdown( DzHost* host, int hFd, int how )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return shutdown( dzFd->s, how );
 }
 
@@ -89,11 +96,12 @@ inline int TryConnectDatagram( SOCKET fd, struct sockaddr* addr, int addrLen )
     return -1;
 }
 
-inline int Connect( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int addrLen )
+inline int Connect( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
 {
+    DzFd* dzFd;
     DWORD bytes;
     DzIoHelper helper;
-    struct sockaddr tmpAddr;
+    struct sockaddr_storage tmpAddr;
     DWORD flag;
     int err;
     BOOL ret;
@@ -101,10 +109,11 @@ inline int Connect( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int addrLen
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
-    ZeroMemory( &tmpAddr, sizeof( struct sockaddr ) );
-    tmpAddr.sa_family = addr->sa_family;
-    bind( dzFd->s, &tmpAddr, (int)sizeof(struct sockaddr) );
+    ZeroMemory( &tmpAddr, addrLen );
+    tmpAddr.ss_family = addr->sa_family;
+    bind( dzFd->s, (struct sockaddr*)&tmpAddr, addrLen );
     if( !host->os._ConnectEx( dzFd->s, addr, addrLen, NULL, 0, &bytes, &helper.overlapped ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
@@ -152,8 +161,9 @@ inline int Connect( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int addrLen
     return 0;
 }
 
-inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrLen )
+inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
 {
+    DzFd* dzFd;
     SOCKET s;
     char buf[64];
     DWORD bytes;
@@ -168,9 +178,10 @@ inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrL
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     s = socket( AF_INET, SOCK_STREAM, 0 );
     if( s == INVALID_SOCKET ){
-        return NULL;
+        return -1;
     }
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     if( !host->os._AcceptEx( dzFd->s, s, buf, 0, 32, 32, &bytes, &helper.overlapped ) ){
@@ -178,14 +189,14 @@ inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrL
         if( err != ERROR_IO_PENDING ){
             closesocket( s );
             __DbgSetLastErr( host, err );
-            return NULL;
+            return -1;
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
             __DbgSetLastErr( host, err );
             CloseDzFd( host, dzFd );
-            return NULL;
+            return -1;
         }
         CloseDzFd( host, dzFd );
     }else{
@@ -211,7 +222,7 @@ inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrL
     if( !ret ){
         closesocket( s );
         __DbgSetLastErr( host, WSAGetLastError() );
-        return NULL;
+        return -1;
     }
     key = (ULONG_PTR)dzFd->s;
     setsockopt( s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&key, sizeof( key ) );
@@ -222,11 +233,12 @@ inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrL
     }
     dzFd = CreateDzFd( host );
     dzFd->s = s;
-    return dzFd;
+    return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int SendEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
 {
+    DzFd* dzFd;
     DWORD bytes;
     DzIoHelper helper;
     DWORD tmpFlag;
@@ -236,6 +248,7 @@ inline int SendEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int fl
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     if( WSASend( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, flags, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
@@ -278,8 +291,9 @@ inline int SendEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int fl
     return bytes;
 }
 
-inline int RecvEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
 {
+    DzFd* dzFd;
     DWORD bytes;
     DzIoHelper helper;
     DWORD tmpFlag;
@@ -289,6 +303,7 @@ inline int RecvEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int fl
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     tmpFlag = (DWORD)flags;
     if( WSARecv( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, &helper.overlapped, NULL ) ){
@@ -332,27 +347,27 @@ inline int RecvEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int fl
     return bytes;
 }
 
-inline int Send( DzHost* host, DzFd* dzFd, const void* buf, u_int len, int flags )
+inline int Send( DzHost* host, int hFd, const void* buf, u_int len, int flags )
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = (void*)buf;
 
-    return SendEx( host, dzFd, &tmpBuf, 1, flags );
+    return SendEx( host, hFd, &tmpBuf, 1, flags );
 }
 
-inline int Recv( DzHost* host, DzFd* dzFd, void* buf, u_int len, int flags )
+inline int Recv( DzHost* host, int hFd, void* buf, u_int len, int flags )
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = buf;
 
-    return RecvEx( host, dzFd, &tmpBuf, 1, flags );
+    return RecvEx( host, hFd, &tmpBuf, 1, flags );
 }
 
 inline int SendToEx(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     DzBuf*                  bufs,
     u_int                   bufCount,
     int                     flags,
@@ -360,6 +375,7 @@ inline int SendToEx(
     int                     tolen
     )
 {
+    DzFd* dzFd;
     DWORD bytes;
     DzIoHelper helper;
     DWORD tmpFlag;
@@ -369,6 +385,7 @@ inline int SendToEx(
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     if( WSASendTo( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, flags, to, tolen, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
@@ -413,7 +430,7 @@ inline int SendToEx(
 
 inline int RecvFromEx(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     DzBuf*                  bufs,
     u_int                   bufCount,
     int                     flags,
@@ -421,6 +438,7 @@ inline int RecvFromEx(
     int*                    fromlen
     )
 {
+    DzFd* dzFd;
     DWORD bytes;
     DzIoHelper helper;
     DWORD tmpFlag;
@@ -430,6 +448,7 @@ inline int RecvFromEx(
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     tmpFlag = (DWORD)flags;
     if( WSARecvFrom( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, from, fromlen, &helper.overlapped, NULL ) ){
@@ -475,7 +494,7 @@ inline int RecvFromEx(
 
 inline int SendTo(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     const void*             buf,
     u_int                   len,
     int                     flags,
@@ -487,12 +506,12 @@ inline int SendTo(
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = (void*)buf;
 
-    return SendToEx( host, dzFd, &tmpBuf, 1, flags, to, tolen );
+    return SendToEx( host, hFd, &tmpBuf, 1, flags, to, tolen );
 }
 
 inline int RecvFrom(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     void*                   buf,
     u_int                   len,
     int                     flags,
@@ -504,7 +523,7 @@ inline int RecvFrom(
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = buf;
 
-    return RecvFromEx( host, dzFd, &tmpBuf, 1, flags, from, fromlen );
+    return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
 inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
@@ -541,12 +560,12 @@ inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
     return createFlag;
 }
 
-inline DzFd* GetFd( DzHost* host, HANDLE file, int flags )
+inline int GetFd( DzHost* host, HANDLE file, int flags )
 {
     DzFd* dzFd;
 
     if( file == INVALID_HANDLE_VALUE ){
-        return NULL;
+        return -1;
     }
     CreateIoCompletionPort( file, host->os.iocp, (ULONG_PTR)NULL, 0 );
     if( flags & DZ_O_APPEND && GetFileType( file ) == FILE_TYPE_DISK ){
@@ -554,10 +573,10 @@ inline DzFd* GetFd( DzHost* host, HANDLE file, int flags )
     }
     dzFd = CreateDzFd( host );
     dzFd->fd = file;
-    return dzFd;
+    return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline DzFd* OpenA( DzHost* host, const char* fileName, int flags )
+inline int OpenA( DzHost* host, const char* fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -576,7 +595,7 @@ inline DzFd* OpenA( DzHost* host, const char* fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline DzFd* OpenW( DzHost* host, const wchar_t* fileName, int flags )
+inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -595,19 +614,20 @@ inline DzFd* OpenW( DzHost* host, const wchar_t* fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline int Close( DzHost* host, DzFd* dzFd )
+inline int Close( DzHost* host, int hFd )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     BOOL ret;
 
     ret = CloseHandle( dzFd->fd );
     dzFd->err = WSAECONNRESET;
     CloseDzFd( host, dzFd );
-    return ret;
     return ret ? 0 : -1;
 }
 
-inline ssize_t Read( DzHost* host, DzFd* dzFd, void* buf, size_t count )
+inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
 {
+    DzFd* dzFd;
     DWORD bytes;
     BOOL isFile;
     DzIoHelper helper;
@@ -617,6 +637,7 @@ inline ssize_t Read( DzHost* host, DzFd* dzFd, void* buf, size_t count )
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     isFile = GetFileType( dzFd->fd ) == FILE_TYPE_DISK;
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     if( isFile ){
@@ -680,8 +701,9 @@ inline ssize_t Read( DzHost* host, DzFd* dzFd, void* buf, size_t count )
     return bytes;
 }
 
-inline ssize_t Write( DzHost* host, DzFd* dzFd, const void* buf, size_t count )
+inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
 {
+    DzFd* dzFd;
     DWORD bytes;
     BOOL isFile;
     DzIoHelper helper;
@@ -691,6 +713,7 @@ inline ssize_t Write( DzHost* host, DzFd* dzFd, const void* buf, size_t count )
     OVERLAPPED* overlapped;
     DzIoHelper* helperPtr;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     isFile = GetFileType( dzFd->fd ) == FILE_TYPE_DISK;
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     if( isFile ){
@@ -754,8 +777,9 @@ inline ssize_t Write( DzHost* host, DzFd* dzFd, const void* buf, size_t count )
     return bytes;
 }
 
-inline size_t Seek( DzFd* dzFd, ssize_t offset, int whence )
+inline size_t Seek( DzHost* host, int hFd, ssize_t offset, int whence )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     size_t ret;
 
 #if defined( _X86_ )
@@ -769,8 +793,9 @@ inline size_t Seek( DzFd* dzFd, ssize_t offset, int whence )
     return ret;
 }
 
-inline size_t FileSize( DzFd* dzFd )
+inline size_t FileSize( DzHost* host, int hFd )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     size_t ret;
 
 #if defined( _X86_ )
@@ -793,6 +818,25 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
 
     GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, (DWORD)timeout );
     AtomAndInt( host->rmtCheckSignPtr, ~RMT_CHECK_SLEEP_SIGN );
+    if( overlapped != NULL ){
+        do{
+            if( !key ){
+                helper = MEMBER_BASE( overlapped, DzIoHelper, overlapped );
+                NotifyEasyEvt( host, &helper->easyEvt );
+            }
+            GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, 0 );
+        }while( overlapped != NULL );
+    }
+}
+
+inline void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
+{
+    ULONG_PTR key;
+    DWORD n;
+    OVERLAPPED* overlapped;
+    DzIoHelper* helper;
+
+    GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, (DWORD)timeout );
     if( overlapped != NULL ){
         do{
             if( !key ){

@@ -18,7 +18,7 @@ void __stdcall PauseCotHelpEntry( intptr_t context )
         SendRmtCot( host, cot->hostId, cot->feedType < 0, dzCot );
     }else{
         AddLItrToTail( &host->lazyRmtCot[ cot->hostId ], &dzCot->lItr );
-        if( !host->lazyTimer ){
+        if( host->lazyTimer < 0 ){
             StartLazyTimer( host );
         }
     }
@@ -46,8 +46,8 @@ void __stdcall RemoteCotEntry( intptr_t context )
     host = GetHost();
     if( dzCot->feedType > 0 ){
         if( dzCot->evtType == 0 ){
-            SetEvt( host, dzCot->evt );
-            CloseSynObj( host, dzCot->evt );
+            SetEvtRaw( host, dzCot->evt );
+            CloseSynObjRaw( host, dzCot->evt );
         }else{
             NotifyEasyEvt( host, dzCot->easyEvt );
         }
@@ -160,7 +160,7 @@ void __stdcall RunRmtHostMain( intptr_t context )
     param = (DzSysParam*)context;
     ret = RunHost(
         param->hs.hostMgr, param->hs.hostId, param->hs.lowestPri,
-        param->hs.dftPri, param->hs.dftSSize, RmtHostFirstEntry, context
+        param->hs.dftPri, param->hs.dftSSize, RmtHostFirstEntry, context, NULL
         );
     if( ret != DS_OK ){
         param->result = ret;
@@ -185,7 +185,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
     DzSysParam* cotParam;
     DzSysParam param[ DZ_MAX_HOST ];
     DzCot* tmpCotArr[ DZ_MAX_HOST ];
-    DzSynObj* evt;
+    int evt;
     DzRmtCotFifo* fifo;
     DzCot* dzCot;
 

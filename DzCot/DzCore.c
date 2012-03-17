@@ -24,8 +24,8 @@ void __stdcall EventNotifyCotEntry( intptr_t context )
     DzHost* host = GetHost();
 
     host->currCot->entry( context );
-    SetEvt( host, host->currCot->evt );
-    CloseSynObj( host, host->currCot->evt );
+    SetEvtRaw( host, host->currCot->evt );
+    CloseSynObjRaw( host, host->currCot->evt );
 }
 
 void __stdcall CallbackTimerEntry( intptr_t context )
@@ -72,7 +72,7 @@ void CotScheduleCenter( DzHost* host )
             host->scheduleCd = SCHEDULE_COUNTDOWN;
             Schedule( host );
         }
-        if( host->lazyTimer ){
+        if( host->lazyTimer >= 0 ){
             DealLazyResEntry( 0 );
         }
         if( AtomAndInt( &host->mgr->exitSign, ~host->hostMask ) != host->hostMask ){
@@ -90,5 +90,30 @@ void CotScheduleCenter( DzHost* host )
             }
         }
         break;
+    }
+}
+
+void CotScheduleCenterNoRmtCheck( DzHost* host )
+{
+    int n;
+
+    while( 1 ){
+        if( host->scheduleCd ){
+            n = DispatchMinTimers( host );
+            if( n == 0 ){
+                host->currPri = CP_FIRST;
+                Schedule( host );
+                continue;
+            }else if( !host->cotCount ){
+                break;
+            }
+        }else{
+            n = 0;
+        }
+        BlockAndDispatchIoNoRmtCheck( host, n );
+        DispatchMinTimers( host );
+        host->currPri = CP_FIRST;
+        host->scheduleCd = SCHEDULE_COUNTDOWN;
+        Schedule( host );
     }
 }

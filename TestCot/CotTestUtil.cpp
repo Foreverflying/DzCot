@@ -9,13 +9,19 @@
 #include "CotTestUtil.h"
 #include "TryCot.h"
 
+void __stdcall CleanEntry( intptr_t context )
+{
+    __DzTceEnableScopePrint( 1 );
+    __DzTce1( "Hosts exit" );
+}
+
 #ifdef TEST_COT_JUST_RUN_TRY
 
 //#include "../DzCot/Inc_DzFastNewDelEx.h"
 
 int MainEntry( int argc, _TCHAR* argv[] )
 {
-    return DzRunHosts( gHostCount, gServMask, CP_LOW, CP_LOW, SS_64K, TestCotTryEntry, 0 );
+    return DzRunHosts( gHostCount, gServMask, CP_LOW, CP_LOW, SS_64K, TestCotTryEntry, 0, CleanEntry );
 }
 
 #else
@@ -38,9 +44,9 @@ int MainEntry( int argc, _TCHAR* argv[] )
 void TestCot( DzRoutine entry, intptr_t context )
 {
     int servMask[] = {
-        -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1
+        0
+        //-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
     };
-    int ret = DzRunHosts( 1, servMask, CP_LOW, CP_LOW, SS_64K, entry, context );
+    int ret = DzRunHosts( 1, servMask, CP_LOW, CP_LOW, SS_64K, entry, context, NULL );
     EXPECT_EQ( DS_OK, ret );
 }

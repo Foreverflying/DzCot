@@ -19,7 +19,7 @@
 extern "C"{
 #endif
 
-inline DzFd* Socket( DzHost* host, int domain, int type, int protocol )
+inline int Socket( DzHost* host, int domain, int type, int protocol )
 {
     int fd;
     DzFd* dzFd;
@@ -35,17 +35,19 @@ inline DzFd* Socket( DzHost* host, int domain, int type, int protocol )
         flag = fcntl( fd, F_GETFL, 0 );
         fcntl( fd, F_SETFL, flag | O_NONBLOCK );
         epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, fd, &evt );
-        return dzFd;
+        return (int)( (intptr_t)dzFd - host->handleBase );
     }else{
         __DbgSetLastErr( host, errno );
-        return NULL;
+        return -1;
     }
 }
 
-inline int CloseSocket( DzHost* host, DzFd* dzFd )
+inline int CloseSocket( DzHost* host, int hFd )
 {
+    DzFd* dzFd;
     int ret;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ret = close( dzFd->fd );
     if( ret == 0 ){
         dzFd->err = ECONNABORTED;
@@ -62,41 +64,49 @@ inline int CloseSocket( DzHost* host, DzFd* dzFd )
     return ret;
 }
 
-inline int GetSockOpt( DzFd* dzFd, int level, int name, void* option, int* len )
+inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockopt( dzFd->fd, level, name, (char*)option, (socklen_t*)len );
 }
 
-inline int SetSockOpt( DzFd* dzFd, int level, int name, const void* option, int len )
+inline int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, int len )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return setsockopt( dzFd->fd, level, name, (const char*)option, (socklen_t)len );
 }
 
-inline int GetSockName( DzFd* dzFd, struct sockaddr* addr, int* addrLen )
+inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockname( dzFd->fd, addr, (socklen_t*)addrLen );
 }
 
-inline int Bind( DzFd* dzFd, struct sockaddr* addr, int addrLen )
+inline int Bind( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return bind( dzFd->fd, addr, (socklen_t)addrLen );
 }
 
-inline int Listen( DzFd* dzFd, int backlog )
+inline int Listen( DzHost* host, int hFd, int backlog )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return listen( dzFd->fd, backlog );
 }
 
-inline int Shutdown( DzFd* dzFd, int how )
+inline int Shutdown( DzHost* host, int hFd, int how )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return shutdown( dzFd->fd, how );
 }
 
-inline int Connect( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int addrLen )
+inline int Connect( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
 {
+    DzFd* dzFd;
     int err;
     socklen_t errLen;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     if( connect( dzFd->fd, addr, (socklen_t)addrLen ) != 0 ){
         if( errno == EINPROGRESS ){
             CloneDzFd( dzFd );
@@ -121,12 +131,14 @@ inline int Connect( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int addrLen
     return 0;
 }
 
-inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrLen )
+inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
 {
+    DzFd* dzFd;
     int ret;
     int flag;
     struct epoll_event evt;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ret = accept( dzFd->fd, addr, (socklen_t*)addrLen );
     if( ret < 0 ){
         if( errno == EAGAIN ){
@@ -135,17 +147,17 @@ inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrL
             if( dzFd->err ){
                 __DbgSetLastErr( host, dzFd->err );
                 CloseDzFd( host, dzFd );
-                return NULL;
+                return -1;
             }
             CloseDzFd( host, dzFd );
             ret = accept( dzFd->fd, addr, (socklen_t*)addrLen );
             if( ret < 0 ){
                 __DbgSetLastErr( host, errno );
-                return NULL;
+                return -1;
             }
         }else{
             __DbgSetLastErr( host, errno );
-            return NULL;
+            return -1;
         }
     }
     dzFd = CreateDzFd( host );
@@ -155,13 +167,15 @@ inline DzFd* Accept( DzHost* host, DzFd* dzFd, struct sockaddr* addr, int* addrL
     flag = fcntl( ret, F_GETFL, 0 );
     fcntl( ret, F_SETFL, flag | O_NONBLOCK );
     epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, ret, &evt );
-    return dzFd;
+    return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int SendMsg( DzHost* host, DzFd* dzFd, struct msghdr* msg, int flags )
+inline int SendMsg( DzHost* host, int hFd, struct msghdr* msg, int flags )
 {
+    DzFd* dzFd;
     int ret;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ret = sendmsg( dzFd->fd, msg, flags | MSG_NOSIGNAL );
     if( ret < 0 ){
         if( errno == EAGAIN ){
@@ -186,10 +200,12 @@ inline int SendMsg( DzHost* host, DzFd* dzFd, struct msghdr* msg, int flags )
     return ret;
 }
 
-inline int RecvMsg( DzHost* host, DzFd* dzFd, struct msghdr* msg, int flags )
+inline int RecvMsg( DzHost* host, int hFd, struct msghdr* msg, int flags )
 {
+    DzFd* dzFd;
     int ret;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ret = recvmsg( dzFd->fd, msg, flags );
     if( ret < 0 ){
         if( errno == EAGAIN ){
@@ -214,7 +230,7 @@ inline int RecvMsg( DzHost* host, DzFd* dzFd, struct msghdr* msg, int flags )
     return ret;
 }
 
-inline int SendEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
 {
     struct msghdr msg;
 
@@ -224,10 +240,10 @@ inline int SendEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int fl
     msg.msg_iovlen = bufCount;
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
-    return SendMsg( host, dzFd, &msg, flags );
+    return SendMsg( host, hFd, &msg, flags );
 }
 
-inline int RecvEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
 {
     struct msghdr msg;
 
@@ -237,30 +253,30 @@ inline int RecvEx( DzHost* host, DzFd* dzFd, DzBuf* bufs, u_int bufCount, int fl
     msg.msg_iovlen = bufCount;
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
-    return RecvMsg( host, dzFd, &msg, flags );
+    return RecvMsg( host, hFd, &msg, flags );
 }
 
-inline int Send( DzHost* host, DzFd* dzFd, const void* buf, u_int len, int flags )
+inline int Send( DzHost* host, int hFd, const void* buf, u_int len, int flags )
 {
     DzBuf tmpBuf;
 
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = (void*)buf;
-    return SendEx( host, dzFd, &tmpBuf, 1, flags );
+    return SendEx( host, hFd, &tmpBuf, 1, flags );
 }
 
-inline int Recv( DzHost* host, DzFd* dzFd, void* buf, u_int len, int flags )
+inline int Recv( DzHost* host, int hFd, void* buf, u_int len, int flags )
 {
     DzBuf tmpBuf;
 
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = buf;
-    return RecvEx( host, dzFd, &tmpBuf, 1, flags );
+    return RecvEx( host, hFd, &tmpBuf, 1, flags );
 }
 
 inline int SendToEx(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     DzBuf*                  bufs,
     u_int                   bufCount,
     int                     flags,
@@ -276,12 +292,12 @@ inline int SendToEx(
     msg.msg_iovlen = bufCount;
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
-    return SendMsg( host, dzFd, &msg, flags );
+    return SendMsg( host, hFd, &msg, flags );
 }
 
 inline int RecvFromEx(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     DzBuf*                  bufs,
     u_int                   bufCount,
     int                     flags,
@@ -298,7 +314,7 @@ inline int RecvFromEx(
     msg.msg_iovlen = bufCount;
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
-    ret = RecvMsg( host, dzFd, &msg, flags );
+    ret = RecvMsg( host, hFd, &msg, flags );
     if( fromlen ){
         *fromlen = (int)msg.msg_namelen;
     }
@@ -307,7 +323,7 @@ inline int RecvFromEx(
 
 inline int SendTo(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     const void*             buf,
     u_int                   len,
     int                     flags,
@@ -319,12 +335,12 @@ inline int SendTo(
 
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = (void*)buf;
-    return SendToEx( host, dzFd, &tmpBuf, 1, flags, to, tolen );
+    return SendToEx( host, hFd, &tmpBuf, 1, flags, to, tolen );
 }
 
 inline int RecvFrom(
     DzHost*                 host,
-    DzFd*                   dzFd,
+    int                     hFd,
     void*                   buf,
     u_int                   len,
     int                     flags,
@@ -336,10 +352,10 @@ inline int RecvFrom(
 
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = buf;
-    return RecvFromEx( host, dzFd, &tmpBuf, 1, flags, from, fromlen );
+    return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
-inline DzFd* OpenA( DzHost* host, const char* fileName, int flags )
+inline int OpenA( DzHost* host, const char* fileName, int flags )
 {
     int fd;
     DzFd* dzFd;
@@ -353,22 +369,24 @@ inline DzFd* OpenA( DzHost* host, const char* fileName, int flags )
         evt.data.ptr = dzFd;
         evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
         epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, fd, &evt );
-        return dzFd;
+        return (int)( (intptr_t)dzFd - host->handleBase );
     }else{
         __DbgSetLastErr( host, errno );
-        return NULL;
+        return -1;
     }
 }
 
-inline DzFd* OpenW( DzHost* host, const wchar_t* fileName, int flags )
+inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
 {
-    return NULL;
+    return -1;
 }
 
-inline int Close( DzHost* host, DzFd* dzFd )
+inline int Close( DzHost* host, int hFd )
 {
+    DzFd* dzFd;
     int ret;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ret = close( dzFd->fd );
     if( ret == 0 ){
         dzFd->isSock = TRUE;
@@ -386,10 +404,12 @@ inline int Close( DzHost* host, DzFd* dzFd )
     return ret;
 }
 
-inline size_t Read( DzHost* host, DzFd* dzFd, void* buf, size_t count )
+inline size_t Read( DzHost* host, int hFd, void* buf, size_t count )
 {
+    DzFd* dzFd;
     int ret;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     ret = read( dzFd->fd, buf, count );
     if( ret < 0 ){
         if( errno == EAGAIN ){
@@ -414,12 +434,14 @@ inline size_t Read( DzHost* host, DzFd* dzFd, void* buf, size_t count )
     return ret;
 }
 
-inline size_t Write( DzHost* host, DzFd* dzFd, const void* buf, size_t count )
+inline size_t Write( DzHost* host, int hFd, const void* buf, size_t count )
 {
+    DzFd* dzFd;
     int ret;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     if( dzFd->isSock ){
-        return (size_t)Send( host, dzFd, buf, (u_int)count, 0 );
+        return (size_t)Send( host, hFd, buf, (u_int)count, 0 );
     }
     ret = write( dzFd->fd, buf, count );
     if( ret < 0 ){
@@ -445,15 +467,18 @@ inline size_t Write( DzHost* host, DzFd* dzFd, const void* buf, size_t count )
     return ret;
 }
 
-inline size_t Seek( DzFd* dzFd, size_t offset, int whence )
+inline size_t Seek( DzHost* host, int hFd, size_t offset, int whence )
 {
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return (size_t)lseek( dzFd->fd, (off_t)offset, whence );
 }
 
-inline size_t FileSize( DzFd* dzFd )
+inline size_t FileSize( DzHost* host, int hFd )
 {
+    DzFd* dzFd;
     struct stat st;
 
+    dzFd = (DzFd*)( host->handleBase + hFd );
     if( fstat( dzFd->fd, &st ) < 0 ){
         return -1;
     }
@@ -490,6 +515,37 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
             break;
         }
         read( host->os.pipe[0], evtList, 2048 );
+    }
+}
+
+inline void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
+{
+    int i;
+    int listCount;
+    DzFd* dzFd;
+    struct epoll_event* evtList;
+
+    evtList = host->os.evtList;
+    listCount = epoll_wait( host->os.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
+    if( listCount != 0 ){
+        while( 1 ){
+            for( i = 0; i < listCount; i++ ){
+                dzFd = (DzFd*)evtList[i].data.ptr;
+                if( IsEasyEvtWaiting( &dzFd->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
+                    NotifyEasyEvt( host, &dzFd->inEvt );
+                    CleanEasyEvt( &dzFd->inEvt );
+                }
+                if( IsEasyEvtWaiting( &dzFd->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
+                    NotifyEasyEvt( host, &dzFd->outEvt );
+                    CleanEasyEvt( &dzFd->outEvt );
+                }
+            }
+            if( listCount == EPOLL_EVT_LIST_SIZE ){
+                listCount = epoll_wait( host->os.epollFd, evtList, EPOLL_EVT_LIST_SIZE, 0 );
+                continue;
+            }
+            break;
+        }
     }
 }
 
