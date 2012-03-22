@@ -34,7 +34,6 @@ EXPORTS
     DzCloseCallbackTimer
     DzSleep
     DzOpenFileA
-    DzOpenFileW
     DzCloseFile
     DzReadFile
     DzWriteFile
@@ -45,6 +44,7 @@ EXPORTS
     DzGetSockOpt
     DzSetSockOpt
     DzGetSockName
+    DzGetPeerName
     DzBind
     DzListen
     DzShutdown
@@ -58,6 +58,11 @@ EXPORTS
     DzRecvFromEx
     DzSendTo
     DzRecvFrom
+    DzGetNameInfoA
+    DzGetAddrInfoA
+    DzFreeAddrInfoA
+    DzInetPtonA
+    DzInetNtopA
     DzAllocParamNode
     DzFreeParamNode
     DzAllocPermanentChunk
@@ -71,3 +76,10 @@ EXPORTS
     DzMilUnixTime
     __DzMakeServMask
     __DzDbgLastErr
+    DzOpenFileW
+    DzGetNameInfoW
+    DzGetAddrInfoW
+    DzFreeAddrInfoW
+    DzInetPtonW
+    DzInetNtopW
+

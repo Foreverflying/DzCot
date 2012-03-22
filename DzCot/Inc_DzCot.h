@@ -9,11 +9,11 @@
 #define __Inc_DzCot_h__
 
 #if defined( _WIN32 )
-#include <WinSock2.h>
 #include <Ws2tcpip.h>
 #elif defined( __linux__ )
 #include <stddef.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
 #endif
@@ -301,13 +301,12 @@ size_t DzSeekFile( int fd, ssize_t offset, int whence );
 size_t DzGetFileSize( int fd );
 
 #ifdef _WIN32
-int DzOpenFileW( const wchar_t* fileName, int flags );
 #endif
 
-#ifndef UNICODE
-#define DzOpenFile DzOpenFileA
-#else
+#if defined( _WIN32 ) && defined( UNICODE )
 #define DzOpenFile DzOpenFileW
+#else
+#define DzOpenFile DzOpenFileA
 #endif
 
 int DzSocket( int domain, int type, int protocol );
@@ -315,6 +314,7 @@ int DzCloseSocket( int fd );
 int DzGetSockOpt( int fd, int level, int name, void* option, int* len );
 int DzSetSockOpt( int fd, int level, int name, const void* option, int len );
 int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen );
+int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen );
 int DzBind( int fd, struct sockaddr* addr, int addrLen );
 int DzListen( int fd, int backlog );
 int DzShutdown( int fd, int how );
@@ -356,6 +356,24 @@ int DzRecvFrom(
     struct sockaddr*        from,
     int*                    fromlen
     );
+int DzGetNameInfoA(
+    const struct sockaddr*  sa,
+    int                     salen,
+    char*                   host,
+    size_t                  hostlen,
+    char*                   serv,
+    size_t                  servlen,
+    int                     flags
+    );
+int DzGetAddrInfoA(
+    const char*             node,
+    const char*             service,
+    const struct addrinfo*  hints,
+    struct addrinfo**       res
+    );
+void DzFreeAddrInfoA( struct addrinfo *res );
+int DzInetPtonA( int af, const char* src, void* dst );
+const char* DzInetNtopA( int af, const void* src, char* dst, int size );
 
 DzParamNode* DzAllocParamNode();
 void DzFreeParamNode( DzParamNode* node );
@@ -376,6 +394,50 @@ int __DzDbgLastErr();
 
 #define DzMakeServMask( notServ, ... )\
     __DzMakeServMask( notServ, ##__VA_ARGS__, -1 )
+
+#ifdef _WIN32
+
+int DzOpenFileW( const wchar_t* fileName, int flags );
+int DzGetNameInfoW(
+    const struct sockaddr*  sa,
+    int                     salen,
+    wchar_t*                host,
+    size_t                  hostlen,
+    wchar_t*                serv,
+    size_t                  servlen,
+    int                     flags
+    );
+int DzGetAddrInfoW(
+    const wchar_t*          node,
+    const wchar_t*          service,
+    const struct addrinfoW* hints,
+    struct addrinfoW**      res
+    );
+void DzFreeAddrInfoW( struct addrinfoW *res );
+int DzInetPtonW( int af, const wchar_t* src, void* dst );
+const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, int size );
+
+#endif
+
+#if defined( _WIN32 ) && defined( UNICODE )
+
+#define DzOpenFile          DzOpenFileW
+#define DzGetNameInfo       DzGetNameInfoW
+#define DzGetAddrInfo       DzGetAddrInfoW
+#define DzFreeAddrInfo      DzFreeAddrInfoW
+#define DzInetPton          DzInetPtonW
+#define DzInetNtop          DzInetNtopW
+
+#else
+
+#define DzOpenFile          DzOpenFileA
+#define DzGetNameInfo       DzGetNameInfoA
+#define DzGetAddrInfo       DzGetAddrInfoA
+#define DzFreeAddrInfo      DzFreeAddrInfoA
+#define DzInetPton          DzInetPtonA
+#define DzInetNtop          DzInetNtopA
+
+#endif
 
 #ifdef __cplusplus
 };
