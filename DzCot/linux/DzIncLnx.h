@@ -24,6 +24,8 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <assert.h>
 
 #ifndef __cplusplus

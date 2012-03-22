@@ -565,6 +565,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleasePy|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="linux\DzIoLnx.c" />
     <ClCompile Include="win\DzCoreWin.c" />
     <ClCompile Include="DzCot.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugPy|Win32'">true</ExcludedFromBuild>
@@ -574,6 +575,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</CompileAs>
     </ClCompile>
     <ClCompile Include="DzResourceMgr.c" />
+    <ClCompile Include="win\DzIoWin.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dlconfig.h" />

@@ -53,6 +53,12 @@
     <ClCompile Include="DzCot.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="win\DzIoWin.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="linux\DzIoLnx.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DzCore.h">
