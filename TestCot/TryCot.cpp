@@ -166,6 +166,16 @@ void __stdcall TestCotTryEntry( intptr_t context )
     //*/
 
     //*
+    addrinfoW* info;
+    int ret = DzGetAddrInfoW( L"www.163.com", L"http", NULL, &info );
+    DzFreeAddrInfoW( info );
+
+    char buff[32];
+    ret = DzGetNameInfoA( NULL, 0, NULL, 0, buff, 32, 0 );
+    ret = 1;
+    //*/
+
+    /*
     for( int i = 1; i < gHostCount; i++ ){
         vector<int>* n = new vector<int>();
         DzStartRemoteCot( i, TestRemoteCot, (intptr_t)n );
@@ -175,7 +185,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
     printf( "well, awake1\r\n\r\n" );
     //*/
 
-    //*
+    /*
     printf( "hahhha, i am sleep now2!\r\n" );
     int evt = DzCreateCdEvt( gHostCount - 1 );
     for( int i = 1; i < gHostCount; i++ ){
@@ -187,7 +197,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
     DzCloseSynObj( evt );
     //*/
 
-    //*
+    /*
     printf( "hahhha, i am sleep now3!\r\n" );
     for( int i = 1; i < gHostCount; i++ ){
         vector<int>* n = new vector<int>();

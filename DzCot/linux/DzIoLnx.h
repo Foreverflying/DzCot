@@ -19,6 +19,9 @@
 extern "C"{
 #endif
 
+void __stdcall GetNameInfoEntry( intptr_t context );
+void __stdcall GetAddrInfoEntry( intptr_t context );
+
 inline int Socket( DzHost* host, int domain, int type, int protocol )
 {
     int fd;
@@ -80,6 +83,12 @@ inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, int* addrL
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockname( dzFd->fd, addr, (socklen_t*)addrLen );
+}
+
+inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    return getpeername( dzFd->fd, addr, (socklen_t*)addrLen );
 }
 
 inline int Bind( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
@@ -355,6 +364,67 @@ inline int RecvFrom(
     return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
+inline int DGetNameInfoA(
+    DzHost*                 dzHost,
+    const struct sockaddr*  sa,
+    int                     salen,
+    char*                   host,
+    size_t                  hostlen,
+    char*                   serv,
+    size_t                  servlen,
+    int                     flags
+    )
+{
+    int ret;
+    DzLNode* node = AllocLNode( dzHost );
+    node->d1 = (intptr_t)sa;
+    node->d2 = (intptr_t)salen;
+    node->d3 = (intptr_t)host;
+    node->d4 = (intptr_t)hostlen;
+    node->d5 = (intptr_t)serv;
+    node->d6 = (intptr_t)servlen;
+    node->d7 = (intptr_t)flags;
+    node->d8 = (intptr_t)&ret;
+    RunWorker( dzHost, GetNameInfoEntry, (intptr_t)node );
+    FreeLNode( dzHost, node );
+    return ret;
+}
+
+inline int DGetAddrInfoA(
+    DzHost*                 host,
+    const char*             node,
+    const char*             service,
+    const struct addrinfo*  hints,
+    struct addrinfo**       res
+    )
+{
+    int ret;
+    DzLNode* param = AllocLNode( host );
+    param->d1 = (intptr_t)node;
+    param->d2 = (intptr_t)service;
+    param->d3 = (intptr_t)hints;
+    param->d4 = (intptr_t)res;
+    param->d8 = (intptr_t)&ret;
+    RunWorker( host, GetAddrInfoEntry, (intptr_t)param );
+    FreeLNode( host, param );
+    return ret;
+}
+
+inline void DFreeAddrInfoA( struct addrinfo *res )
+{
+    freeaddrinfo( res );
+}
+
+inline int DInetPtonA( int af, const char* src, void* dst )
+{
+    return inet_pton( af, src, dst );
+}
+
+inline const char* DInetNtopA( int af, const void* src, char* dst, int size )
+{
+    return inet_ntop( af, src, dst, size );
+}
+
 inline int OpenA( DzHost* host, const char* fileName, int flags )
 {
     int fd;
@@ -374,11 +444,6 @@ inline int OpenA( DzHost* host, const char* fileName, int flags )
         __DbgSetLastErr( host, errno );
         return -1;
     }
-}
-
-inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
-{
-    return -1;
 }
 
 inline int Close( DzHost* host, int hFd )
@@ -514,7 +579,7 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
             }
             break;
         }
-        read( host->os.pipe[0], evtList, 2048 );
+        read( host->os.pipe[0], evtList, PAGE_SIZE );
     }
 }
 

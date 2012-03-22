@@ -542,14 +542,6 @@ int DzOpenFileA( const char* fileName, int flags )
     return OpenA( host, fileName, flags );
 }
 
-int DzOpenFileW( const wchar_t* fileName, int flags )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return OpenW( host, fileName, flags );
-}
-
 int DzCloseFile( int fd )
 {
     DzHost* host = GetHost();
@@ -647,6 +639,16 @@ int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen )
     assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
 
     return GetSockName( host, fd, addr, addrLen );
+}
+
+int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return GetPeerName( host, fd, addr, addrLen );
 }
 
 int DzBind( int fd, struct sockaddr* addr, int addrLen )
@@ -809,6 +811,52 @@ int DzRecvFrom(
     assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
 
     return RecvFrom( host, fd, buf, len, flags, from, fromlen );
+}
+
+int DzGetNameInfoA(
+    const struct sockaddr*  sa,
+    int                     salen,
+    char*                   host,
+    size_t                  hostlen,
+    char*                   serv,
+    size_t                  servlen,
+    int                     flags
+    )
+{
+    DzHost* dzHost = GetHost();
+    assert( dzHost );
+    assert( dzHost->servMask & ( 1 << dzHost->hostId ) );
+
+    return DGetNameInfoA( dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags );
+}
+
+int DzGetAddrInfoA(
+    const char*             node,
+    const char*             service,
+    const struct addrinfo*  hints,
+    struct addrinfo**       res
+    )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( host->servMask & ( 1 << host->hostId ) );
+
+    return DGetAddrInfoA( host, node, service, hints, res );
+}
+
+void DzFreeAddrInfoA( struct addrinfo *res )
+{
+    DFreeAddrInfoA( res );
+}
+
+int DzInetPtonA( int af, const char* src, void* dst )
+{
+    return DInetPtonA( af, src, dst );
+}
+
+const char* DzInetNtopA( int af, const void* src, char* dst, int size )
+{
+    return DInetNtopA( af, src, dst, size );
 }
 
 DzParamNode* DzAllocParamNode()
