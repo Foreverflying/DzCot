@@ -24,6 +24,8 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <assert.h>
 
 #ifndef __cplusplus
@@ -57,7 +59,7 @@ typedef long long int64;
 #define DZ_MAX_PERSIST_STACK_SIZE   ( SS_16K )
 
 //linux specific constants
-#define EPOLL_EVT_LIST_SIZE     4096
+#define EPOLL_EVT_LIST_SIZE     1024
 
 //switchers
 

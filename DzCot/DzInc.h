@@ -33,7 +33,7 @@
 #define RMT_CHECK_SLEEP_SIGN        ( 1 << 31 )
 #define RMT_CALL_FIFO_SIZE          ( 1024 )
 #define MIN_TIME_INTERVAL           ( 5 )
-#define SCHEDULE_COUNTDOWN          ( 64 )
+#define SCHEDULE_COUNTDOWN          ( 256 )
 #define LAZY_TIMER_INTERVAL         ( 8192 )
 
 //predefine
