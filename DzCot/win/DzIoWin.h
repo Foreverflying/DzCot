@@ -19,6 +19,11 @@
 extern "C"{
 #endif
 
+void __stdcall GetNameInfoEntryA( intptr_t context );
+void __stdcall GetNameInfoEntryW( intptr_t context );
+void __stdcall GetAddrInfoEntryA( intptr_t context );
+void __stdcall GetAddrInfoEntryW( intptr_t context );
+
 inline int Socket( DzHost* host, int domain, int type, int protocol )
 {
     SOCKET fd;
@@ -62,6 +67,12 @@ inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, int* addrL
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockname( dzFd->s, addr, addrLen );
+}
+
+inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    return getpeername( dzFd->s, addr, addrLen );
 }
 
 inline int Bind( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
@@ -526,6 +537,67 @@ inline int RecvFrom(
     return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
+inline int DGetNameInfoA(
+    DzHost*                 dzHost,
+    const struct sockaddr*  sa,
+    int                     salen,
+    char*                   host,
+    size_t                  hostlen,
+    char*                   serv,
+    size_t                  servlen,
+    int                     flags
+    )
+{
+    int ret;
+    DzLNode* node = AllocLNode( dzHost );
+    node->d1 = (intptr_t)sa;
+    node->d2 = (intptr_t)salen;
+    node->d3 = (intptr_t)host;
+    node->d4 = (intptr_t)hostlen;
+    node->d5 = (intptr_t)serv;
+    node->d6 = (intptr_t)servlen;
+    node->d7 = (intptr_t)flags;
+    node->d8 = (intptr_t)&ret;
+    RunWorker( dzHost, GetNameInfoEntryA, (intptr_t)node );
+    FreeLNode( dzHost, node );
+    return ret;
+}
+
+inline int DGetAddrInfoA(
+    DzHost*                 host,
+    const char*             node,
+    const char*             service,
+    const struct addrinfo*  hints,
+    struct addrinfo**       res
+    )
+{
+    int ret;
+    DzLNode* param = AllocLNode( host );
+    param->d1 = (intptr_t)node;
+    param->d2 = (intptr_t)service;
+    param->d3 = (intptr_t)hints;
+    param->d4 = (intptr_t)res;
+    param->d8 = (intptr_t)&ret;
+    RunWorker( host, GetAddrInfoEntryA, (intptr_t)param );
+    FreeLNode( host, param );
+    return ret;
+}
+
+inline void DFreeAddrInfoA( struct addrinfo *res )
+{
+    FreeAddrInfoA( res );
+}
+
+inline int DInetPtonA( int af, const char* src, void* dst )
+{
+    return InetPtonA( af, src, dst );
+}
+
+inline const char* DInetNtopA( int af, const void* src, char* dst, int size )
+{
+    return InetNtopA( af, (PVOID)src, dst, size );
+}
+
 inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
 {
     DWORD access = 0;
@@ -584,25 +656,6 @@ inline int OpenA( DzHost* host, const char* fileName, int flags )
     
     createFlag = GetFileFlag( flags, &access );
     file = CreateFileA(
-        fileName,
-        access,
-        0,
-        0,
-        createFlag,
-        FILE_FLAG_OVERLAPPED,
-        NULL
-        );
-    return GetFd( host, file, flags );
-}
-
-inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
-{
-    DWORD access = 0;
-    DWORD createFlag;
-    HANDLE file;
-    
-    createFlag = GetFileFlag( flags, &access );
-    file = CreateFileW(
         fileName,
         access,
         0,
@@ -807,6 +860,86 @@ inline size_t FileSize( DzHost* host, int hFd )
 #endif
 
     return ret;
+}
+
+inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
+{
+    DWORD access = 0;
+    DWORD createFlag;
+    HANDLE file;
+
+    createFlag = GetFileFlag( flags, &access );
+    file = CreateFileW(
+        fileName,
+        access,
+        0,
+        0,
+        createFlag,
+        FILE_FLAG_OVERLAPPED,
+        NULL
+        );
+    return GetFd( host, file, flags );
+}
+
+inline int DGetNameInfoW(
+    DzHost*                 dzHost,
+    const struct sockaddr*  sa,
+    int                     salen,
+    wchar_t*                host,
+    size_t                  hostlen,
+    wchar_t*                serv,
+    size_t                  servlen,
+    int                     flags
+    )
+{
+    int ret;
+    DzLNode* node = AllocLNode( dzHost );
+    node->d1 = (intptr_t)sa;
+    node->d2 = (intptr_t)salen;
+    node->d3 = (intptr_t)host;
+    node->d4 = (intptr_t)hostlen;
+    node->d5 = (intptr_t)serv;
+    node->d6 = (intptr_t)servlen;
+    node->d7 = (intptr_t)flags;
+    node->d8 = (intptr_t)&ret;
+    RunWorker( dzHost, GetNameInfoEntryW, (intptr_t)node );
+    FreeLNode( dzHost, node );
+    return ret;
+}
+
+inline int DGetAddrInfoW(
+    DzHost*                 host,
+    const wchar_t*          node,
+    const wchar_t*          service,
+    const struct addrinfoW* hints,
+    struct addrinfoW**      res
+    )
+{
+    int ret;
+    DzLNode* param = AllocLNode( host );
+    param->d1 = (intptr_t)node;
+    param->d2 = (intptr_t)service;
+    param->d3 = (intptr_t)hints;
+    param->d4 = (intptr_t)res;
+    param->d8 = (intptr_t)&ret;
+    RunWorker( host, GetAddrInfoEntryW, (intptr_t)param );
+    FreeLNode( host, param );
+    return ret;
+}
+
+inline void DFreeAddrInfoW( struct addrinfoW *res )
+{
+    FreeAddrInfoW( res );
+}
+
+inline int DInetPtonW( int af, const wchar_t* src, void* dst )
+{
+    return InetPtonW( af, src, dst );
+}
+
+inline const wchar_t* DInetNtopW( int af, const void* src, wchar_t* dst, int size )
+{
+    return InetNtopW( af, (PVOID)src, dst, size );
 }
 
 inline void BlockAndDispatchIo( DzHost* host, int timeout )

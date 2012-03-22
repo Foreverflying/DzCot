@@ -9,11 +9,11 @@
 #define __DzIncWin_h__
 
 #ifndef WINVER
-#define WINVER 0x0501
+#define WINVER 0x0600
 #endif
 
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINNT 0x0600
 #endif
 
 #define WIN32_LEAN_AND_MEAN
@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <WinSock2.h>
+#include <Ws2tcpip.h>
 #include <sys/timeb.h>
 #include <MSWSock.h>
 #include <windows.h>
