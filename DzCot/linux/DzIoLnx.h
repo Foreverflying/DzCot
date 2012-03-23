@@ -579,7 +579,7 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
             }
             break;
         }
-        read( host->os.pipe[0], evtList, 2048 );
+        read( host->os.pipe[0], evtList, PAGE_SIZE );
     }
 }
 
