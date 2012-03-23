@@ -9,11 +9,11 @@
 #define __Inc_DzCot_h__
 
 #if defined( _WIN32 )
-#include <WinSock2.h>
 #include <Ws2tcpip.h>
 #elif defined( __linux__ )
 #include <stddef.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
 #endif
