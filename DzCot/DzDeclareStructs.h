@@ -74,5 +74,6 @@ typedef struct _DzFd            DzFd;
 
 //alias struct names when using in the interface
 typedef struct _DzLNode         DzParamNode;
+typedef struct _DzSynObj*       DzHandle;
 
 #endif // __DzDeclareStructs_h__

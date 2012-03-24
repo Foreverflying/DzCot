@@ -1,11 +1,11 @@
 
 #include "CotTestUtil.h"
 
-int synEvt1 = NULL;
-int synEvt2 = NULL;
-int synSem1 = NULL;
-int synSem2 = NULL;
-int synTimer = NULL;
+DzHandle synEvt1 = NULL;
+DzHandle synEvt2 = NULL;
+DzHandle synSem1 = NULL;
+DzHandle synSem2 = NULL;
+DzHandle synTimer = NULL;
 
 int ret[ 64 ];
 int retCount = 0;
@@ -30,35 +30,35 @@ void ReleaseSynObj()
 
 void __stdcall Wait1Evt1_Sem2( intptr_t context )
 {
-    int obj[] = { synEvt1, synSem2 };
+    DzHandle obj[] = { synEvt1, synSem2 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE );
     ret[ retCount++ ] = 1 * 100 + n + 1;
 }
 
 void __stdcall Wait2Evt1_Evt2( intptr_t context )
 {
-    int obj[] = { synEvt1, synEvt2 };
+    DzHandle obj[] = { synEvt1, synEvt2 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE );
     ret[ retCount++ ] = 2 * 100 + n + 1;
 }
 
 void __stdcall Wait3Evt1_Timer( intptr_t context )
 {
-    int obj[] = { synEvt1, synTimer };
+    DzHandle obj[] = { synEvt1, synTimer };
     int n = DzWaitMultiSynObj( 2, obj, FALSE );
     ret[ retCount++ ] = 3 * 100 + n + 1;
 }
 
 void __stdcall Wait4Sem1_Evt2( intptr_t context )
 {
-    int obj[] = { synSem1, synEvt2 };
+    DzHandle obj[] = { synSem1, synEvt2 };
     int n = DzWaitMultiSynObj( 2, obj, FALSE );
     ret[ retCount++ ] = 4 * 100 + n + 1;
 }
 
 void __stdcall Wait5Sem2_Timer( intptr_t context )
 {
-    int obj[] = { synSem2, synTimer };
+    DzHandle obj[] = { synSem2, synTimer };
     int n = DzWaitMultiSynObj( 2, obj, TRUE );
     ret[ retCount++ ] = 5 * 100 + n + 1;
 }
@@ -71,7 +71,7 @@ void __stdcall Wait6Evt1( intptr_t context )
 
 void __stdcall Wait7Evt1_Sem1_Timer( intptr_t context )
 {
-    int obj[] = { synEvt1, synSem1, synTimer };
+    DzHandle obj[] = { synEvt1, synSem1, synTimer };
     int n = DzWaitMultiSynObj( 3, obj, TRUE );
     ret[ retCount++ ] = 7 * 100 + n + 1;
 }
@@ -90,7 +90,7 @@ void __stdcall Wait9Sem2TimeOut( intptr_t context )
 
 void __stdcall Wait10Sem1Sem2TimeOut( intptr_t context )
 {
-    int obj[] = { synSem1, synSem2 };
+    DzHandle obj[] = { synSem1, synSem2 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE, 2500 );
     ret[ retCount++ ] = 10 * 100 + n + 1;
 }

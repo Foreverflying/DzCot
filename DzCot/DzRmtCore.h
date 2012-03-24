@@ -95,7 +95,7 @@ inline void StopLazyTimer( DzHost* host )
 {
     host->cotCount++;
     CloseCallbackTimer( host, host->lazyTimer );
-    host->lazyTimer = -1;
+    host->lazyTimer = NULL;
 }
 
 #ifdef __cplusplus
