@@ -286,6 +286,14 @@ int DzSetHostParam( int lowestPri, int dftPri, int dftSSize )
     return SetHostParam( host, lowestPri, dftPri, dftSSize );
 }
 
+int DzSetHostIoReaction( int rate )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return SetHostIoReaction( host, rate );
+}
+
 int DzWaitSynObj( DzHandle obj, int timeout )
 {
     DzHost* host = GetHost();

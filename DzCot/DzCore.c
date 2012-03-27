@@ -69,7 +69,7 @@ void CotScheduleCenter( DzHost* host )
             DispatchMinTimers( host );
             DispatchRmtCots( host, 0 );
             host->currPri = CP_FIRST;
-            host->scheduleCd = SCHEDULE_COUNTDOWN;
+            host->scheduleCd = host->ioReactionRate;
             Schedule( host );
         }
         if( host->lazyTimer ){
@@ -113,7 +113,7 @@ void CotScheduleCenterNoRmtCheck( DzHost* host )
         BlockAndDispatchIoNoRmtCheck( host, n );
         DispatchMinTimers( host );
         host->currPri = CP_FIRST;
-        host->scheduleCd = SCHEDULE_COUNTDOWN;
+        host->scheduleCd = host->ioReactionRate;
         Schedule( host );
     }
 }

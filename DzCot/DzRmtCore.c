@@ -148,7 +148,7 @@ void __stdcall RmtHostFirstEntry( intptr_t context )
     param->result = DS_OK;
     fifo = host->mgr->hostArr[0]->rmtFifoArr + host->hostId;
     fifo->rmtCotArr[0] = param->hs.returnCot;
-    NotifyRmtFifo( host->mgr->hostArr[0], fifo->writePos, 0 );
+    NotifyRmtFifo( host->mgr, host->mgr->hostArr[0], fifo->writePos, 0 );
 }
 
 void __stdcall RunRmtHostMain( intptr_t context )
@@ -166,7 +166,7 @@ void __stdcall RunRmtHostMain( intptr_t context )
         param->result = ret;
         fifo = param->hs.hostMgr->hostArr[0]->rmtFifoArr + param->hs.hostId;
         fifo->rmtCotArr[0] = param->hs.returnCot;
-        NotifyRmtFifo( param->hs.hostMgr->hostArr[0], fifo->writePos, 0 );
+        NotifyRmtFifo( param->hs.hostMgr, param->hs.hostMgr->hostArr[0], fifo->writePos, 0 );
     }
 }
 

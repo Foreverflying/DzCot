@@ -23,7 +23,12 @@ void __stdcall RemoteCotEntry( intptr_t context );
 void __stdcall DealLazyResEntry( intptr_t context );
 void __stdcall WorkerMain( intptr_t context );
 
-inline void NotifyRmtFifo( DzHost* rmtHost, int volatile* writePos, int nowPos )
+inline void NotifyRmtFifo(
+    DzHostsMgr*     hostMgr,
+    DzHost*         rmtHost,
+    int volatile*   writePos,
+    int nowPos
+    )
 {
     int nowCheck;
 
@@ -35,7 +40,7 @@ inline void NotifyRmtFifo( DzHost* rmtHost, int volatile* writePos, int nowPos )
     AtomSetInt( writePos, nowPos );
     nowCheck = AtomIncInt( rmtHost->rmtCheckSignPtr );
     if( nowCheck == RMT_CHECK_SLEEP_SIGN ){
-        AtomOrInt( &rmtHost->mgr->exitSign, rmtHost->hostMask );
+        AtomOrInt( &hostMgr->exitSign, rmtHost->hostMask );
         AwakeRemoteHost( rmtHost );
     }
 }
@@ -58,7 +63,7 @@ inline BOOL SendRmtCot(
     writePos = AtomReadInt( fifo->writePos );
     if( emergency ){
         fifo->rmtCotArr[ writePos ] = cot;
-        NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
+        NotifyRmtFifo( host->mgr, rmtHost, fifo->writePos, writePos );
         return TRUE;
     }else if( fifo->rmtCotArr[0] ){
         AddLItrToNonEptTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
@@ -70,14 +75,14 @@ inline BOOL SendRmtCot(
     }
     if( empty > 2 ){
         fifo->rmtCotArr[ writePos ] = cot;
-        NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
+        NotifyRmtFifo( host->mgr, rmtHost, fifo->writePos, writePos );
         return TRUE;
     }else{
         waitFifoCot = CreateWaitFifoCot( host );
         fifo->rmtCotArr[ writePos ] = waitFifoCot;
         fifo->rmtCotArr[0] = (DzCot*)1;
         AddLItrToEptSList( &host->pendRmtCot[ rmtId ], &cot->lItr );
-        NotifyRmtFifo( rmtHost, fifo->writePos, writePos );
+        NotifyRmtFifo( host->mgr, rmtHost, fifo->writePos, writePos );
         return FALSE;
     }
 }

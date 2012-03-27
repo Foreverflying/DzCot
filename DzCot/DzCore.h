@@ -350,16 +350,16 @@ inline int RunHost(
     }
 
     host->currCot = &host->centerCot;
-    host->cotCount = 0;
-    host->scheduleCd = SCHEDULE_COUNTDOWN;
-    host->dftPri = dftPri;
-    host->dftSSize = dftSSize;
+    host->ioReactionRate = SCHEDULE_COUNTDOWN;
+    host->scheduleCd = host->ioReactionRate;
+    host->lowestPri = lowestPri;
+    host->currPri = lowestPri + 1;
     host->timerHeap = (DzTimerNode**)tmp;
     host->timerCount = 0;
     host->timerHeapSize = 0;
-    host->lowestPri = lowestPri;
-    host->currPri = lowestPri + 1;
-    host->mSpace = mallocSpace;
+    host->dftPri = dftPri;
+    host->dftSSize = dftSSize;
+    host->cotCount = 0;
     host->hostId = hostId;
     host->hostMask = 1 << hostId;
     host->rmtCheckSignPtr = hostMgr->rmtCheckSign + hostId;
@@ -372,7 +372,7 @@ inline int RunHost(
     for( i = 0; i <= lowestPri; i++ ){
         InitSList( &host->taskLs[i] );
     }
-    host->mgr = hostMgr;
+    host->mSpace = mallocSpace;
     host->handleBase = (intptr_t)handlePool - host->hostId;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host->cotPools[i] = NULL;
@@ -386,6 +386,7 @@ inline int RunHost(
     host->synObjPool = NULL;
     host->lNodePool = NULL;
     host->dzFdPool = NULL;
+    host->mgr = hostMgr;
     host->checkFifo = host->rmtFifoArr + hostId;
     host->checkFifo->next = host->checkFifo;
     host->pendRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
@@ -597,6 +598,15 @@ inline int SetHostParam(
         SetCotPoolDepth( host, dftSSize, DFT_SSIZE_POOL_DEPTH );
     }
 
+    return ret;
+}
+
+inline int SetHostIoReaction( DzHost* host, int rate )
+{
+    int ret = host->ioReactionRate;
+    if( rate > 0 ){
+        host->ioReactionRate = rate;
+    }
     return ret;
 }
 

@@ -260,6 +260,7 @@ int DzSetPriority( int priority );
 int DzSetCotPoolDepth( int sSize, int depth );
 int DzSetWorkerPoolDepth( int depth );
 int DzSetHostParam( int lowestPri, int dftPri, int dftSSize );
+int DzSetHostIoReaction( int rate );
 
 int DzWaitSynObj(
     DzHandle    obj,
