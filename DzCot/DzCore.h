@@ -147,7 +147,7 @@ inline int StartCotInstant(
 // equal to StartCot, notify an manual event SynObj when cot finished
 inline int EvtStartCot(
     DzHost*     host,
-    int         evt,
+    DzSynObj*   evt,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
@@ -167,8 +167,7 @@ inline int EvtStartCot(
     host->cotCount++;
     SetCotEntry( dzCot, EventNotifyCotEntry, context );
     dzCot->entry = entry;
-    dzCot->evt = (DzSynObj*)( host->handleBase + evt );
-    dzCot->evt->ref++;
+    dzCot->evt = CloneSynObj( evt );
     DispatchCot( host, dzCot );
     return DS_OK;
 }
@@ -177,7 +176,7 @@ inline int EvtStartCot(
 // equal to StartCotInstant, notify an manual event SynObj when cot finished
 inline int EvtStartCotInstant(
     DzHost*     host,
-    int         evt,
+    DzSynObj*   evt,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
@@ -194,7 +193,7 @@ inline int EvtStartCotInstant(
     host->cotCount++;
     host->scheduleCd++;
     SetCotEntry( dzCot, EventNotifyCotEntry, context );
-    dzCot->evt = (DzSynObj*)( host->handleBase + evt );
+    dzCot->evt = CloneSynObj( evt );
     dzCot->evt->ref++;
     TemporaryPushCot( host, host->currCot );
     SwitchToCot( host, dzCot );
@@ -227,7 +226,7 @@ inline int StartRemoteCot(
 
 inline int EvtStartRemoteCot(
     DzHost*     host,
-    int         evt,
+    DzSynObj*   evt,
     int         rmtId,
     DzRoutine   entry,
     intptr_t    context,
@@ -245,8 +244,7 @@ inline int EvtStartRemoteCot(
     dzCot->entry = entry;
     dzCot->feedType = 1;
     dzCot->evtType = 0;
-    dzCot->evt = (DzSynObj*)( host->handleBase + evt );
-    dzCot->evt->ref++;
+    dzCot->evt = CloneSynObj( evt );
     dzCot->priority = priority;
     SetCotEntry( dzCot, RemoteCotEntry, context );
     SendRmtCot( host, rmtId, FALSE, dzCot );
@@ -352,16 +350,16 @@ inline int RunHost(
     }
 
     host->currCot = &host->centerCot;
-    host->cotCount = 0;
-    host->scheduleCd = SCHEDULE_COUNTDOWN;
-    host->dftPri = dftPri;
-    host->dftSSize = dftSSize;
+    host->ioReactionRate = SCHEDULE_COUNTDOWN;
+    host->scheduleCd = host->ioReactionRate;
+    host->lowestPri = lowestPri;
+    host->currPri = lowestPri + 1;
     host->timerHeap = (DzTimerNode**)tmp;
     host->timerCount = 0;
     host->timerHeapSize = 0;
-    host->lowestPri = lowestPri;
-    host->currPri = lowestPri + 1;
-    host->mSpace = mallocSpace;
+    host->dftPri = dftPri;
+    host->dftSSize = dftSSize;
+    host->cotCount = 0;
     host->hostId = hostId;
     host->hostMask = 1 << hostId;
     host->rmtCheckSignPtr = hostMgr->rmtCheckSign + hostId;
@@ -374,7 +372,7 @@ inline int RunHost(
     for( i = 0; i <= lowestPri; i++ ){
         InitSList( &host->taskLs[i] );
     }
-    host->mgr = hostMgr;
+    host->mSpace = mallocSpace;
     host->handleBase = (intptr_t)handlePool - host->hostId;
     for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
         host->cotPools[i] = NULL;
@@ -388,6 +386,7 @@ inline int RunHost(
     host->synObjPool = NULL;
     host->lNodePool = NULL;
     host->dzFdPool = NULL;
+    host->mgr = hostMgr;
     host->checkFifo = host->rmtFifoArr + hostId;
     host->checkFifo->next = host->checkFifo;
     host->pendRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
@@ -403,7 +402,7 @@ inline int RunHost(
     host->poolGrowList = NULL;
     host->handlePoolPos = handlePool;
     host->handlePoolEnd = handlePool + HANDLE_POOL_SIZE;
-    host->lazyTimer = -1;
+    host->lazyTimer = NULL;
     host->hostCount = hostMgr->hostCount;
     host->servMask = hostMgr->servMask[ hostId ];
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){
@@ -602,6 +601,15 @@ inline int SetHostParam(
     return ret;
 }
 
+inline int SetHostIoReaction( DzHost* host, int rate )
+{
+    int ret = host->ioReactionRate;
+    if( rate > 0 ){
+        host->ioReactionRate = rate;
+    }
+    return ret;
+}
+
 inline void* Malloc( DzHost* host, size_t size )
 {
     return mspace_malloc( host->mSpace, size );
@@ -643,7 +651,7 @@ inline void FreeEx( DzHost* host, void* mem )
         node = AllocLNode( host );
         node->d1 = (intptr_t)base;
         AddLItrToTail( host->lazyFreeMem + base->hostId, &node->lItr );
-        if( host->lazyTimer < 0 ){
+        if( !host->lazyTimer ){
             StartLazyTimer( host );
         }
     }

@@ -123,7 +123,7 @@ BOOL AllocSynObjPool( DzHost* host )
     DzSynObj* end;
     DzLItr* lItr;
 
-    p = (DzSynObj*)AllocHandleChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzSynObj ) );
+    p = (DzSynObj*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzSynObj ) );
     if( !p ){
         return FALSE;
     }

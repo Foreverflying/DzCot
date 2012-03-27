@@ -18,7 +18,7 @@ void __stdcall PauseCotHelpEntry( intptr_t context )
         SendRmtCot( host, cot->hostId, cot->feedType < 0, dzCot );
     }else{
         AddLItrToTail( &host->lazyRmtCot[ cot->hostId ], &dzCot->lItr );
-        if( host->lazyTimer < 0 ){
+        if( !host->lazyTimer ){
             StartLazyTimer( host );
         }
     }
@@ -46,8 +46,8 @@ void __stdcall RemoteCotEntry( intptr_t context )
     host = GetHost();
     if( dzCot->feedType > 0 ){
         if( dzCot->evtType == 0 ){
-            SetEvtRaw( host, dzCot->evt );
-            CloseSynObjRaw( host, dzCot->evt );
+            SetEvt( host, dzCot->evt );
+            CloseSynObj( host, dzCot->evt );
         }else{
             NotifyEasyEvt( host, dzCot->easyEvt );
         }
@@ -148,7 +148,7 @@ void __stdcall RmtHostFirstEntry( intptr_t context )
     param->result = DS_OK;
     fifo = host->mgr->hostArr[0]->rmtFifoArr + host->hostId;
     fifo->rmtCotArr[0] = param->hs.returnCot;
-    NotifyRmtFifo( host->mgr->hostArr[0], fifo->writePos, 0 );
+    NotifyRmtFifo( host->mgr, host->mgr->hostArr[0], fifo->writePos, 0 );
 }
 
 void __stdcall RunRmtHostMain( intptr_t context )
@@ -166,7 +166,7 @@ void __stdcall RunRmtHostMain( intptr_t context )
         param->result = ret;
         fifo = param->hs.hostMgr->hostArr[0]->rmtFifoArr + param->hs.hostId;
         fifo->rmtCotArr[0] = param->hs.returnCot;
-        NotifyRmtFifo( param->hs.hostMgr->hostArr[0], fifo->writePos, 0 );
+        NotifyRmtFifo( param->hs.hostMgr, param->hs.hostMgr->hostArr[0], fifo->writePos, 0 );
     }
 }
 
@@ -185,7 +185,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
     DzSysParam* cotParam;
     DzSysParam param[ DZ_MAX_HOST ];
     DzCot* tmpCotArr[ DZ_MAX_HOST ];
-    int evt;
+    DzSynObj* evt;
     DzRmtCotFifo* fifo;
     DzCot* dzCot;
 

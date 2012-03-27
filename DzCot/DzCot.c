@@ -93,7 +93,7 @@ int DzStartCotInstant(
 }
 
 int DzEvtStartCot(
-    int         evt,
+    DzHandle    evt,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
@@ -102,18 +102,13 @@ int DzEvtStartCot(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( evt >= 0 );
-    assert( ( evt & HANDLE_HOST_ID_MASK ) == host->hostId );
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
     if( sSize == SS_DEFAULT ){
         sSize = host->dftSSize;
     }
-    assert(
-        ( (DzSynObj*)( host->handleBase + evt ) )->type >= TYPE_EVT_AUTO &&
-        ( (DzSynObj*)( host->handleBase + evt ) )->type <= TYPE_EVT_COUNT
-        );
+    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
@@ -122,7 +117,7 @@ int DzEvtStartCot(
 }
 
 int DzEvtStartCotInstant(
-    int         evt,
+    DzHandle    evt,
     DzRoutine   entry,
     intptr_t    context,
     int         priority,
@@ -131,18 +126,13 @@ int DzEvtStartCotInstant(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( evt >= 0 );
-    assert( ( evt & HANDLE_HOST_ID_MASK ) == host->hostId );
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
     if( sSize == SS_DEFAULT ){
         sSize = host->dftSSize;
     }
-    assert(
-        ( (DzSynObj*)( host->handleBase + evt ) )->type >= TYPE_EVT_AUTO &&
-        ( (DzSynObj*)( host->handleBase + evt ) )->type <= TYPE_EVT_COUNT
-        );
+    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
@@ -177,7 +167,7 @@ int DzStartRemoteCot(
 }
 
 int DzEvtStartRemoteCot(
-    int         evt,
+    DzHandle    evt,
     int         rmtId,
     DzRoutine   entry,
     intptr_t    context,
@@ -187,18 +177,13 @@ int DzEvtStartRemoteCot(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( evt >= 0 );
-    assert( ( evt & HANDLE_HOST_ID_MASK ) == host->hostId );
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
     if( sSize == SS_DEFAULT ){
         sSize = host->dftSSize;
     }
-    assert(
-        ( (DzSynObj*)( host->handleBase + evt ) )->type >= TYPE_EVT_AUTO &&
-        ( (DzSynObj*)( host->handleBase + evt ) )->type <= TYPE_EVT_COUNT
-        );
+    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
     assert( host->servMask & ( 1 << rmtId ) );
@@ -301,19 +286,25 @@ int DzSetHostParam( int lowestPri, int dftPri, int dftSSize )
     return SetHostParam( host, lowestPri, dftPri, dftSSize );
 }
 
-int DzWaitSynObj( int obj, int timeout )
+int DzSetHostIoReaction( int rate )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( obj >= 0 );
-    assert( ( obj & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( ( (DzSynObj*)( host->handleBase + obj ) )->type <= TYPE_MAX_USER_CAN_WAIT );
+
+    return SetHostIoReaction( host, rate );
+}
+
+int DzWaitSynObj( DzHandle obj, int timeout )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( obj->type <= TYPE_MAX_USER_CAN_WAIT );
     assert( timeout <= 0 || host->timerCount < TIME_HEAP_SIZE );
 
     return WaitSynObj( host, obj, timeout );
 }
 
-int DzWaitMultiSynObj( int count, int* objs, BOOL waitAll, int timeout )
+int DzWaitMultiSynObj( int count, DzHandle* objs, BOOL waitAll, int timeout )
 {
     int i;
     DzHost* host = GetHost();
@@ -322,15 +313,13 @@ int DzWaitMultiSynObj( int count, int* objs, BOOL waitAll, int timeout )
     assert( objs );
     assert( count > 0 );
     for( i = 0; i < count; i++ ){
-        assert( objs[i] >= 0 );
-        assert( ( objs[i] & HANDLE_HOST_ID_MASK ) == host->hostId );
-        assert( ( (DzSynObj*)( host->handleBase + objs[i] ) )->type <= TYPE_MAX_USER_CAN_WAIT );
+        assert( objs[i]->type <= TYPE_MAX_USER_CAN_WAIT );
     }
 
     return WaitMultiSynObj( host, count, objs, waitAll, timeout );
 }
 
-int DzCreateMtx( BOOL owner )
+DzHandle DzCreateMtx( BOOL owner )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -338,19 +327,17 @@ int DzCreateMtx( BOOL owner )
     return CreateAutoEvt( host, !owner );
 }
 
-BOOL DzReleaseMtx( int mtx )
+BOOL DzReleaseMtx( DzHandle mtx )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( mtx >= 0 );
-    assert( ( mtx & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( ( (DzSynObj*)( host->handleBase + mtx ) )->type == TYPE_EVT_AUTO );
+    assert( mtx->type == TYPE_EVT_AUTO );
 
     SetEvt( host, mtx );
     return TRUE;
 }
 
-int DzCreateManualEvt( BOOL notified )
+DzHandle DzCreateManualEvt( BOOL notified )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -358,7 +345,7 @@ int DzCreateManualEvt( BOOL notified )
     return CreateManualEvt( host, notified );
 }
 
-int DzCreateAutoEvt( BOOL notified )
+DzHandle DzCreateAutoEvt( BOOL notified )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -366,7 +353,7 @@ int DzCreateAutoEvt( BOOL notified )
     return CreateAutoEvt( host, notified );
 }
 
-int DzCreateCdEvt( u_int count )
+DzHandle DzCreateCdEvt( u_int count )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -375,39 +362,34 @@ int DzCreateCdEvt( u_int count )
     return CreateCdEvt( host, count );
 }
 
-BOOL DzSetEvt( int evt )
+BOOL DzSetEvt( DzHandle evt )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( evt >= 0 );
-    assert( ( evt & HANDLE_HOST_ID_MASK ) == host->hostId );
     assert(
-        ( (DzSynObj*)( host->handleBase + evt ) )->type == TYPE_EVT_AUTO ||
-        ( (DzSynObj*)( host->handleBase + evt ) )->type == TYPE_EVT_MANUAL ||
-        ( (DzSynObj*)( host->handleBase + evt ) )->type == TYPE_EVT_COUNT
+        evt->type == TYPE_EVT_AUTO ||
+        evt->type == TYPE_EVT_MANUAL ||
+        evt->type == TYPE_EVT_COUNT
         );
 
     SetEvt( host, evt );
     return TRUE;
 }
 
-BOOL DzResetEvt( int evt )
+BOOL DzResetEvt( DzHandle evt )
 {
-    DzHost* host = GetHost();
-    assert( host );
-    assert( evt >= 0 );
-    assert( ( evt & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert( GetHost() );
     assert(
-        ( (DzSynObj*)( host->handleBase + evt ) )->type == TYPE_EVT_AUTO ||
-        ( (DzSynObj*)( host->handleBase + evt ) )->type == TYPE_EVT_MANUAL ||
-        ( (DzSynObj*)( host->handleBase + evt ) )->type == TYPE_EVT_COUNT
+        evt->type == TYPE_EVT_AUTO ||
+        evt->type == TYPE_EVT_MANUAL ||
+        evt->type == TYPE_EVT_COUNT
         );
 
-    ResetEvt( host, evt );
+    ResetEvt( evt );
     return TRUE;
 }
 
-int DzCreateSem( int count )
+DzHandle DzCreateSem( int count )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -416,49 +398,36 @@ int DzCreateSem( int count )
     return CreateSem( host, count );
 }
 
-int DzReleaseSem( int sem, int count )
+int DzReleaseSem( DzHandle sem, int count )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( sem >= 0 );
-    assert( ( sem & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( ( (DzSynObj*)( host->handleBase + sem ) )->type == TYPE_SEM );
+    assert( sem->type == TYPE_SEM );
     assert( count > 0 );
-    assert(
-        ( (DzSynObj*)( host->handleBase + sem ) )->notifyCount + count >
-        ( (DzSynObj*)( host->handleBase + sem ) )->notifyCount
-        );
+    assert( sem->notifyCount + count > sem->notifyCount );
 
     return ReleaseSem( host, sem, count );
 }
 
-int DzCloneSynObj( int obj )
+DzHandle DzCloneSynObj( DzHandle obj )
 {
-    DzHost* host = GetHost();
-    assert( host );
-    assert( obj >= 0 );
-    assert( ( obj & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( ( (DzSynObj*)( host->handleBase + obj ) )->type <= TYPE_MAX_USER_CAN_WAIT );
+    assert( GetHost() );
+    assert( obj->type <= TYPE_MAX_USER_CAN_WAIT );
 
-    return CloneSynObj( host, obj );
+    return CloneSynObj( obj );
 }
 
-BOOL DzCloseSynObj( int obj )
+BOOL DzCloseSynObj( DzHandle obj )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( obj >= 0 );
-    assert( ( obj & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert(
-        ( (DzSynObj*)( host->handleBase + obj ) )->type != TYPE_TIMER &&
-        ( (DzSynObj*)( host->handleBase + obj ) )->type != TYPE_CALLBACK_TIMER
-        );
+    assert( obj->type != TYPE_TIMER && obj->type != TYPE_CALLBACK_TIMER );
 
     CloseSynObj( host, obj );
     return TRUE;
 }
 
-int DzCreateTimer( int milSec, int repeat )
+DzHandle DzCreateTimer( int milSec, int repeat )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -469,19 +438,17 @@ int DzCreateTimer( int milSec, int repeat )
     return CreateTimer( host, milSec, repeat );
 }
 
-BOOL DzCloseTimer( int timer )
+BOOL DzCloseTimer( DzHandle timer )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( timer >= 0 );
-    assert( ( timer & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( ( (DzSynObj*)( host->handleBase + timer ) )->type == TYPE_TIMER );
+    assert( timer->type == TYPE_TIMER );
 
     CloseTimer( host, timer );
     return TRUE;
 }
 
-int DzCreateCallbackTimer(
+DzHandle DzCreateCallbackTimer(
     int             milSec,
     int             repeat,
     DzRoutine       callback,
@@ -508,13 +475,11 @@ int DzCreateCallbackTimer(
     return CreateCallbackTimer( host, milSec, repeat, callback, context, priority, sSize );
 }
 
-BOOL DzCloseCallbackTimer( int timer )
+BOOL DzCloseCallbackTimer( DzHandle timer )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( timer >= 0 );
-    assert( ( timer & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( ( (DzSynObj*)( host->handleBase + timer ) )->type == TYPE_CALLBACK_TIMER );
+    assert( timer->type == TYPE_CALLBACK_TIMER );
 
     CloseCallbackTimer( host, timer );
     return TRUE;

@@ -11,15 +11,35 @@
 #include "Inc_DzCot.h"
 
 #undef socket
+#undef close
+#undef getsockopt
+#undef setsockopt
+#undef getsockname
+#undef getpeername
+#undef bind
+#undef listen
+#undef shutdown
 #undef connect
 #undef accept
 #undef send
 #undef recv
+#undef sendto
+#undef recvfrom
 
-#define socket( domain, type, protocol ) DzSocket( (domain), (type), (protocol) )
-#define connect( s, addr, addrLen ) DzConnect( (s), (addr), (addrLen) )
-#define accept( s, addr, addrLen ) DzAccept( (s), (addr), (addrLen) )
-#define send( s, buf, len, flag ) DzSend( (s), (buf), (len), (flag) )
-#define recv( s, buf, len, flag ) DzRecv( (s), (buf), (len), (flag) )
+#define socket          DzSocket
+#define close           DzCloseSocket
+#define getsockopt      DzGetSockOpt
+#define setsockopt      DzSetSockOpt
+#define getsockname     DzGetSockName
+#define getpeername     DzGetPeerName
+#define bind            DzBind
+#define listen          DzListen
+#define shutdown        DzShutdown
+#define connect         DzConnect
+#define accept          DzAccept
+#define send            DzSend
+#define recv            DzRecv
+#define sendto          DzSendTo
+#define recvfrom        DzRecvFrom
 
 #endif // __Inc_DzSocketReplace_h__

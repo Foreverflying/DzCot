@@ -15,6 +15,7 @@ EXPORTS
     DzSetCotPoolDepth
     DzSetWorkerPoolDepth
     DzSetHostParam
+    DzSetHostIoReaction
     DzWaitSynObj
     DzWaitMultiSynObj
     DzCreateMtx

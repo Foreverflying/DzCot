@@ -72,12 +72,21 @@ struct _DzSynObj
             int         _unused2;
         };
     };
-    int         ref;
-    short       priority;   //for CallbackTimer
-    short       sSize;      //for CallbackTimer
-    DzDList     waitQ[ COT_PRIORITY_COUNT ];
-    DzRoutine   routine;    //for CallbackTimer
-    intptr_t    context;    //for CallbackTimer
+    int                 ref;
+    union{
+        struct{
+            DzDList     waitQ[ COT_PRIORITY_COUNT ];
+        };
+        //used for CallbackTimer, must reset
+        //the waitQ[ 0 ] and waitQ[ 1 ]
+        //when release CallbackTimer
+        struct{
+            DzRoutine   routine;
+            intptr_t    context;
+            int         priority;
+            int         sSize;
+        };
+    };
 };
 
 struct _DzWaitNode
@@ -141,27 +150,28 @@ struct _DzHost
             //union centerCot use sp only
             void*           _unused_sp;
 
-            //current cot count
-            int             cotCount;
-
             //cot schedule countdown
             int             scheduleCd;
 
-            //default cot value
-            int             dftPri;
-            int             dftSSize;
+            //host's io reaction rate,
+            //check io state after ( ioReactionRate ) cots switches
+            int             ioReactionRate;
+
+            //iterator for task lists when scheduling
+            int             lowestPri;
+            int             currPri;
 
             //used for timer
             DzTimerNode**   timerHeap;
             int             timerCount;
             int             timerHeapSize;
 
-            //iterator for task lists when scheduling
-            int             lowestPri;
-            int             currPri;
+            //default cot value
+            int             dftPri;
+            int             dftSSize;
 
-            //dlmalloc heap
-            void*           mSpace;
+            //current cot count
+            int             cotCount;
         };
 
         //the host thread's original stack info
@@ -201,8 +211,8 @@ struct _DzHost
     //schedule tasks' list
     DzSList         taskLs[ COT_PRIORITY_COUNT ];
 
-    //multi hosts manager
-    DzHostsMgr*     mgr;
+    //dlmalloc heap
+    void*           mSpace;
 
     //address prefix of handle struct
     intptr_t        handleBase;
@@ -226,6 +236,9 @@ struct _DzHost
 
     //the sixth cache align on 64 bit platform
 
+    //multi hosts manager
+    DzHostsMgr*     mgr;
+
     //checking FIFO chain
     DzRmtCotFifo*   checkFifo;
 
@@ -238,21 +251,21 @@ struct _DzHost
     //lazy free memory list
     DzSList*        lazyFreeMem;
 
+    //lazy checking timer
+    DzSynObj*       lazyTimer;
+
     //memory chunk pool
     char*           memPoolPos;
     char*           memPoolEnd;
 
+    //the seventh cache align on 64 bit platform begin
+
     //record pool alloc history
     DzLItr*         poolGrowList;
-
-    //the seventh cache align on 64 bit platform begin
 
     //handle like struct chunk pool
     char*           handlePoolPos;
     char*           handlePoolEnd;
-
-    //lazy checking timer
-    int             lazyTimer;
 
     //host count and serve mask local copy,
     //avoid reading global hostCount leads false sharing
@@ -269,7 +282,7 @@ struct _DzSysParam
     int                 result;
     union{
         struct{
-            int         evt;
+            DzSynObj*   evt;
             DzHostsMgr* hostMgr;
             DzCot*      returnCot;
             int         hostId;
