@@ -75,7 +75,7 @@ inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, int* addrL
     return getpeername( dzFd->s, addr, addrLen );
 }
 
-inline int Bind( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
+inline int Bind( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return bind( dzFd->s, addr, addrLen );
@@ -93,7 +93,7 @@ inline int Shutdown( DzHost* host, int hFd, int how )
     return shutdown( dzFd->s, how );
 }
 
-inline int TryConnectDatagram( SOCKET fd, struct sockaddr* addr, int addrLen )
+inline int TryConnectDatagram( SOCKET fd, const struct sockaddr* addr, int addrLen )
 {
     int sockType;
     int sockTypeLen = sizeof( sockType );
@@ -107,7 +107,7 @@ inline int TryConnectDatagram( SOCKET fd, struct sockaddr* addr, int addrLen )
     return -1;
 }
 
-inline int Connect( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
+inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
 {
     DzFd* dzFd;
     DWORD bytes;

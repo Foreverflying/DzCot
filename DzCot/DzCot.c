@@ -616,7 +616,7 @@ int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen )
     return GetPeerName( host, fd, addr, addrLen );
 }
 
-int DzBind( int fd, struct sockaddr* addr, int addrLen )
+int DzBind( int fd, const struct sockaddr* addr, int addrLen )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -646,7 +646,7 @@ int DzShutdown( int fd, int how )
     return Shutdown( host, fd, how );
 }
 
-int DzConnect( int fd, struct sockaddr* addr, int addrLen )
+int DzConnect( int fd, const struct sockaddr* addr, int addrLen )
 {
     DzHost* host = GetHost();
     assert( host );

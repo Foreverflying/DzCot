@@ -91,7 +91,7 @@ inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, int* addrL
     return getpeername( dzFd->fd, addr, (socklen_t*)addrLen );
 }
 
-inline int Bind( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
+inline int Bind( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return bind( dzFd->fd, addr, (socklen_t)addrLen );
@@ -109,7 +109,7 @@ inline int Shutdown( DzHost* host, int hFd, int how )
     return shutdown( dzFd->fd, how );
 }
 
-inline int Connect( DzHost* host, int hFd, struct sockaddr* addr, int addrLen )
+inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
 {
     DzFd* dzFd;
     int err;
