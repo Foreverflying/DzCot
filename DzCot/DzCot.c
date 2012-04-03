@@ -905,7 +905,18 @@ unsigned long long DzUnixTime()
 
 unsigned long long DzMilUnixTime()
 {
-    return (unsigned long long)MilUnixTime();
+    DzHost* host = GetHost();
+    assert( host );
+
+    return (unsigned long long)MilUnixTime( host );
+}
+
+unsigned long long DzLatestMilUnixTime()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return (unsigned long long)host->latestMilUnixTime;
 }
 
 int __DzMakeServMask( BOOL notServ, ... )

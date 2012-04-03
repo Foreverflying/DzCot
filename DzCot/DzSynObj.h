@@ -246,7 +246,7 @@ inline DzSynObj* CreateTimer( DzHost* host, int milSec, int repeat )
         return NULL;
     }
     obj->type = TYPE_TIMER;
-    obj->timerNode.timestamp = MilUnixTime() + milSec;
+    obj->timerNode.timestamp = MilUnixTime( host ) + milSec;
     obj->timerNode.repeat = repeat;
     obj->timerNode.interval = - milSec;
     obj->ref++;
@@ -286,7 +286,7 @@ inline DzSynObj* CreateCallbackTimer(
     obj->timerNode.index = -1;
     obj->routine = callback;
     obj->context = context;
-    obj->timerNode.timestamp = MilUnixTime() + milSec;
+    obj->timerNode.timestamp = MilUnixTime( host ) + milSec;
     obj->timerNode.repeat = repeat;
     obj->priority = priority;
     obj->sSize = sSize;
@@ -373,11 +373,11 @@ inline void CloseSynObj( DzHost* host, DzSynObj* obj )
     }
 }
 
-inline void InitTimeOut( DzFastEvt* timeout, int milSec, DzWaitHelper* helper )
+inline void InitTimeOut( DzFastEvt* timeout, int64 timestamp, DzWaitHelper* helper )
 {
     timeout->type = TYPE_TIMEOUT;
     timeout->timerNode.repeat = 1;
-    timeout->timerNode.timestamp = MilUnixTime() + milSec;
+    timeout->timerNode.timestamp = timestamp;
     timeout->helper = helper;
     timeout->timerNode.index = -1;
 }
@@ -400,7 +400,7 @@ inline int WaitSynObj( DzHost* host, DzSynObj* obj, int timeout )
     helper.nodeArray[0].helper = &helper;
     helper.dzCot = host->currCot;
     if( timeout > 0 ){
-        InitTimeOut( &helper.timeout, timeout, &helper );
+        InitTimeOut( &helper.timeout, MilUnixTime( host ) + timeout, &helper );
         AddTimer( host, &helper.timeout.timerNode );
     }else{
         helper.timeout.timerNode.index = -1;
@@ -450,7 +450,7 @@ inline int WaitMultiSynObj( DzHost* host, int count, DzSynObj** objs, BOOL waitA
         objs++;
     }
     if( timeout > 0 ){
-        InitTimeOut( &helper.timeout, timeout, &helper );
+        InitTimeOut( &helper.timeout, MilUnixTime( host ) + timeout, &helper );
         AddTimer( host, &helper.timeout.timerNode );
     }else{
         helper.timeout.timerNode.index = -1;
@@ -489,7 +489,7 @@ inline int WaitFastEvt( DzHost* host, DzFastEvt* fastEvt, int timeout )
     fastEvt->dzCot = host->currCot;
     if( timeout >= 0 ){
         fastEvt->timerNode.repeat = 1;
-        fastEvt->timerNode.timestamp = MilUnixTime() + timeout;
+        fastEvt->timerNode.timestamp = MilUnixTime( host ) + timeout;
         AddTimer( host, &fastEvt->timerNode );
     }
     Schedule( host );

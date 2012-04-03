@@ -17,16 +17,15 @@ extern "C"{
 
 void __stdcall CallbackTimerEntry( intptr_t context );
 
-inline int64 MilUnixTime()
+inline int64 MilUnixTime( DzHost* host )
 {
     struct timeb t;
-    int64 ret;
 
     ftime( &t );
-    ret = t.time;
-    ret *= 1000;
-    ret += t.millitm;
-    return ret;
+    host->latestMilUnixTime = t.time;
+    host->latestMilUnixTime *= 1000;
+    host->latestMilUnixTime += t.millitm;
+    return host->latestMilUnixTime;
 }
 
 inline int64 UnixTime()

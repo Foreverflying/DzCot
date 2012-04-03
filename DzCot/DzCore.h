@@ -357,8 +357,7 @@ inline int RunHost(
     host->timerHeap = (DzTimerNode**)tmp;
     host->timerCount = 0;
     host->timerHeapSize = 0;
-    host->dftPri = dftPri;
-    host->dftSSize = dftSSize;
+    host->latestMilUnixTime = MilUnixTime( host );
     host->cotCount = 0;
     host->hostId = hostId;
     host->hostMask = 1 << hostId;
@@ -405,6 +404,8 @@ inline int RunHost(
     host->lazyTimer = NULL;
     host->hostCount = hostMgr->hostCount;
     host->servMask = hostMgr->servMask[ hostId ];
+    host->dftPri = dftPri;
+    host->dftSSize = dftSSize;
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){
         host->cotPoolSetDepth[i] = 0;
     }
@@ -666,7 +667,7 @@ inline int DispatchMinTimers( DzHost* host )
 
     while( host->timerCount > 0 ){
         ret = FALSE;
-        currTime = MilUnixTime();
+        currTime = MilUnixTime( host );
         cmpTime = currTime + MIN_TIME_INTERVAL;
         while( GetMinTimerNode( host )->timestamp <= cmpTime ){
             timerNode = GetMinTimerNode( host );

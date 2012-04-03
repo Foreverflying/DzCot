@@ -391,6 +391,7 @@ void DzFreeEx( void* mem );
 
 unsigned long long DzUnixTime();
 unsigned long long DzMilUnixTime();
+unsigned long long DzLatestMilUnixTime();
 
 int __DzMakeServMask( BOOL notServ, ... );
 int __DzDbgLastErr();

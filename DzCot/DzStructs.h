@@ -165,10 +165,7 @@ struct _DzHost
             DzTimerNode**   timerHeap;
             int             timerCount;
             int             timerHeapSize;
-
-            //default cot value
-            int             dftPri;
-            int             dftSSize;
+            int64           latestMilUnixTime;
 
             //current cot count
             int             cotCount;
@@ -271,6 +268,10 @@ struct _DzHost
     //avoid reading global hostCount leads false sharing
     int             hostCount;
     int             servMask;
+
+    //default cot value
+    int             dftPri;
+    int             dftSSize;
 
     //configure data
     int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
