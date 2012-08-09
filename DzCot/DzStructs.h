@@ -128,7 +128,7 @@ struct _DzHostsMgr
     int volatile    rmtCheckSign[ DZ_MAX_HOST ];
     int volatile    rmtWritePos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
     int volatile    rmtReadPos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
-    int volatile    exitSign;
+    int volatile    liveSign;
     int             hostCount;
     int             workerNowDepth;
     int             workerSetDepth;

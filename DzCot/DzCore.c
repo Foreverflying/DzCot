@@ -75,16 +75,16 @@ void CotScheduleCenter( DzHost* host )
         if( host->lazyTimer ){
             DealLazyResEntry( 0 );
         }
-        if( AtomAndInt( &host->mgr->exitSign, ~host->hostMask ) != host->hostMask ){
+        if( AtomAndInt( &host->mgr->liveSign, ~host->hostMask ) != host->hostMask ){
             BlockAndDispatchIo( host, -1 );
-            if( AtomReadInt( &host->mgr->exitSign ) ){
+            if( AtomReadInt( &host->mgr->liveSign ) ){
                 AtomAndInt( host->rmtCheckSignPtr, ~RMT_CHECK_SLEEP_SIGN );
                 continue;
             }
         }else{
-            //be sure quit id 0 host at the end, for hostMgr is in id 0 host's stack
+            //be sure quit id 0 host at last, for hostMgr is in id 0 host's stack
             for( n = host->hostCount - 1; n >= 0; n-- ){
-                if( host->mgr->hostArr[ n ] && n != host->hostId ){
+                if( n != host->hostId ){
                     AwakeRemoteHost( host->mgr->hostArr[ n ] );
                 }
             }

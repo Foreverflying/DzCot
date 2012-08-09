@@ -41,9 +41,9 @@ void __stdcall RemoteCotEntry( intptr_t context )
     DzCot* dzCot = host->currCot;
 
     dzCot->entry( context );
-    dzCot->priority = CP_DEFAULT;
     MoveCurCotToRmt( host, dzCot->hostId, dzCot->feedType );
     host = GetHost();
+    host->scheduleCd++;
     if( dzCot->feedType > 0 ){
         if( dzCot->evtType == 0 ){
             SetEvt( host, dzCot->evt );
@@ -62,6 +62,7 @@ void __stdcall LazyFreeMemEntry( intptr_t context )
     DzHost* host;
 
     host = GetHost();
+    host->scheduleCd++;
     node = MEMBER_BASE( (DzLItr*)context, DzLNode, lItr );
     tail = (DzLItr*)node->d2;
     rmtId = (int)node->d3;
@@ -69,9 +70,9 @@ void __stdcall LazyFreeMemEntry( intptr_t context )
         Free( host, (void*)node->d1 );
         node = MEMBER_BASE( node->lItr.next, DzLNode, lItr );
     }while( node );
-    host->currCot->priority = CP_DEFAULT;
     MoveCurCotToRmt( host, rmtId, 1 );
     host = GetHost();
+    host->scheduleCd++;
     FreeChainLNode( host, (DzLItr*)context, tail );
 }
 
@@ -103,7 +104,7 @@ void __stdcall DealLazyResEntry( intptr_t context )
             node->d2 = (intptr_t)tail;
             node->d3 = (intptr_t)host->hostId;
             dzCot = AllocDzCot( host, SS_FIRST );
-            dzCot->priority = CP_DEFAULT;
+            dzCot->priority = CP_FIRST;
             SetCotEntry( dzCot, LazyFreeMemEntry, (intptr_t)node );
             SendRmtCot( host, i, FALSE, dzCot );
         }
@@ -200,7 +201,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
     cotParam = (DzSysParam*)context;
     for( i = 1; i < host->hostCount; i++ ){
         dzCot = AllocDzCot( host, SS_FIRST );
-        dzCot->priority = CP_DEFAULT;
+        dzCot->priority = CP_FIRST;
         SetCotEntry( dzCot, StartRmtHostRetEntry, (intptr_t)&param[i] );
         param[i].threadEntry = RunRmtHostMain;
         param[i].hs.evt = evt;
@@ -258,6 +259,7 @@ void __stdcall WaitFifoWritableEntry( intptr_t context )
     DzHost* host;
 
     host = GetHost();
+    host->scheduleCd++;
     rmtId = (int)context;
     if( rmtId == host->hostId ){
         host->rmtFifoArr[ rmtId ].rmtCotArr[0] = NULL;
@@ -269,6 +271,7 @@ void __stdcall WaitFifoWritableEntry( intptr_t context )
     host->rmtFifoArr[ rmtId ].rmtCotArr[0] = NULL;
     rmtId = host->hostId;
     host = GetHost();
+    host->scheduleCd++;
     lItr = GetChainAndResetSList( &host->pendRmtCot[ rmtId ] );
     dzCot = MEMBER_BASE( lItr, DzCot, lItr );
     dzCot->priority -= CP_DEFAULT + 1;
@@ -280,7 +283,7 @@ DzCot* CreateWaitFifoCot( DzHost* host )
     DzCot* ret;
 
     ret = AllocDzCot( host, SS_FIRST );
-    ret->priority = CP_DEFAULT;
+    ret->priority = CP_FIRST;
     SetCotEntry( ret, WaitFifoWritableEntry, (intptr_t)host->hostId );
     return ret;
 }

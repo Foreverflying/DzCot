@@ -552,23 +552,24 @@ inline size_t FileSize( DzHost* host, int hFd )
 
 inline void BlockAndDispatchIo( DzHost* host, int timeout )
 {
-    int i;
+    int signAtWakeUp;
     int listCount;
     DzFd* dzFd;
     struct epoll_event* evtList;
+    struct epoll_event* itr;
 
     evtList = host->os.evtList;
     listCount = epoll_wait( host->os.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
-    AtomAndInt( host->rmtCheckSignPtr, ~RMT_CHECK_SLEEP_SIGN );
+    signAtWakeUp = AtomAndInt( host->rmtCheckSignPtr, ~RMT_CHECK_SLEEP_SIGN );
     if( listCount != 0 ){
         while( 1 ){
-            for( i = 0; i < listCount; i++ ){
-                dzFd = (DzFd*)evtList[i].data.ptr;
-                if( IsEasyEvtWaiting( &dzFd->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
+            for( itr = evtList; itr != evtList + listCount; itr++ ){
+                dzFd = (DzFd*)itr->data.ptr;
+                if( IsEasyEvtWaiting( &dzFd->inEvt ) && ( itr->events & EPOLLIN ) ){
                     NotifyEasyEvt( host, &dzFd->inEvt );
                     CleanEasyEvt( &dzFd->inEvt );
                 }
-                if( IsEasyEvtWaiting( &dzFd->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
+                if( IsEasyEvtWaiting( &dzFd->outEvt ) && ( itr->events & EPOLLOUT ) ){
                     NotifyEasyEvt( host, &dzFd->outEvt );
                     CleanEasyEvt( &dzFd->outEvt );
                 }
@@ -579,28 +580,30 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
             }
             break;
         }
-        read( host->os.pipe[0], evtList, PAGE_SIZE );
+        if( signAtWakeUp != RMT_CHECK_SLEEP_SIGN ){
+            read( host->os.pipe[0], evtList, PAGE_SIZE );
+        }
     }
 }
 
 inline void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
 {
-    int i;
     int listCount;
     DzFd* dzFd;
     struct epoll_event* evtList;
+    struct epoll_event* itr;
 
     evtList = host->os.evtList;
     listCount = epoll_wait( host->os.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
     if( listCount != 0 ){
         while( 1 ){
-            for( i = 0; i < listCount; i++ ){
-                dzFd = (DzFd*)evtList[i].data.ptr;
-                if( IsEasyEvtWaiting( &dzFd->inEvt ) && ( evtList[i].events & EPOLLIN ) ){
+            for( itr = evtList; itr != evtList + listCount; itr++ ){
+                dzFd = (DzFd*)itr->data.ptr;
+                if( IsEasyEvtWaiting( &dzFd->inEvt ) && ( itr->events & EPOLLIN ) ){
                     NotifyEasyEvt( host, &dzFd->inEvt );
                     CleanEasyEvt( &dzFd->inEvt );
                 }
-                if( IsEasyEvtWaiting( &dzFd->outEvt ) && ( evtList[i].events & EPOLLOUT ) ){
+                if( IsEasyEvtWaiting( &dzFd->outEvt ) && ( itr->events & EPOLLOUT ) ){
                     NotifyEasyEvt( host, &dzFd->outEvt );
                     CleanEasyEvt( &dzFd->outEvt );
                 }

@@ -415,7 +415,7 @@ inline int RunHost(
     }
 
     if( MemeryPoolGrow( host ) && InitOsStruct( host ) ){
-        AtomOrInt( &host->mgr->exitSign, 1 << hostId );
+        AtomOrInt( &host->mgr->liveSign, host->hostMask );
         SetHost( host );
         host->mgr->hostArr[ hostId ] = host;
 
@@ -485,7 +485,7 @@ inline int RunHosts(
             hostMgr->rmtWritePos[i][ret] = 0;
         }
     }
-    hostMgr->exitSign = 0;
+    hostMgr->liveSign = 0;
     hostMgr->hostCount = hostCount;
     hostMgr->workerNowDepth = 0;
     hostMgr->workerSetDepth = 0;
@@ -706,14 +706,10 @@ inline void DealRmtCot( DzHost* host, DzCot* dzCot )
             nextItr = dzCot->lItr.next;
         }
         host->cotCount++;
-        if( dzCot->priority == CP_DEFAULT ){
-            SwitchToCot( host, dzCot );
-        }else{
-            if( dzCot->priority > host->lowestPri ){
-                dzCot->priority = host->lowestPri;
-            }
-            DispatchCot( host, dzCot );
+        if( dzCot->priority > host->lowestPri ){
+            dzCot->priority = host->lowestPri;
         }
+        DispatchCot( host, dzCot );
         if( !nextItr ){
             return;
         }
@@ -728,7 +724,6 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
     int nowCount;
     int readPos;
     int writePos;
-    int scheduleCd;
     DzCot* dzCot;
 
     if( timeout ){
@@ -740,8 +735,6 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
         return timeout;
     }
     count = nowCount;
-    scheduleCd = host->scheduleCd;
-    host->scheduleCd = 0;
     while( 1 ){
         readPos = AtomReadInt( host->checkFifo->readPos );
         writePos = AtomReadInt( host->checkFifo->writePos );
@@ -758,7 +751,6 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
                 nowCount = AtomSubInt( host->rmtCheckSignPtr, count );
                 nowCount -= count;
                 if( nowCount == 0 ){
-                    host->scheduleCd = scheduleCd;
                     return 0;
                 }
                 count = nowCount;

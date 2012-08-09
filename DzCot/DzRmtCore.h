@@ -40,7 +40,7 @@ inline void NotifyRmtFifo(
     AtomSetInt( writePos, nowPos );
     nowCheck = AtomIncInt( rmtHost->rmtCheckSignPtr );
     if( nowCheck == RMT_CHECK_SLEEP_SIGN ){
-        AtomOrInt( &hostMgr->exitSign, rmtHost->hostMask );
+        AtomOrInt( &hostMgr->liveSign, rmtHost->hostMask );
         AwakeRemoteHost( rmtHost );
     }
 }
