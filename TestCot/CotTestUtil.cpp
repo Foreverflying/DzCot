@@ -21,7 +21,7 @@ void __stdcall CleanEntry( intptr_t context )
 
 int MainEntry( int argc, _TCHAR* argv[] )
 {
-    return DzRunHosts( gHostCount, gServMask, CP_LOW, CP_LOW, SS_64K, TestCotTryEntry, 0, CleanEntry );
+    return DzRunHosts( gHostCount, CP_LOW, CP_LOW, SS_64K, TestCotTryEntry, 0, CleanEntry );
 }
 
 #else
@@ -43,10 +43,6 @@ int MainEntry( int argc, _TCHAR* argv[] )
 
 void TestCot( DzRoutine entry, intptr_t context )
 {
-    int servMask[] = {
-        0
-        //-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-    };
-    int ret = DzRunHosts( 1, servMask, CP_LOW, CP_LOW, SS_64K, entry, context, NULL );
+    int ret = DzRunHosts( 0, CP_LOW, CP_LOW, SS_64K, entry, context, NULL );
     EXPECT_EQ( DS_OK, ret );
 }

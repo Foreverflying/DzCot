@@ -116,40 +116,27 @@ void __stdcall RmtHostFirstEntry( intptr_t context )
 {
     int i;
     DzHost* host;
-    DzRmtCotFifo* fifo;
     DzSysParam* param;
+    DzRmtCotFifo* fifo;
+    DzCot** cotResBase;
     
     host = GetHost();
-    fifo = NULL;
+    cotResBase = host->mgr->rmtFifoCotArrRes;
+    cotResBase += host->hostCount * host->hostId * RMT_CALL_FIFO_SIZE;
     for( i = 0; i < host->hostCount; i++ ){
-        if( host->servMask & ( 1 << i ) ){
-            if( !fifo ){
-                host->checkFifo = host->rmtFifoArr + i;
-                fifo = host->checkFifo;
-            }else{
-                fifo->next = host->rmtFifoArr + i;
-                fifo = fifo->next;
-            }
-            fifo->rmtCotArr = (DzCot**)
-                AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
-            *fifo->readPos = 1;
-            *fifo->writePos = 1;
-            fifo->rmtCotArr[0] = NULL;
-        }else{
-            *host->rmtFifoArr[i].readPos = 0;
-            *host->rmtFifoArr[i].writePos = 0;
-            host->rmtFifoArr[i].rmtCotArr = NULL;
-        }
+        host->rmtFifoArr[i].rmtCotArr = cotResBase + i * RMT_CALL_FIFO_SIZE;
     }
-    if( fifo ){
-        fifo->next = host->checkFifo;
-    }
-
     param = (DzSysParam*)context;
     param->result = DS_OK;
     fifo = host->mgr->hostArr[0]->rmtFifoArr + host->hostId;
     fifo->rmtCotArr[0] = param->hs.returnCot;
-    NotifyRmtFifo( host->mgr, host->mgr->hostArr[0], fifo->writePos, 0 );
+    NotifyRmtFifo(
+        host->mgr,
+        host->mgr->hostArr[0],
+        host->hostMask,
+        fifo->writePos,
+        0
+        );
 }
 
 void __stdcall RunRmtHostMain( intptr_t context )
@@ -167,7 +154,13 @@ void __stdcall RunRmtHostMain( intptr_t context )
         param->result = ret;
         fifo = param->hs.hostMgr->hostArr[0]->rmtFifoArr + param->hs.hostId;
         fifo->rmtCotArr[0] = param->hs.returnCot;
-        NotifyRmtFifo( param->hs.hostMgr, param->hs.hostMgr->hostArr[0], fifo->writePos, 0 );
+        NotifyRmtFifo(
+            param->hs.hostMgr,
+            param->hs.hostMgr->hostArr[0],
+            1 << param->hs.hostId,
+            fifo->writePos,
+            0
+            );
     }
 }
 
@@ -181,22 +174,24 @@ void __stdcall StartRmtHostRetEntry( intptr_t context )
 
 void __stdcall MainHostFirstEntry( intptr_t context )
 {
-    int i;
+    int i, j, hostCount;
     DzHost* host;
+    DzHost** hostArr;
     DzSysParam* cotParam;
     DzSysParam param[ DZ_MAX_HOST ];
-    DzCot* tmpCotArr[ DZ_MAX_HOST ];
     DzSynObj* evt;
-    DzRmtCotFifo* fifo;
     DzCot* dzCot;
+    DzCot** cotResBase;
 
     host = GetHost();
-    host->checkFifo = host->rmtFifoArr;
+    hostCount = host->hostCount;
+    i = sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE * hostCount * hostCount;
+    i = ( i + PAGE_SIZE - 1 ) & ~( PAGE_SIZE - 1 );
+    cotResBase = (DzCot**)AllocChunk( host, i );
     for( i = 0; i < host->hostCount; i++ ){
-        host->rmtFifoArr[i].rmtCotArr = tmpCotArr + i;
-        host->rmtFifoArr[i].next = host->rmtFifoArr + i + 1;
+        host->rmtFifoArr[i].rmtCotArr = cotResBase + i * RMT_CALL_FIFO_SIZE;
     }
-    host->rmtFifoArr[ i - 1 ].next = host->rmtFifoArr;
+    host->mgr->rmtFifoCotArrRes = cotResBase;
     evt = CreateCdEvt( host, host->hostCount - 1 );
     cotParam = (DzSysParam*)context;
     for( i = 1; i < host->hostCount; i++ ){
@@ -221,29 +216,11 @@ void __stdcall MainHostFirstEntry( intptr_t context )
             return;
         }
     }
-    fifo = NULL;
-    for( i = 0; i < host->hostCount; i++ ){
-        if( host->servMask & ( 1 << i ) ){
-            if( !fifo ){
-                host->checkFifo = host->rmtFifoArr + i;
-                fifo = host->checkFifo;
-            }else{
-                fifo->next = host->rmtFifoArr + i;
-                fifo = fifo->next;
-            }
-            fifo->rmtCotArr = (DzCot**)
-                AllocChunk( host, sizeof( DzCot* ) * RMT_CALL_FIFO_SIZE );
-            *fifo->readPos = 1;
-            *fifo->writePos = 1;
-            fifo->rmtCotArr[0] = NULL;
-        }else{
-            *host->rmtFifoArr[i].readPos = 0;
-            *host->rmtFifoArr[i].writePos = 0;
-            host->rmtFifoArr[i].rmtCotArr = NULL;
+    hostArr = host->mgr->hostArr;
+    for( i = 0; i < hostCount; i++ ){
+        for( j = 0; j < hostCount; j++ ){
+            hostArr[i]->rmtFifoArr[j].pendRmtCot = hostArr[j]->pendRmtCot + i;
         }
-    }
-    if( fifo ){
-        fifo->next = host->checkFifo;
     }
     cotParam->result = StartCot(
         host, cotParam->cs.entry, cotParam->cs.context,
@@ -309,7 +286,7 @@ void __stdcall WorkerMain( intptr_t context )
     wk = &worker;
     while( 1 ){
         dzCot = wk->dzCot;
-        if( !wk->dzCot ){
+        if( !dzCot ){
             break;
         }
         rmtId = dzCot->hostId;
@@ -331,7 +308,6 @@ void __stdcall WorkerMain( intptr_t context )
             }
             AtomPushSList( &hostMgr->workerPool, &worker.lItr );
             WaitSysAutoEvt( &worker.sysEvt );
-            wk = &worker;
         }
     }
     if( eventInit ){

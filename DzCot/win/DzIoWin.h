@@ -950,7 +950,7 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
     DzIoHelper* helper;
 
     GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, (DWORD)timeout );
-    AtomAndInt( host->rmtCheckSignPtr, ~RMT_CHECK_SLEEP_SIGN );
+    AtomOrInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN );
     if( overlapped != NULL ){
         do{
             if( !key ){

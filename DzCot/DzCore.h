@@ -366,7 +366,10 @@ inline int RunHost(
     for( i = 0; i < hostMgr->hostCount; i++ ){
         host->rmtFifoArr[i].readPos = hostMgr->rmtReadPos[ i ] + hostId;
         host->rmtFifoArr[i].writePos = hostMgr->rmtWritePos[ hostId ] + i;
+        *host->rmtFifoArr[i].readPos = 0;
+        *host->rmtFifoArr[i].writePos = 0;
         host->rmtFifoArr[i].rmtCotArr = NULL;
+        host->rmtFifoArr[i].pendRmtCot = NULL;
     }
     for( i = 0; i <= lowestPri; i++ ){
         InitSList( &host->taskLs[i] );
@@ -386,8 +389,6 @@ inline int RunHost(
     host->lNodePool = NULL;
     host->dzFdPool = NULL;
     host->mgr = hostMgr;
-    host->checkFifo = host->rmtFifoArr + hostId;
-    host->checkFifo->next = host->checkFifo;
     host->pendRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
     host->lazyRmtCot = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
     host->lazyFreeMem = (DzSList*)alloca( sizeof( DzSList ) * hostMgr->hostCount );
@@ -403,7 +404,6 @@ inline int RunHost(
     host->handlePoolEnd = handlePool + HANDLE_POOL_SIZE;
     host->lazyTimer = NULL;
     host->hostCount = hostMgr->hostCount;
-    host->servMask = hostMgr->servMask[ hostId ];
     host->dftPri = dftPri;
     host->dftSSize = dftSSize;
     for( i = 0; i < STACK_SIZE_COUNT; i++ ){
@@ -415,6 +415,7 @@ inline int RunHost(
     }
 
     if( MemeryPoolGrow( host ) && InitOsStruct( host ) ){
+        AtomOrInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN );
         AtomOrInt( &host->mgr->liveSign, host->hostMask );
         SetHost( host );
         host->mgr->hostArr[ hostId ] = host;
@@ -423,7 +424,7 @@ inline int RunHost(
         if( ret == DS_OK ){
             Schedule( host );
         }
-        if( host->servMask ){
+        if( host->hostCount > 0 ){
             CotScheduleCenter( host );
         }else{
             CotScheduleCenterNoRmtCheck( host );
@@ -450,7 +451,6 @@ inline int RunHost(
 
 inline int RunHosts(
     int         hostCount,
-    int*        servMask,
     int         lowestPri,
     int         dftPri,
     int         dftSSize,
@@ -491,24 +491,15 @@ inline int RunHosts(
     hostMgr->workerSetDepth = 0;
     hostMgr->workerPool = NULL;
     hostMgr->rmtFifoRes = (DzRmtCotFifo*)tmp;
-    hostMgr->servMask = servMask;
+    hostMgr->rmtFifoCotArrRes = NULL;
 
     for( i = 0; i < hostCount; i++ ){
-        for( ret = 0; ret < hostCount; ret++ ){
-            if( servMask[i] & ( 1 << ret ) ){
-                servMask[ret] |= ( 1 << i );
-            }
-        }
-    }
-    for( i = 0; i < hostCount; i++ ){
-        if( servMask[i] & ( 1 << i ) ){
-            InitSysAutoEvt( hostMgr->sysAutoEvt + i );
-            NotifySysAutoEvt( hostMgr->sysAutoEvt + i );
-        }
+        InitSysAutoEvt( hostMgr->sysAutoEvt + i );
+        NotifySysAutoEvt( hostMgr->sysAutoEvt + i );
     }
 
     param.result = DS_OK;
-    if( hostCount > 1 ){
+    if( hostCount > 0 ){
         param.cs.entry = firstEntry;
         param.cs.context = context;
         firstEntry = MainHostFirstEntry;
@@ -525,12 +516,10 @@ inline int RunHosts(
         NotifySysAutoEvt( &worker->sysEvt );
     }
     for( i = 0; i < hostCount; i++ ){
-        if( servMask[i] & ( 1 << i ) ){
-            FreeSysAutoEvt( hostMgr->sysAutoEvt + i );
-        }
+        FreeSysAutoEvt( hostMgr->sysAutoEvt + i );
     }
     FreeTlsIndex();
-    return ret == DS_OK ? param.result : ret;;
+    return ret == DS_OK ? param.result : ret;
 }
 
 inline int GetCotCount( DzHost* host )
@@ -695,69 +684,67 @@ inline int DispatchMinTimers( DzHost* host )
     return -1;
 }
 
-inline void DealRmtCot( DzHost* host, DzCot* dzCot )
+inline void DealRmtFifo( DzHost* host, DzRmtCotFifo* fifo )
 {
+    int readPos;
+    int writePos;
+    DzCot* dzCot;
     DzLItr* nextItr;
 
-    nextItr = NULL;
-    while( 1 ){
-        if( dzCot->priority < 0 ){
+    readPos = AtomReadInt( fifo->readPos );
+    writePos = AtomReadInt( fifo->writePos );
+    while( readPos != writePos ){
+        dzCot = fifo->rmtCotArr[ readPos ];
+        readPos++;
+        if( readPos == RMT_CALL_FIFO_SIZE ){
+            readPos = 0;
+        }
+        AtomSetInt( fifo->readPos, readPos );
+        if( dzCot->priority >= 0 ){
+            host->cotCount++;
+            if( dzCot->priority > host->lowestPri ){
+                dzCot->priority = host->lowestPri;
+            }
+            DispatchCot( host, dzCot );
+        }else{
             dzCot->priority += CP_DEFAULT + 1;
-            nextItr = dzCot->lItr.next;
+            nextItr = &dzCot->lItr;
+            do{
+                dzCot = MEMBER_BASE( nextItr, DzCot, lItr );
+                nextItr = dzCot->lItr.next;
+                host->cotCount++;
+                if( dzCot->priority > host->lowestPri ){
+                    dzCot->priority = host->lowestPri;
+                }
+                DispatchCot( host, dzCot );
+            }while( nextItr );
         }
-        host->cotCount++;
-        if( dzCot->priority > host->lowestPri ){
-            dzCot->priority = host->lowestPri;
-        }
-        DispatchCot( host, dzCot );
-        if( !nextItr ){
-            return;
-        }
-        dzCot = MEMBER_BASE( nextItr, DzCot, lItr );
-        nextItr = dzCot->lItr.next;
     }
 }
 
 inline int DispatchRmtCots( DzHost* host, int timeout )
 {
-    int count;
-    int nowCount;
-    int readPos;
-    int writePos;
-    DzCot* dzCot;
+    int idx;
+    u_int sign;
 
     if( timeout ){
-        nowCount = AtomCasInt( host->rmtCheckSignPtr, 0, RMT_CHECK_SLEEP_SIGN );
-    }else{
-        nowCount = AtomReadInt( host->rmtCheckSignPtr );
-    }
-    if( nowCount == 0 ){
-        return timeout;
-    }
-    count = nowCount;
-    while( 1 ){
-        readPos = AtomReadInt( host->checkFifo->readPos );
-        writePos = AtomReadInt( host->checkFifo->writePos );
-        if( readPos != writePos ){
-            dzCot = host->checkFifo->rmtCotArr[ readPos ];
-            readPos++;
-            if( readPos == RMT_CALL_FIFO_SIZE ){
-                readPos = 1;
-            }
-            AtomSetInt( host->checkFifo->readPos, readPos );
-            DealRmtCot( host, dzCot );
-            nowCount--;
-            if( nowCount == 0 ){
-                nowCount = AtomSubInt( host->rmtCheckSignPtr, count );
-                nowCount -= count;
-                if( nowCount == 0 ){
-                    return 0;
-                }
-                count = nowCount;
-            }
+        sign = (u_int)AtomCasInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN, 0 );
+        if( sign == RMT_CHECK_AWAKE_SIGN ){
+            return timeout;
         }
-        host->checkFifo = host->checkFifo->next;
     }
+    
+    idx = 0;
+    sign = (u_int)AtomAndInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN );
+    sign &= ~RMT_CHECK_AWAKE_SIGN;
+    while( sign ){
+        if( sign & 1 ){
+            DealRmtFifo( host, host->rmtFifoArr + idx );
+        }
+        sign >>= 1;
+        idx++;
+    }while( sign );
+    return 0;
 }
 
 #ifdef __cplusplus

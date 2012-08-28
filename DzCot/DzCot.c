@@ -17,7 +17,6 @@ extern "C"{
 
 int DzRunHosts(
     int         hostCount,
-    int*        servMask,
     int         lowestPri,
     int         dftPri,
     int         dftSSize,
@@ -27,7 +26,7 @@ int DzRunHosts(
     )
 {
     assert( !GetHost() );
-    assert( hostCount > 0 && hostCount < DZ_MAX_HOST );
+    assert( hostCount >= 0 && hostCount < DZ_MAX_HOST );
     assert(
         lowestPri >= CP_FIRST &&
         lowestPri < COT_PRIORITY_COUNT
@@ -43,7 +42,7 @@ int DzRunHosts(
     assert( firstEntry );
 
     return RunHosts(
-        hostCount, servMask, lowestPri, dftPri, dftSSize,
+        hostCount, lowestPri, dftPri, dftSSize,
         firstEntry, context, cleanEntry
         );
 }
@@ -158,7 +157,6 @@ int DzStartRemoteCot(
     }
     assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
-    assert( host->servMask & ( 1 << rmtId ) );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
@@ -186,7 +184,6 @@ int DzEvtStartRemoteCot(
     assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
-    assert( host->servMask & ( 1 << rmtId ) );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
@@ -212,7 +209,6 @@ int DzRunRemoteCot(
     }
     assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
-    assert( host->servMask & ( 1 << rmtId ) );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
     assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
@@ -224,7 +220,6 @@ int DzRunWorker( DzRoutine entry, intptr_t context )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( host->servMask & host->hostMask );
     assert( entry );
 
     return RunWorker( host, entry, context );
@@ -790,7 +785,6 @@ int DzGetNameInfoA(
 {
     DzHost* dzHost = GetHost();
     assert( dzHost );
-    assert( dzHost->servMask & ( 1 << dzHost->hostId ) );
 
     return DGetNameInfoA( dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags );
 }
@@ -804,7 +798,6 @@ int DzGetAddrInfoA(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( host->servMask & ( 1 << host->hostId ) );
 
     return DGetAddrInfoA( host, node, service, hints, res );
 }
@@ -917,25 +910,6 @@ unsigned long long DzLatestMilUnixTime()
     assert( host );
 
     return (unsigned long long)host->latestMilUnixTime;
-}
-
-int __DzMakeServMask( BOOL notServ, ... )
-{
-    va_list ap;
-    int ret;
-    int op;
-
-    ret = notServ ? -1 : 0;
-    va_start( ap, notServ );
-    for( op = va_arg( ap, int ); op != -1; op = va_arg( ap, int ) ){
-        if( notServ ){
-            ret &= ~( 1 << op );
-        }else{
-            ret |= ( 1 << op );
-        }
-    }
-    va_end( ap );
-    return ret;
 }
 
 int __DzDbgLastErr()

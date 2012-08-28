@@ -87,7 +87,6 @@ int DzGetNameInfoW(
 {
     DzHost* dzHost = GetHost();
     assert( dzHost );
-    assert( dzHost->servMask & ( 1 << dzHost->hostId ) );
 
     return DGetNameInfoW( dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags );
 }
@@ -101,7 +100,6 @@ int DzGetAddrInfoW(
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( host->servMask & ( 1 << host->hostId ) );
 
     return DGetAddrInfoW( host, node, service, hints, res );
 }

@@ -110,10 +110,10 @@ struct _DzWaitHelper
 
 struct _DzRmtCotFifo
 {
-    DzRmtCotFifo*   next;
     int volatile*   readPos;
     int volatile*   writePos;
     DzCot**         rmtCotArr;
+    DzSList*        pendRmtCot;
 };
 
 struct _DzShareConstant
@@ -134,7 +134,7 @@ struct _DzHostsMgr
     int             workerSetDepth;
     DzLItr*         workerPool;
     DzRmtCotFifo*   rmtFifoRes;
-    int*            servMask;
+    DzCot**         rmtFifoCotArrRes;
 };
 
 struct _DzHost
@@ -236,9 +236,6 @@ struct _DzHost
     //multi hosts manager
     DzHostsMgr*     mgr;
 
-    //checking FIFO chain
-    DzRmtCotFifo*   checkFifo;
-
     //pending remote cots
     DzSList*        pendRmtCot;
 
@@ -255,19 +252,18 @@ struct _DzHost
     char*           memPoolPos;
     char*           memPoolEnd;
 
-    //the seventh cache align on 64 bit platform begin
-
     //record pool alloc history
     DzLItr*         poolGrowList;
+
+    //the seventh cache align on 64 bit platform begin
 
     //handle like struct chunk pool
     char*           handlePoolPos;
     char*           handlePoolEnd;
 
-    //host count and serve mask local copy,
+    //host count local copy,
     //avoid reading global hostCount leads false sharing
     int             hostCount;
-    int             servMask;
 
     //default cot value
     int             dftPri;

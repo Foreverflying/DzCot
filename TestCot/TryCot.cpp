@@ -14,28 +14,6 @@ namespace Inner{
 }
 
 int gHostCount = 8;
-int gServMask[] = {
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE ),
-    DzMakeServMask( TRUE )
-};
 
 //*
 void __stdcall CotTryEntry( intptr_t context )

@@ -26,20 +26,21 @@ void __stdcall WorkerMain( intptr_t context );
 inline void NotifyRmtFifo(
     DzHostsMgr*     hostMgr,
     DzHost*         rmtHost,
+    int             hostMask,
     int volatile*   writePos,
-    int nowPos
+    int             nowPos
     )
 {
-    int nowCheck;
+    int nowSign;
 
     if( nowPos == RMT_CALL_FIFO_SIZE - 1 ){
-        nowPos = 1;
+        nowPos = 0;
     }else{
         nowPos++;
     }
     AtomSetInt( writePos, nowPos );
-    nowCheck = AtomIncInt( rmtHost->rmtCheckSignPtr );
-    if( nowCheck == RMT_CHECK_SLEEP_SIGN ){
+    nowSign = AtomOrInt( rmtHost->rmtCheckSignPtr, hostMask );
+    if( nowSign == 0 ){
         AtomOrInt( &hostMgr->liveSign, rmtHost->hostMask );
         AwakeRemoteHost( rmtHost );
     }
@@ -63,26 +64,25 @@ inline BOOL SendRmtCot(
     writePos = AtomReadInt( fifo->writePos );
     if( emergency ){
         fifo->rmtCotArr[ writePos ] = cot;
-        NotifyRmtFifo( host->mgr, rmtHost, fifo->writePos, writePos );
+        NotifyRmtFifo( host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos );
         return TRUE;
-    }else if( fifo->rmtCotArr[0] ){
-        AddLItrToNonEptTail( &host->pendRmtCot[ rmtId ], &cot->lItr );
+    }else if( fifo->pendRmtCot->tail ){
+        AddLItrToNonEptTail( fifo->pendRmtCot, &cot->lItr );
         return FALSE;
     }
     empty = AtomReadInt( fifo->readPos ) - writePos;
     if( empty <= 0 ){
-        empty += RMT_CALL_FIFO_SIZE - 1;
+        empty += RMT_CALL_FIFO_SIZE;
     }
     if( empty > 2 ){
         fifo->rmtCotArr[ writePos ] = cot;
-        NotifyRmtFifo( host->mgr, rmtHost, fifo->writePos, writePos );
+        NotifyRmtFifo( host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos );
         return TRUE;
     }else{
         waitFifoCot = CreateWaitFifoCot( host );
         fifo->rmtCotArr[ writePos ] = waitFifoCot;
-        fifo->rmtCotArr[0] = (DzCot*)1;
-        AddLItrToEptSList( &host->pendRmtCot[ rmtId ], &cot->lItr );
-        NotifyRmtFifo( host->mgr, rmtHost, fifo->writePos, writePos );
+        AddLItrToEptSList( fifo->pendRmtCot, &cot->lItr );
+        NotifyRmtFifo( host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos );
         return FALSE;
     }
 }

@@ -195,7 +195,6 @@ extern "C"{
 
 int DzRunHosts(
     int         hostCount,
-    int*        servMask,
     int         lowestPri,
     int         dftPri,
     int         dftSSize,
@@ -393,11 +392,7 @@ unsigned long long DzUnixTime();
 unsigned long long DzMilUnixTime();
 unsigned long long DzLatestMilUnixTime();
 
-int __DzMakeServMask( BOOL notServ, ... );
 int __DzDbgLastErr();
-
-#define DzMakeServMask( notServ, ... )\
-    __DzMakeServMask( notServ, ##__VA_ARGS__, -1 )
 
 #ifdef _WIN32
 

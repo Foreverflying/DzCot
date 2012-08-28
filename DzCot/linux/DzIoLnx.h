@@ -560,7 +560,7 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
 
     evtList = host->os.evtList;
     listCount = epoll_wait( host->os.epollFd, evtList, EPOLL_EVT_LIST_SIZE, timeout );
-    signAtWakeUp = AtomAndInt( host->rmtCheckSignPtr, ~RMT_CHECK_SLEEP_SIGN );
+    signAtWakeUp = AtomOrInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN );
     if( listCount != 0 ){
         while( 1 ){
             for( itr = evtList; itr != evtList + listCount; itr++ ){
@@ -580,7 +580,7 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
             }
             break;
         }
-        if( signAtWakeUp != RMT_CHECK_SLEEP_SIGN ){
+        if( signAtWakeUp != 0 ){
             read( host->os.pipe[0], evtList, PAGE_SIZE );
         }
     }

@@ -76,7 +76,6 @@ EXPORTS
     DzUnixTime
     DzMilUnixTime
     DzLatestMilUnixTime
-    __DzMakeServMask
     __DzDbgLastErr
     DzOpenFileW
     DzGetNameInfoW
