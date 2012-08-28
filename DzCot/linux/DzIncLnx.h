@@ -56,7 +56,7 @@ typedef long long int64;
 
 //global constants on linux
 #define THREAD_STACK_MIN            ( PTHREAD_STACK_MIN )
-#define DZ_MAX_PERSIST_STACK_SIZE   ( SS_16K )
+#define DZ_MAX_PERSIST_STACK_SIZE   ( SS_4K )
 
 //linux specific constants
 #define EPOLL_EVT_LIST_SIZE     1024

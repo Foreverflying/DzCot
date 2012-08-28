@@ -29,7 +29,11 @@ inline void* PageReserv( size_t size )
 
 inline void* PageCommit( void* p, size_t size )
 {
-    return VirtualAlloc( p, size, MEM_COMMIT, PAGE_READWRITE );
+    intptr_t ret = (intptr_t)p & ( PAGE_SIZE - 1 );
+    if( ret && ret + size <= PAGE_SIZE ){
+        return p;
+    }
+    return VirtualAlloc( p, size, MEM_COMMIT, PAGE_READWRITE ) ? p : NULL;
 }
 
 inline void PageFree( void* p, size_t size )

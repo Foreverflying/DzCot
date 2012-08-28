@@ -26,36 +26,32 @@ enum
 
 enum
 {
-    CP_FIRST,
-    CP_HIGH = CP_FIRST,
+    CP_HIGH,
     CP_NORMAL,
     CP_LOW,
-    COT_PRIORITY_COUNT,     //should not use this;
-    CP_DEFAULT = COT_PRIORITY_COUNT
+    CP_DEFAULT
 };
 
 enum
 {
-    SS_FIRST,
-    SS_4K = SS_FIRST,
+    SS_1K,
+    SS_4K,
     SS_16K,
     SS_64K,
     SS_256K,
     SS_1M,
     SS_4M,
     SS_16M,
-    SS_64M,
-    STACK_SIZE_COUNT,       //should not use this
-    SS_DEFAULT = STACK_SIZE_COUNT
+    SS_DEFAULT
 };
 
-#define DZ_O_RD         0x0000
-#define DZ_O_WR         0x0001
-#define DZ_O_RDWR       0x0002
-#define DZ_O_CREATE     0x0100
-#define DZ_O_EXCL       0x0200
-#define DZ_O_TRUNC      0x1000
-#define DZ_O_APPEND     0x2000
+#define DZ_O_RD         00000000
+#define DZ_O_WR         00000001
+#define DZ_O_RDWR       00000002
+#define DZ_O_CREATE     00000100
+#define DZ_O_EXCL       00000200
+#define DZ_O_TRUNC      00001000
+#define DZ_O_APPEND     00002000
 
 #define DZ_SEEK_SET     0
 #define DZ_SEEK_CUR     1

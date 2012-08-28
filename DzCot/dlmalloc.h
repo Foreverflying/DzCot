@@ -20,6 +20,11 @@
   * If MSPACES is defined, declarations for mspace versions are included.
 */
 
+/*
+  this line is added by foreverflying
+  before update dlmalloc to a new version
+  add this line to the head of dlmalloc.h and dllmalloc.h
+*/
 #include "dlconfig.h"
 
 #ifndef MALLOC_280_H
@@ -520,7 +525,7 @@ void  dlmalloc_stats(void);
   p = malloc(n);
   assert(malloc_usable_size(p) >= 256);
 */
-size_t dlmalloc_usable_size(void*);
+size_t dlmalloc_usable_size(const void*);
 
 #if MSPACES
 
@@ -575,7 +580,7 @@ mspace create_mspace_with_base(void* base, size_t capacity, int locked);
 */
 int mspace_track_large_chunks(mspace msp, int enable);
 
-#if !NO_MALLINFO 
+#if !NO_MALLINFO
 #ifndef HAVE_USR_INCLUDE_MALLOC_H
 #ifndef _MALLOC_H
 #ifndef MALLINFO_FIELD_TYPE
@@ -625,7 +630,7 @@ void** mspace_independent_calloc(mspace msp, size_t n_elements,
 void** mspace_independent_comalloc(mspace msp, size_t n_elements,
                                    size_t sizes[], void* chunks[]);
 size_t mspace_bulk_free(mspace msp, void**, size_t n_elements);
-size_t mspace_usable_size(void* mem);
+size_t mspace_usable_size(const void* mem);
 void mspace_malloc_stats(mspace msp);
 int mspace_trim(mspace msp, size_t pad);
 size_t mspace_footprint(mspace msp);

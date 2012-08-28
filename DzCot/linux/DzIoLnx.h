@@ -431,7 +431,7 @@ inline int OpenA( DzHost* host, const char* fileName, int flags )
     DzFd* dzFd;
     struct epoll_event evt;
 
-    fd = open( fileName, flags | O_NONBLOCK );
+    fd = open( fileName, flags | O_NONBLOCK, 0664 );
     if( fd >= 0 ){
         dzFd = CreateDzFd( host );
         dzFd->fd = fd;

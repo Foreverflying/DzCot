@@ -6,7 +6,7 @@
 #pragma once
 
 //open the switch if just want run try
-#define TEST_COT_JUST_RUN_TRY
+//#define TEST_COT_JUST_RUN_TRY
 
 #include <stdio.h>
 #include <string.h>
