@@ -25,7 +25,7 @@ void __stdcall EventNotifyCotEntry( intptr_t context )
 
     host->currCot->entry( context );
     SetEvt( host, host->currCot->evt );
-    CloseSynObj( host, host->currCot->evt );
+    DelSynObj( host, host->currCot->evt );
 }
 
 void __stdcall CallbackTimerEntry( intptr_t context )

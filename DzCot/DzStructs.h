@@ -32,8 +32,8 @@ struct _DzTimerNode
     int             type;
     int             index;
     int64           timestamp;
-    int             interval;       //should set minus
-    int             repeat;
+    int             interval;
+    BOOL            repeat;
 };
 
 struct _DzEasyEvt
@@ -55,7 +55,7 @@ struct _DzFastEvt
     };
     union{
         DzWaitHelper*   helper;     //for timeout
-        DzCot*          dzCot;   //for fast event
+        DzCot*          dzCot;      //for fast event
     };
 };
 

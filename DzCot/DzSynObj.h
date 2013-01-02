@@ -173,7 +173,7 @@ inline DzSynObj* CreateAutoEvt( DzHost* host, BOOL notified )
     return obj;
 }
 
-inline DzSynObj* CreateCdEvt( DzHost* host, u_int count )
+inline DzSynObj* CreateCdEvt( DzHost* host, int count )
 {
     DzSynObj* obj;
 
@@ -237,7 +237,7 @@ inline int ReleaseSem( DzHost* host, DzSynObj* sem, int count )
     return sem->notifyCount;
 }
 
-inline DzSynObj* CreateTimer( DzHost* host, int milSec, int repeat )
+inline DzSynObj* CreateTimer( DzHost* host, int milSec, BOOL repeat )
 {
     DzSynObj* obj;
 
@@ -247,28 +247,17 @@ inline DzSynObj* CreateTimer( DzHost* host, int milSec, int repeat )
     }
     obj->type = TYPE_TIMER;
     obj->timerNode.timestamp = MilUnixTime( host ) + milSec;
-    obj->timerNode.repeat = repeat;
     obj->timerNode.interval = - milSec;
+    obj->timerNode.repeat = repeat;
     obj->ref++;
     AddTimer( host, &obj->timerNode );
     return obj;
 }
 
-inline void CloseTimer( DzHost* host, DzSynObj* timer )
-{
-    timer->ref--;
-    if( timer->ref == 0 ){
-        if( IsTimeNodeInHeap( &timer->timerNode ) ){
-            RemoveTimer( host, &timer->timerNode );
-        }
-        FreeSynObj( host, timer );
-    }
-}
-
 inline DzSynObj* CreateCallbackTimer(
     DzHost*         host,
     int             milSec,
-    int             repeat,
+    BOOL            repeat,
     DzRoutine       callback,
     intptr_t        context,
     int             priority,
@@ -282,12 +271,12 @@ inline DzSynObj* CreateCallbackTimer(
         return NULL;
     }
     obj->type = TYPE_CALLBACK_TIMER;
-    obj->timerNode.interval = - milSec;
     obj->timerNode.index = -1;
+    obj->timerNode.timestamp = MilUnixTime( host ) + milSec;
+    obj->timerNode.interval = - milSec;
+    obj->timerNode.repeat = repeat;
     obj->routine = callback;
     obj->context = context;
-    obj->timerNode.timestamp = MilUnixTime( host ) + milSec;
-    obj->timerNode.repeat = repeat;
     obj->priority = priority;
     obj->sSize = sSize;
     obj->ref++;
@@ -328,7 +317,7 @@ inline BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
         //when notifying Timer, DzTimerNode.notifyCount should keep positive
         timer->notifyCount = - timer->notifyCount;
         ret = NotifyWaitQueue( host, timer );
-        //well, if a timer can be notified more than once, it is still in timer heap.
+        //if a timer can be notified repeatedly, it is still in timer heap.
         //so we set it to NOT notified, or else, we keep it notified.
         if( IsTimeNodeInHeap( timerNode ) ){
             timer->notifyCount = - timer->notifyCount;
@@ -365,10 +354,13 @@ inline DzSynObj* CloneSynObj( DzSynObj* obj )
     return obj;
 }
 
-inline void CloseSynObj( DzHost* host, DzSynObj* obj )
+inline void DelSynObj( DzHost* host, DzSynObj* obj )
 {
     obj->ref--;
     if( obj->ref == 0 ){
+        if( obj->type == TYPE_TIMER && IsTimeNodeInHeap( &obj->timerNode ) ){
+            RemoveTimer( host, &obj->timerNode );
+        }
         FreeSynObj( host, obj );
     }
 }
@@ -376,7 +368,7 @@ inline void CloseSynObj( DzHost* host, DzSynObj* obj )
 inline void InitTimeOut( DzFastEvt* timeout, int64 timestamp, DzWaitHelper* helper )
 {
     timeout->type = TYPE_TIMEOUT;
-    timeout->timerNode.repeat = 1;
+    timeout->timerNode.repeat = FALSE;
     timeout->timerNode.timestamp = timestamp;
     timeout->helper = helper;
     timeout->timerNode.index = -1;
@@ -488,7 +480,7 @@ inline int WaitFastEvt( DzHost* host, DzFastEvt* fastEvt, int timeout )
     }
     fastEvt->dzCot = host->currCot;
     if( timeout >= 0 ){
-        fastEvt->timerNode.repeat = 1;
+        fastEvt->timerNode.repeat = FALSE;
         fastEvt->timerNode.timestamp = MilUnixTime( host ) + timeout;
         AddTimer( host, &fastEvt->timerNode );
     }

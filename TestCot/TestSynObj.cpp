@@ -5,7 +5,8 @@ DzHandle synEvt1 = NULL;
 DzHandle synEvt2 = NULL;
 DzHandle synSem1 = NULL;
 DzHandle synSem2 = NULL;
-DzHandle synTimer = NULL;
+DzHandle synTimer1 = NULL;
+DzHandle synTimer2 = NULL;
 
 int ret[ 64 ];
 int retCount = 0;
@@ -16,16 +17,18 @@ void InitSynObj()
     synEvt2 = DzCreateAutoEvt( TRUE );
     synSem1 = DzCreateSem( 0 );
     synSem2 = DzCreateSem( 0 );
-    synTimer = DzCreateTimer( 1000, 3 );
+    synTimer1 = DzCreateTimer( 1000, TRUE );
+    synTimer2 = DzCreateTimer( 3000, FALSE );
 }
 
 void ReleaseSynObj()
 {
-    DzCloseSynObj( synEvt1 );
-    DzCloseSynObj( synEvt2 );
-    DzCloseSynObj( synSem1 );
-    DzCloseSynObj( synSem2 );
-    DzCloseTimer( synTimer );
+    DzDelSynObj( synEvt1 );
+    DzDelSynObj( synEvt2 );
+    DzDelSynObj( synSem1 );
+    DzDelSynObj( synSem2 );
+    DzDelSynObj( synTimer1 );
+    DzDelSynObj( synTimer2 );
 }
 
 void __stdcall Wait1Evt1_Sem2( intptr_t context )
@@ -42,9 +45,9 @@ void __stdcall Wait2Evt1_Evt2( intptr_t context )
     ret[ retCount++ ] = 2 * 100 + n + 1;
 }
 
-void __stdcall Wait3Evt1_Timer( intptr_t context )
+void __stdcall Wait3Evt1_Timer1( intptr_t context )
 {
-    DzHandle obj[] = { synEvt1, synTimer };
+    DzHandle obj[] = { synEvt1, synTimer1 };
     int n = DzWaitMultiSynObj( 2, obj, FALSE );
     ret[ retCount++ ] = 3 * 100 + n + 1;
 }
@@ -56,9 +59,9 @@ void __stdcall Wait4Sem1_Evt2( intptr_t context )
     ret[ retCount++ ] = 4 * 100 + n + 1;
 }
 
-void __stdcall Wait5Sem2_Timer( intptr_t context )
+void __stdcall Wait5Sem2_Timer1( intptr_t context )
 {
-    DzHandle obj[] = { synSem2, synTimer };
+    DzHandle obj[] = { synSem2, synTimer1 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE );
     ret[ retCount++ ] = 5 * 100 + n + 1;
 }
@@ -69,9 +72,9 @@ void __stdcall Wait6Evt1( intptr_t context )
     ret[ retCount++ ] = 6 * 100 + n + 1;
 }
 
-void __stdcall Wait7Evt1_Sem1_Timer( intptr_t context )
+void __stdcall Wait7Evt1_Sem1_Timer1( intptr_t context )
 {
-    DzHandle obj[] = { synEvt1, synSem1, synTimer };
+    DzHandle obj[] = { synEvt1, synSem1, synTimer1 };
     int n = DzWaitMultiSynObj( 3, obj, TRUE );
     ret[ retCount++ ] = 7 * 100 + n + 1;
 }
@@ -93,6 +96,20 @@ void __stdcall Wait10Sem1Sem2TimeOut( intptr_t context )
     DzHandle obj[] = { synSem1, synSem2 };
     int n = DzWaitMultiSynObj( 2, obj, TRUE, 2500 );
     ret[ retCount++ ] = 10 * 100 + n + 1;
+}
+
+void __stdcall Wait11Sem2_Timer2( intptr_t context )
+{
+    DzHandle obj[] = { synSem2, synTimer2 };
+    int n = DzWaitMultiSynObj( 2, obj, TRUE );
+    ret[ retCount++ ] = 11 * 100 + n + 1;
+}
+
+void __stdcall Wait12Evt1_Sem1_Timer2( intptr_t context )
+{
+    DzHandle obj[] = { synEvt1, synSem1, synTimer2 };
+    int n = DzWaitMultiSynObj( 3, obj, TRUE );
+    ret[ retCount++ ] = 12 * 100 + n + 1;
 }
 
 void __stdcall TestAllSynObj1( intptr_t context )
@@ -134,15 +151,15 @@ void __stdcall TestAllSynObj2( intptr_t context )
     int i = 0;
     retCount = 0;
 
-    DzStartCot( Wait7Evt1_Sem1_Timer, 0, CP_DEFAULT, SS_1K );
+    DzStartCot( Wait7Evt1_Sem1_Timer1, 0, CP_DEFAULT, SS_1K );
     DzStartCot( Wait2Evt1_Evt2, 0, CP_DEFAULT, SS_4K );
     DzStartCot( Wait4Sem1_Evt2, 0, CP_DEFAULT, SS_16K );
     DzStartCot( Wait2Evt1_Evt2, 0, CP_DEFAULT, SS_256K );
-    DzStartCot( Wait3Evt1_Timer, 0, CP_DEFAULT, SS_1M );
-    DzStartCot( Wait5Sem2_Timer, 0, CP_DEFAULT, SS_4M );
-    DzStartCot( Wait5Sem2_Timer, 0, CP_DEFAULT, SS_16M );
-    DzStartCot( Wait5Sem2_Timer, 0, CP_DEFAULT, SS_64K );
-    DzStartCot( Wait7Evt1_Sem1_Timer );
+    DzStartCot( Wait3Evt1_Timer1, 0, CP_DEFAULT, SS_1M );
+    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, SS_4M );
+    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, SS_16M );
+    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, SS_64K );
+    DzStartCot( Wait7Evt1_Sem1_Timer1 );
     DzStartCot( Wait6Evt1 );
 
     DzSetEvt( synEvt1 );
@@ -174,10 +191,9 @@ void __stdcall TestAllSynObj2( intptr_t context )
         EXPECT_EQ( ret[i], rightRet[i] );
     }
 
-
     DzReleaseSem( synSem2, 1 );
     DzReleaseSem( synSem1, 1 );
-    DzSleep( 1 );
+    DzSleep( 1000 );
 
     EXPECT_EQ( 10, retCount );
     for( ; i < retCount; i++ ){
@@ -197,12 +213,12 @@ void __stdcall TestAllSynObj3( intptr_t context )
     DzStartCot( Wait9Sem2TimeOut );
     DzStartCot( Wait2Evt1_Evt2, NULL, CP_HIGH );
     DzStartCot( Wait4Sem1_Evt2 );
-    DzStartCot( Wait7Evt1_Sem1_Timer );
-    DzStartCot( Wait3Evt1_Timer );
-    DzStartCot( Wait5Sem2_Timer );
-    DzStartCot( Wait5Sem2_Timer );
-    DzStartCot( Wait5Sem2_Timer );
-    DzStartCot( Wait7Evt1_Sem1_Timer );
+    DzStartCot( Wait12Evt1_Sem1_Timer2 );
+    DzStartCot( Wait3Evt1_Timer1 );
+    DzStartCot( Wait11Sem2_Timer2 );
+    DzStartCot( Wait11Sem2_Timer2 );
+    DzStartCot( Wait11Sem2_Timer2 );
+    DzStartCot( Wait12Evt1_Sem1_Timer2 );
     DzStartCot( Wait6Evt1 );
 
     DzSetEvt( synEvt1 );
@@ -218,7 +234,7 @@ void __stdcall TestAllSynObj3( intptr_t context )
     DzReleaseSem( synSem2, 2 );
 
     DzSleep( 0 );
-    int rightRet[] = { 201, 301, 601, 402, 900, 501, 501, 701, 701, 501, 901, 1000, 901, 1001, 1000 };
+    int rightRet[] = { 201, 301, 601, 402, 900, 1101, 1101, 1201, 1201, 1101, 901, 1000, 901, 1001, 1000 };
 
     EXPECT_EQ( 7, retCount );
     for( ; i < retCount; i++ ){
@@ -265,12 +281,12 @@ void __stdcall TestAllSynObj4( intptr_t context )
     DzStartCot( Wait9Sem2TimeOut );
     DzStartCot( Wait2Evt1_Evt2, NULL, CP_HIGH );
     DzStartCot( Wait4Sem1_Evt2 );
-    DzStartCot( Wait7Evt1_Sem1_Timer );
-    DzStartCot( Wait3Evt1_Timer );
-    DzStartCot( Wait5Sem2_Timer );
-    DzStartCot( Wait5Sem2_Timer );
-    DzStartCot( Wait5Sem2_Timer );
-    DzStartCot( Wait7Evt1_Sem1_Timer );
+    DzStartCot( Wait12Evt1_Sem1_Timer2 );
+    DzStartCot( Wait3Evt1_Timer1 );
+    DzStartCot( Wait11Sem2_Timer2 );
+    DzStartCot( Wait11Sem2_Timer2 );
+    DzStartCot( Wait11Sem2_Timer2 );
+    DzStartCot( Wait12Evt1_Sem1_Timer2 );
     DzStartCot( Wait6Evt1 );
 
     DzSetEvt( synEvt1 );
@@ -286,7 +302,7 @@ void __stdcall TestAllSynObj4( intptr_t context )
     DzReleaseSem( synSem2, 2 );
 
     DzSleep( 0 );
-    int rightRet[] = { 201, 301, 601, 402, 900, 501, 501, 701, 701, 501, 901, 1000, 901, 1001, 1000 };
+    int rightRet[] = { 201, 301, 601, 402, 900, 1101, 1101, 1201, 1201, 1101, 901, 1000, 901, 1001, 1000 };
 
     EXPECT_EQ( 7, retCount );
     for( ; i < retCount; i++ ){

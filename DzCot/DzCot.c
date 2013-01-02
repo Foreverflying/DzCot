@@ -256,7 +256,7 @@ int DzSetWorkerPoolDepth( int depth )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( depth >= 0 && depth <= DZ_MAX_COT_POOL_DEPTH );
+    assert( depth >= 0 && depth <= DZ_MAX_WORKER_POOL_DEPTH );
 
     return SetWorkerPoolDepth( host, depth );
 }
@@ -269,14 +269,8 @@ int DzSetHostParam( int lowestPri, int dftPri, int dftSSize )
         lowestPri >= CP_FIRST &&
         lowestPri < COT_PRIORITY_COUNT
         );
-    assert(
-        dftPri >= CP_FIRST &&
-        dftPri <= lowestPri
-        );
-    assert(
-        dftSSize >= SS_FIRST &&
-        dftSSize < STACK_SIZE_COUNT
-        );
+    assert( dftPri <= lowestPri );
+    assert( dftSSize < STACK_SIZE_COUNT );
 
     return SetHostParam( host, lowestPri, dftPri, dftSSize );
 }
@@ -352,7 +346,7 @@ DzHandle DzCreateCdEvt( u_int count )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( (int)count >= 0 );
+    assert( count >= 0 );
 
     return CreateCdEvt( host, count );
 }
@@ -404,6 +398,16 @@ int DzReleaseSem( DzHandle sem, int count )
     return ReleaseSem( host, sem, count );
 }
 
+DzHandle DzCreateTimer( int milSec, BOOL repeat )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( milSec > 0 );
+    assert( host->timerCount < TIME_HEAP_SIZE );
+
+    return CreateTimer( host, milSec, repeat );
+}
+
 DzHandle DzCloneSynObj( DzHandle obj )
 {
     assert( GetHost() );
@@ -412,40 +416,19 @@ DzHandle DzCloneSynObj( DzHandle obj )
     return CloneSynObj( obj );
 }
 
-BOOL DzCloseSynObj( DzHandle obj )
+BOOL DzDelSynObj( DzHandle obj )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( obj->type != TYPE_TIMER && obj->type != TYPE_CALLBACK_TIMER );
+    assert( obj->type != TYPE_CALLBACK_TIMER );
 
-    CloseSynObj( host, obj );
-    return TRUE;
-}
-
-DzHandle DzCreateTimer( int milSec, int repeat )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( milSec > 0 );
-    assert( repeat >= 0 );
-    assert( host->timerCount < TIME_HEAP_SIZE );
-
-    return CreateTimer( host, milSec, repeat );
-}
-
-BOOL DzCloseTimer( DzHandle timer )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( timer->type == TYPE_TIMER );
-
-    CloseTimer( host, timer );
+    DelSynObj( host, obj );
     return TRUE;
 }
 
 DzHandle DzCreateCallbackTimer(
     int             milSec,
-    int             repeat,
+    BOOL            repeat,
     DzRoutine       callback,
     intptr_t        context,
     int             priority,
@@ -461,7 +444,6 @@ DzHandle DzCreateCallbackTimer(
         sSize = host->dftSSize;
     }
     assert( milSec > 0 );
-    assert( repeat >= 0 );
     assert( host->timerCount < TIME_HEAP_SIZE );
     assert( callback );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
@@ -470,7 +452,7 @@ DzHandle DzCreateCallbackTimer(
     return CreateCallbackTimer( host, milSec, repeat, callback, context, priority, sSize );
 }
 
-BOOL DzCloseCallbackTimer( DzHandle timer )
+BOOL DzDelCallbackTimer( DzHandle timer )
 {
     DzHost* host = GetHost();
     assert( host );

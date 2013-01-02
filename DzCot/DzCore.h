@@ -582,10 +582,14 @@ inline int SetHostParam(
     if( lowestPri > host->lowestPri ){
         host->lowestPri = lowestPri;
     }
-    host->dftPri = dftPri;
-    host->dftSSize = dftSSize;
-    if( host->cotPoolSetDepth[ dftSSize ] < DFT_SSIZE_POOL_DEPTH ){
-        SetCotPoolDepth( host, dftSSize, DFT_SSIZE_POOL_DEPTH );
+    if( dftPri >= CP_FIRST ){
+        host->dftPri = dftPri;
+    }
+    if( dftSSize >= SS_FIRST ){
+        host->dftSSize = dftSSize;
+        if( host->cotPoolSetDepth[ dftSSize ] < DFT_SSIZE_POOL_DEPTH ){
+            SetCotPoolDepth( host, dftSSize, DFT_SSIZE_POOL_DEPTH );
+        }
     }
 
     return ret;
@@ -660,11 +664,8 @@ inline int DispatchMinTimers( DzHost* host )
         cmpTime = currTime + MIN_TIME_INTERVAL;
         while( GetMinTimerNode( host )->timestamp <= cmpTime ){
             timerNode = GetMinTimerNode( host );
-            timerNode->repeat--;
-            if( timerNode->repeat != 0 ){
-                if( timerNode->repeat < 0 ){
-                    timerNode->repeat = 0;
-                }
+            if( timerNode->repeat ){
+                //for timerNode->interval is a negative value, use minus
                 timerNode->timestamp -= timerNode->interval;
                 AdjustMinTimer( host, timerNode );
             }else{
@@ -743,7 +744,7 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
         }
         sign >>= 1;
         idx++;
-    }while( sign );
+    }
     return 0;
 }
 

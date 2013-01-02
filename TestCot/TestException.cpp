@@ -94,7 +94,7 @@ void __stdcall TestCppException( intptr_t context )
     }
     DzWaitMultiSynObj( n, evt, TRUE );
     for( int i = 0; i < n; i++ ){
-        DzCloseSynObj( evt[i] );
+        DzDelSynObj( evt[i] );
     }
     EXPECT_EQ( n, gCount );
 }
@@ -172,7 +172,7 @@ void __stdcall TestWinSehException( intptr_t context )
     }
     DzWaitMultiSynObj( n, evt, TRUE );
     for( int i = 0; i < n; i++ ){
-        DzCloseSynObj( evt[i] );
+        DzDelSynObj( evt[i] );
     }
     EXPECT_EQ( n, gCount );
 }

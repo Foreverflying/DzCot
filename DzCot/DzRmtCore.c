@@ -47,7 +47,7 @@ void __stdcall RemoteCotEntry( intptr_t context )
     if( dzCot->feedType > 0 ){
         if( dzCot->evtType == 0 ){
             SetEvt( host, dzCot->evt );
-            CloseSynObj( host, dzCot->evt );
+            DelSynObj( host, dzCot->evt );
         }else{
             NotifyEasyEvt( host, dzCot->easyEvt );
         }
@@ -209,7 +209,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
         StartSystemThread( param + i, THREAD_STACK_MIN );
     }
     WaitSynObj( host, evt, -1 );
-    CloseSynObj( host, evt );
+    DelSynObj( host, evt );
     for( i = 1; i < host->hostCount; i++ ){
         if( param[i].result != DS_OK ){
             cotParam->result = param[i].result;

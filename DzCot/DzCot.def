@@ -27,12 +27,11 @@ EXPORTS
     DzResetEvt
     DzCreateSem
     DzReleaseSem
-    DzCloneSynObj
-    DzCloseSynObj
     DzCreateTimer
-    DzCloseTimer
+    DzCloneSynObj
+    DzDelSynObj
     DzCreateCallbackTimer
-    DzCloseCallbackTimer
+    DzDelCallbackTimer
     DzSleep
     DzOpenFileA
     DzCloseFile

@@ -94,12 +94,12 @@ void ReadFileEntry( char* buff, size_t buffLen )
 void __stdcall TestReadFile( intptr_t context )
 {
     gCheck = 0;
-    DzHandle checkTimer = DzCreateCallbackTimer( 10, 0, HelpCheckAsynTimerEntry );
+    DzHandle checkTimer = DzCreateCallbackTimer( 10, TRUE, HelpCheckAsynTimerEntry );
     size_t buffLen = 4 * 1024 * 1024;
     char *buff = new char[ buffLen ];
 
     ReadFileEntry( buff, buffLen );
-    DzCloseCallbackTimer( checkTimer );
+    DzDelCallbackTimer( checkTimer );
     //printf( "gCheck : %d\r\n", gCheck );
     //ASSERT_NE( 0, gCheck );
 }
@@ -164,12 +164,12 @@ void WriteFileEntry( char* buff, size_t buffLen )
 void __stdcall TestWriteFile( intptr_t context )
 {
     gCheck = 0;
-    DzHandle checkTimer = DzCreateCallbackTimer( 10, 0, HelpCheckAsynTimerEntry );
+    DzHandle checkTimer = DzCreateCallbackTimer( 10, TRUE, HelpCheckAsynTimerEntry );
     size_t buffLen = 4 * 1024 * 1024;
     char* buff = new char[ buffLen ];
 
     WriteFileEntry( buff, buffLen );
-    DzCloseCallbackTimer( checkTimer );
+    DzDelCallbackTimer( checkTimer );
     //printf( "gCheck : %d\r\n", gCheck );
     //ASSERT_NE( 0, gCheck );
 }

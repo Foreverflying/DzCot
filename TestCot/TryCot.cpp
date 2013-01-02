@@ -172,7 +172,7 @@ void __stdcall TestCotTryEntry( intptr_t context )
     }
     DzWaitSynObj( evt );
     printf( "well, awake2\r\n" );
-    DzCloseSynObj( evt );
+    DzDelSynObj( evt );
     //*/
 
     //*

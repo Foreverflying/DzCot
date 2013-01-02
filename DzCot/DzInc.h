@@ -21,6 +21,7 @@
 #define DZ_STACK_UNIT_SIZE          ( 1024 )
 #define DZ_STACK_SIZE_STEP          ( 2 )
 #define DZ_MAX_COT_POOL_DEPTH       ( 1024 * 1024 * 1024 )
+#define DZ_MAX_WORKER_POOL_DEPTH    ( 1024 )
 #define MEMERY_POOL_GROW_SIZE       ( 16 * 1024 * 1024 )
 #define HANDLE_POOL_SIZE            ( 64 * 1024 * 1024 )
 #define WORKER_STACK_SIZE           ( 65536 )
@@ -36,7 +37,7 @@
 #define SCHEDULE_COUNTDOWN          ( 256 )
 #define LAZY_TIMER_INTERVAL         ( 8192 )
 
-//predefine
+//predefines
 typedef void (__stdcall *DzRoutine)( intptr_t context );
 
 enum{
@@ -56,7 +57,7 @@ enum
     CP_HIGH = CP_FIRST,
     CP_NORMAL,
     CP_LOW,
-    COT_PRIORITY_COUNT,     //should not use this;
+    COT_PRIORITY_COUNT,
     CP_DEFAULT = COT_PRIORITY_COUNT
 };
 
@@ -71,16 +72,19 @@ enum
     SS_1M,
     SS_4M,
     SS_16M,
-    STACK_SIZE_COUNT,       //should not use this
+    STACK_SIZE_COUNT,
     SS_DEFAULT = STACK_SIZE_COUNT
 };
 
-#define DZ_O_RD         00000000
-#define DZ_O_WR         00000001
-#define DZ_O_RDWR       00000002
-#define DZ_O_CREATE     00000100
-#define DZ_O_EXCL       00000200
-#define DZ_O_TRUNC      00001000
-#define DZ_O_APPEND     00002000
+enum
+{
+    DZ_O_RD         =   00000000,
+    DZ_O_WR         =   00000001,
+    DZ_O_RDWR       =   00000002,
+    DZ_O_CREATE     =   00000100,
+    DZ_O_EXCL       =   00000200,
+    DZ_O_TRUNC      =   00001000,
+    DZ_O_APPEND     =   00002000
+};
 
 #endif // __DzInc_h__
