@@ -81,7 +81,7 @@ struct _DzSynObj
         //the waitQ[ 0 ] and waitQ[ 1 ]
         //when release CallbackTimer
         struct{
-            DzRoutine   routine;
+            DzEntry     routine;
             intptr_t    context;
             int         priority;
             int         sSize;
@@ -139,9 +139,7 @@ struct _DzHostsMgr
 
 struct _DzHost
 {
-    //the first cache align is mutable
-    //and will be used only by the host itself.
-    //for currCot have to stay at the head
+    //the first cache will be used only by the host itself.
     union{
         struct{
             //running cot
@@ -271,11 +269,14 @@ struct _DzHost
 
     //configure data
     int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
+
+    //debug struct
+    __DBG_STRUCT( DzHost )
 };
 
 struct _DzSysParam
 {
-    DzRoutine           threadEntry;
+    DzEntry             threadEntry;
     int                 result;
     union{
         struct{
@@ -288,11 +289,11 @@ struct _DzSysParam
             int         dftSSize;
         } hs;   //used for host start
         struct{
-            DzRoutine   entry;
+            DzEntry     entry;
             intptr_t    context;
         } cs;   //used for cot start
         struct{
-            DzRoutine   entry;
+            DzEntry     entry;
             intptr_t    context;
             DzCot*      dzCot;
             DzHostsMgr* hostMgr;
@@ -304,7 +305,7 @@ struct _DzWorker
 {
     DzLItr          lItr;
     DzCot*          dzCot;
-    DzRoutine       entry;
+    DzEntry         entry;
     intptr_t        context;
     DzSysAutoEvt    sysEvt;
 };

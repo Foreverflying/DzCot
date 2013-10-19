@@ -61,8 +61,12 @@ typedef long long int64;
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
 //#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
+//for debug check
+#if defined( _X86_ )
+#define CHECK_RESERV_SIZE           ( PAGE_SIZE )
+#elif defined( _AMD64_ )
+#define CHECK_RESERV_SIZE           ( PAGE_SIZE * 2 )
+#endif
 
-//debug switchers
-//#define __DBG_CHECK_COT_STACK_OVERFLOW
 
 #endif // __DzIncWin_h__

@@ -21,10 +21,11 @@ void* SysThreadMain( void* context )
 // schedule next cot
 void __stdcall DzCotEntry(
     DzHost*             host,
-    DzRoutine volatile* entryPtr,
+    DzEntry volatile*   entryPtr,
     intptr_t volatile*  contextPtr
     )
 {
+    __Dbg( MarkCurrStackForCheck )();
     while(1){
         //call the entry
         ( *entryPtr )( *contextPtr );
@@ -73,7 +74,7 @@ BOOL InitOsStruct( DzHost* host )
     return TRUE;
 }
 
-void DeleteOsStruct( DzHost* host )
+void CleanOsStruct( DzHost* host )
 {
     CloseDzFd( host, host->os.pipeFd );
     close( host->os.pipe[1] );

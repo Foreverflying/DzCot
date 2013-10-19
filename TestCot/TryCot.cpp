@@ -16,7 +16,7 @@ namespace Inner{
 int gHostCount = 8;
 
 //*
-void __stdcall CotTryEntry( intptr_t context )
+CotEntry CotTryEntry( intptr_t context )
 {
     int idx = (int)context;
     int a = 0;
@@ -37,7 +37,7 @@ void TryCotPool()
 }
 //*/
 
-void __stdcall TestRemoteCot1( intptr_t context )
+CotEntry TestRemoteCot1( intptr_t context )
 {
     int hostId = Inner::GetHost()->hostId;
     char buff[32];
@@ -46,7 +46,7 @@ void __stdcall TestRemoteCot1( intptr_t context )
     printf( "%s--%d--print from host %d\r\n", buff, hostId, (int)context );
 }
 
-void __stdcall TestRemoteCot( intptr_t context )
+CotEntry TestRemoteCot( intptr_t context )
 {
     vector<int>* tmp = (vector<int>*)context;
     delete tmp;
@@ -65,7 +65,7 @@ void __stdcall TestRemoteCot( intptr_t context )
 }
 
 /*/
-void __stdcall SimplePrint( intptr_t context )
+CotEntry SimplePrint( intptr_t context )
 {
     int delay = (int)context;
 
@@ -73,15 +73,13 @@ void __stdcall SimplePrint( intptr_t context )
     printf ( "Hello world\r\n" );
 }
 
-void __stdcall RunSimplePrintCot( intptr_t context )
+CotEntry RunSimplePrintCot( intptr_t context )
 {
     DzRunWorker( SimplePrint, context );
 }
 //*/
 
-#pragma comment(lib,"Ws2_32.lib")
-
-void __stdcall GetHostByNameEntry( intptr_t context )
+CotEntry GetHostByNameEntry( intptr_t context )
 {
     int* ip = (int*)context;
     struct hostent* ret;
@@ -91,7 +89,7 @@ void __stdcall GetHostByNameEntry( intptr_t context )
 }
 
 
-void __stdcall TestCotTryEntry( intptr_t context )
+CotEntry TestCotTryEntry( intptr_t context )
 {
     /*
     for( int i = 0; i < 5; i++ ){

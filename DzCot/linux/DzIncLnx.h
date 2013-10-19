@@ -59,10 +59,11 @@ typedef long long int64;
 #define DZ_MAX_PERSIST_STACK_SIZE   ( SS_4K )
 
 //linux specific constants
-#define EPOLL_EVT_LIST_SIZE     1024
+#define EPOLL_EVT_LIST_SIZE         1024
 
 //switchers
 
-//debug switchers
+//for debug check
+#define CHECK_RESERV_SIZE           ( 0 )
 
 #endif // __DzIncLnx_h__

@@ -9,7 +9,7 @@
 #include "CotTestUtil.h"
 #include "TryCot.h"
 
-void __stdcall CleanEntry( intptr_t context )
+CotEntry CleanEntry( intptr_t context )
 {
     __DzTceEnableScopePrint( 1 );
     __DzTce1( "Hosts exit" );
@@ -41,8 +41,8 @@ int MainEntry( int argc, _TCHAR* argv[] )
 
 #endif
 
-void TestCot( DzRoutine entry, intptr_t context )
+void TestCot( DzEntry entry, intptr_t context )
 {
     int ret = DzRunHosts( 0, CP_LOW, CP_LOW, SS_64K, entry, context, NULL );
-    EXPECT_EQ( DS_OK, ret );
+    DZ_EXPECT_EQ( DS_OK, ret );
 }

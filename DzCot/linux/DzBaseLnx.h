@@ -52,8 +52,9 @@ inline void StartSystemThread( DzSysParam* param, int stackSize )
 
 inline void AwakeRemoteHost( DzHost* dstHost )
 {
-    char n = 0;
-    write( dstHost->os.pipe[1], &n, sizeof( n ) );
+    int n;
+
+    n = write( dstHost->os.pipe[1], &n, sizeof( n ) );
 }
 
 inline void InitSysAutoEvt( DzSysAutoEvt* sysEvt )

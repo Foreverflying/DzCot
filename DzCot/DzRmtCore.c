@@ -28,7 +28,7 @@ inline void MoveCurCotToRmt( DzHost* host, int rmtId, int feedType )
 {
     DzCot* helpCot;
 
-    helpCot = AllocDzCot( host, SS_FIRST );
+    helpCot = AllocDzCot( host, SS_MIN );
     SetCotEntry( helpCot, PauseCotHelpEntry, (intptr_t)host->currCot );
     helpCot->hostId = rmtId;
     helpCot->feedType = feedType;
@@ -103,7 +103,7 @@ void __stdcall DealLazyResEntry( intptr_t context )
             node = MEMBER_BASE( lItr, DzLNode, lItr );
             node->d2 = (intptr_t)tail;
             node->d3 = (intptr_t)host->hostId;
-            dzCot = AllocDzCot( host, SS_FIRST );
+            dzCot = AllocDzCot( host, SS_MIN );
             dzCot->priority = CP_FIRST;
             SetCotEntry( dzCot, LazyFreeMemEntry, (intptr_t)node );
             SendRmtCot( host, i, FALSE, dzCot );
@@ -195,7 +195,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
     evt = CreateCdEvt( host, host->hostCount - 1 );
     cotParam = (DzSysParam*)context;
     for( i = 1; i < host->hostCount; i++ ){
-        dzCot = AllocDzCot( host, SS_FIRST );
+        dzCot = AllocDzCot( host, SS_MIN );
         dzCot->priority = CP_FIRST;
         SetCotEntry( dzCot, StartRmtHostRetEntry, (intptr_t)&param[i] );
         param[i].threadEntry = RunRmtHostMain;
@@ -259,7 +259,7 @@ DzCot* CreateWaitFifoCot( DzHost* host )
 {
     DzCot* ret;
 
-    ret = AllocDzCot( host, SS_FIRST );
+    ret = AllocDzCot( host, SS_MIN );
     ret->priority = CP_FIRST;
     SetCotEntry( ret, WaitFifoWritableEntry, (intptr_t)host->hostId );
     return ret;

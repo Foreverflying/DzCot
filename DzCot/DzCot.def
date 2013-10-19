@@ -11,6 +11,7 @@ EXPORTS
     DzRunRemoteCot
     DzRunWorker
     DzGetCotCount
+    DzGetHostId
     DzSetPriority
     DzSetCotPoolDepth
     DzSetWorkerPoolDepth
@@ -76,6 +77,7 @@ EXPORTS
     DzMilUnixTime
     DzLatestMilUnixTime
     __DzDbgLastErr
+    __DzDbgMaxStackUse
     DzOpenFileW
     DzGetNameInfoW
     DzGetAddrInfoW

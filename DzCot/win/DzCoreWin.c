@@ -61,10 +61,11 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
 // schedule next cot
 void __stdcall DzCotEntry(
     DzHost*             host,
-    DzRoutine volatile* entryPtr,
+    DzEntry volatile*   entryPtr,
     intptr_t volatile*  contextPtr
     )
 {
+    __Dbg( MarkCurrStackForCheck )();
     __try{
         while(1){
             //call the entry
@@ -149,7 +150,7 @@ BOOL InitOsStruct( DzHost* host )
     return host->os.iocp != NULL;
 }
 
-void DeleteOsStruct( DzHost* host )
+void CleanOsStruct( DzHost* host )
 {
     CloseHandle( host->os.iocp );
     if( host->hostId == 0 ){

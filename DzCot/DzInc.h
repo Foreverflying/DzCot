@@ -18,6 +18,7 @@
 #define CPU_CACHE_ALIGN             ( 64 )
 #define CPU_CACHE_ALIGN_MASK        ( CPU_CACHE_ALIGN - 1 )
 #define PAGE_SIZE                   ( 4096 )
+#define MIN_PERMANENT_CHUNK_SIZE    ( 1024 )
 #define DZ_STACK_UNIT_SIZE          ( 1024 )
 #define DZ_STACK_SIZE_STEP          ( 2 )
 #define DZ_MAX_COT_POOL_DEPTH       ( 1024 * 1024 * 1024 )
@@ -38,7 +39,7 @@
 #define LAZY_TIMER_INTERVAL         ( 8192 )
 
 //predefines
-typedef void (__stdcall *DzRoutine)( intptr_t context );
+typedef void (__stdcall *DzEntry)( intptr_t context );
 
 enum{
     RMT_PKG_SYNOBJ_EVT,
@@ -86,5 +87,11 @@ enum
     DZ_O_TRUNC      =   00001000,
     DZ_O_APPEND     =   00002000
 };
+
+#ifdef _DEBUG
+#define SS_MIN      SS_4K
+#else
+#define SS_MIN      SS_1K
+#endif
 
 #endif // __DzInc_h__
