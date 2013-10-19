@@ -135,7 +135,7 @@ void DeleteBuffArray()
 }
 
 void CotStart(
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority = CP_DEFAULT,
     int         sSize = SS_DEFAULT
@@ -154,7 +154,7 @@ void CotStop()
     }
 }
 
-void __stdcall SayHello( intptr_t context )
+CotEntry SayHello( intptr_t context )
 {
     int fd = -1;
     try{
@@ -171,14 +171,14 @@ void __stdcall SayHello( intptr_t context )
         DzSend( fd, sendBuff, sizeof( sendBuff ), 0 );
         DzRecv( fd, recvBuff, sizeof( recvBuff ), 0 );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
     }
 }
 
-void __stdcall WaitHello( intptr_t context )
+CotEntry WaitHello( intptr_t context )
 {
     int lisFd = -1;
     int fd = -1;
@@ -207,7 +207,7 @@ void __stdcall WaitHello( intptr_t context )
         DzWaitSynObj( helloEvt );
         DzSend( fd, sendBuff, sizeof( sendBuff ), 0 );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -226,13 +226,13 @@ void WaitAllCotEnd( int expectMaxCotCount )
     }
     DzWaitSynObj( gEndEvt );
 
-    EXPECT_EQ( expectMaxCotCount, gMaxCotCount );
+    DZ_EXPECT_EQ( expectMaxCotCount, gMaxCotCount );
 #ifdef DZ_TEST_SOCKET_SVR
     DzSetEvt( gHelloEvt );
 #endif
 
 #ifdef DZ_TEST_SOCKET_CLT
-    SayHello( NULL );
+    SayHello( 0 );
 #endif
 }
 
@@ -412,7 +412,7 @@ void SetWriteFunc( FuncWrite writeFunc, BOOL loop = FALSE )
         );
 }
 
-void CltMain( DzRoutine cltRoutine, int count )
+void CltMain( DzEntry cltRoutine, int count )
 {
     for( int i = 0; i < count; i++ ){
         CotStart( cltRoutine, (intptr_t)i );
@@ -467,10 +467,10 @@ int TcpReadOneStream( FuncRead readFunc, int lisFd )
                 }
             }
         }
-        EXPECT_EQ( 0, ret );
+        DZ_EXPECT_EQ( 0, ret );
         cmp += tmp;
     }while( tmp > 0 && recvLen < ts.len );
-    EXPECT_EQ( ts.len, recvLen ) << "recv time : " << recvTimeCount;
+    DZ_EXPECT_EQ( ts.len, recvLen ) << "recv time : " << recvTimeCount;
     delete[] buff;
     return ts.idx;
 }
@@ -490,7 +490,7 @@ void TcpWriteOneStream( FuncWrite writeFunc, int fd, int idx )
             emptyLen = buffLen - sendLen;
         }
         __DzTce5( "send start %d", sendTimeCount++ );
-        tmp = writeFunc( fd, buff + sendLen, emptyLen, NULL, NULL );
+        tmp = writeFunc( fd, buff + sendLen, emptyLen, NULL, 0 );
         if( tmp < 0 ){
             throw (int)__LINE__;
         }
@@ -500,10 +500,10 @@ void TcpWriteOneStream( FuncWrite writeFunc, int fd, int idx )
             DzSleep( gSendInterval );
         }
     }while( tmp > 0 && sendLen < buffLen );
-    EXPECT_EQ( buffLen, sendLen ) << "send time : " << sendTimeCount;
+    DZ_EXPECT_EQ( buffLen, sendLen ) << "send time : " << sendTimeCount;
 }
 
-void TcpSvrMain( DzRoutine svrRoutine, int count )
+void TcpSvrMain( DzEntry svrEntry, int count )
 {
     DzStartCot( WaitHello );
 
@@ -533,11 +533,11 @@ void TcpSvrMain( DzRoutine svrRoutine, int count )
             if( fd == -1 ){
                 throw (int)__LINE__;
             }
-            CotStart( svrRoutine, (intptr_t)fd );
+            CotStart( svrEntry, (intptr_t)fd );
             connCount--;
         }
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( lisFd != -1 ){
         DzCloseSocket( lisFd );
@@ -554,7 +554,7 @@ int UdpReadOneStream( FuncRead readFunc, int fd, sockaddr* from = NULL, int* fro
         throw (int)__LINE__;
     }
     TestStream* ts = (TestStream*)buff;
-    EXPECT_EQ( ts->len, tmp );
+    DZ_EXPECT_EQ( ts->len, tmp );
     return ts->idx;
 }
 
@@ -565,10 +565,10 @@ void UdpWriteOneStream( FuncWrite writeFunc, int fd, int idx, const sockaddr* to
     if( tmp < 0 ){
         throw (int)__LINE__;
     }
-    EXPECT_EQ( ts->len, tmp );
+    DZ_EXPECT_EQ( ts->len, tmp );
 }
 
-void UdpSvrMain( DzRoutine svrRoutine, int count )
+void UdpSvrMain( DzEntry svrEntry, int count )
 {
     DzSetPriority( CP_HIGH );
     DzStartCot( WaitHello );
@@ -586,11 +586,11 @@ void UdpSvrMain( DzRoutine svrRoutine, int count )
         int connCount = count;
         while( connCount ){
             int idx = UdpReadOneStream( GetReadFunc(), fd );
-            CotStart( svrRoutine, (intptr_t)idx );
+            CotStart( svrEntry, (intptr_t)idx );
             connCount--;
         }
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -599,8 +599,8 @@ void UdpSvrMain( DzRoutine svrRoutine, int count )
 }
 
 void SocketTestFrame(
-    DzRoutine   svrTstEntry,
-    DzRoutine   cltTstEntry,
+    DzEntry     svrTstEntry,
+    DzEntry     cltTstEntry,
     int         testCount
     )
 {
@@ -622,25 +622,25 @@ void SocketTestFrame(
     FreeParam();
 }
 
-void __stdcall HelpCloseSocket( intptr_t context )
+CotEntry HelpCloseSocket( intptr_t context )
 {
     int fd = (int)context;
     DzCloseSocket( fd );
 }
 
-void __stdcall TcpSvrRecvRoutine( intptr_t context )
+CotEntry TcpSvrRecvRoutine( intptr_t context )
 {
     int fd = (int)context;
     try{
         TcpReadOneStream( GetReadFunc(), fd );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     DzCloseSocket( fd );
     CotStop();
 }
 
-void __stdcall TcpCltSendRoutine( intptr_t context )
+CotEntry TcpCltSendRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -654,7 +654,7 @@ void __stdcall TcpCltSendRoutine( intptr_t context )
         int idx = (int)context;
         TcpWriteOneStream( GetWriteFunc(), fd, idx );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -662,19 +662,19 @@ void __stdcall TcpCltSendRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpSvrSendRoutine( intptr_t context )
+CotEntry TcpSvrSendRoutine( intptr_t context )
 {
     int fd = (int)context;
     try{
         TcpWriteOneStream( GetWriteFunc(), fd, 0 );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     DzCloseSocket( fd );
     CotStop();
 }
 
-void __stdcall TcpCltRecvRoutine( intptr_t context )
+CotEntry TcpCltRecvRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -686,9 +686,9 @@ void __stdcall TcpCltRecvRoutine( intptr_t context )
             throw (int)__LINE__;
         }
         int idx = TcpReadOneStream( GetReadFunc(), fd );
-        EXPECT_EQ( 0, idx );
+        DZ_EXPECT_EQ( 0, idx );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -696,23 +696,23 @@ void __stdcall TcpCltRecvRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpSvrRsrsRoutine( intptr_t context )
+CotEntry TcpSvrRsrsRoutine( intptr_t context )
 {
     int fd = (int)context;
     try{
         int idx = TcpReadOneStream( GetReadFunc(), fd );
         TcpWriteOneStream( GetWriteFunc(), fd, idx + 1 );
         int idx1 = TcpReadOneStream( GetReadFunc(), fd );
-        EXPECT_EQ( idx + 2, idx1 );
+        DZ_EXPECT_EQ( idx + 2, idx1 );
         TcpWriteOneStream( GetWriteFunc(), fd, idx1 + 1 );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     DzCloseSocket( fd );
     CotStop();
 }
 
-void __stdcall TcpCltSrsrRoutine( intptr_t context )
+CotEntry TcpCltSrsrRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -726,12 +726,12 @@ void __stdcall TcpCltSrsrRoutine( intptr_t context )
         int idx = (int)context;
         TcpWriteOneStream( GetWriteFunc(), fd, idx );
         int idx1 = TcpReadOneStream( GetReadFunc(), fd );
-        EXPECT_EQ( idx + 1, idx1 );
+        DZ_EXPECT_EQ( idx + 1, idx1 );
         TcpWriteOneStream( GetWriteFunc(), fd, idx1 + 1 );
         int idx2 = TcpReadOneStream( GetReadFunc(), fd );
-        EXPECT_EQ( idx1 + 2, idx2 );
+        DZ_EXPECT_EQ( idx1 + 2, idx2 );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -739,7 +739,7 @@ void __stdcall TcpCltSrsrRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpSvrRecvOpCloseRoutine( intptr_t context )
+CotEntry TcpSvrRecvOpCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     int fd = (int)context;
@@ -748,15 +748,15 @@ void __stdcall TcpSvrRecvOpCloseRoutine( intptr_t context )
     unsigned long long start = DzMilUnixTime();
     int ret = readFunc( fd, buff, 32, NULL, NULL );
     unsigned long long stop = DzMilUnixTime();
-    EXPECT_EQ( 0, ret );
+    DZ_EXPECT_EQ( 0, ret );
     ret = readFunc( fd, buff, 32, NULL, NULL );
-    EXPECT_EQ( 0, ret );
-    EXPECT_GE( 200, stop - start );
+    DZ_EXPECT_EQ( 0, ret );
+    DZ_EXPECT_GE( 200, stop - start );
     DzCloseSocket( fd );
     CotStop();
 }
 
-void __stdcall TcpCltRecvOpCloseRoutine( intptr_t context )
+CotEntry TcpCltRecvOpCloseRoutine( intptr_t context )
 {
     int fd = -1;
     try{
@@ -773,7 +773,7 @@ void __stdcall TcpCltRecvOpCloseRoutine( intptr_t context )
         }
         fd = -1;
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -781,21 +781,21 @@ void __stdcall TcpCltRecvOpCloseRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpSvrSendOpCloseRoutine( intptr_t context )
+CotEntry TcpSvrSendOpCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     int fd = (int)context;
     int idx;
     try{
         int ret = readFunc( fd, &idx, sizeof( idx ), NULL, NULL );
-        EXPECT_EQ( sizeof( idx ), ret );
+        DZ_EXPECT_EQ( sizeof( idx ), ret );
         DzSleep( 100 );
         if( DzCloseSocket( fd ) != 0 ){
             throw (int)__LINE__;
         }
         fd = -1;
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -803,7 +803,7 @@ void __stdcall TcpSvrSendOpCloseRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpCltSendOpCloseRoutine( intptr_t context )
+CotEntry TcpCltSendOpCloseRoutine( intptr_t context )
 {
     FuncWrite writeFunc = GetWriteFunc();
     int idx = (int)context;
@@ -823,10 +823,10 @@ void __stdcall TcpCltSendOpCloseRoutine( intptr_t context )
             DzSleep( 10 );
         }while( ret > 0 );
         unsigned long long stop = DzMilUnixTime();
-        EXPECT_EQ( -1, ret );
-        EXPECT_GE( 200, stop - start );
+        DZ_EXPECT_EQ( -1, ret );
+        DZ_EXPECT_GE( 200, stop - start );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -834,7 +834,7 @@ void __stdcall TcpCltSendOpCloseRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpSvrRecvCloseRoutine( intptr_t context )
+CotEntry TcpSvrRecvCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     FuncWrite writeFunc = GetWriteFunc();
@@ -853,24 +853,24 @@ void __stdcall TcpSvrRecvCloseRoutine( intptr_t context )
             //Warning: platform difference!
             //after shutdown for READ, subsequent read call return different
             //linux return 0 and windows return -1
-            EXPECT_GE( 0, ret );
-            ret = writeFunc( fd, &idx, sizeof( idx ), NULL, NULL );
-            EXPECT_EQ( sizeof( idx ), ret );
+            DZ_EXPECT_GE( 0, ret );
+            ret = writeFunc( fd, &idx, sizeof( idx ), NULL, 0 );
+            DZ_EXPECT_EQ( sizeof( idx ), ret );
             DzCloseSocket( fd );
         }else if( type == 1 ){
             DzHandle timer = DzCreateCallbackTimer( 2000, FALSE, HelpCloseSocket, (intptr_t)fd );
             unsigned long long start = DzMilUnixTime();
             ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
             unsigned long long stop = DzMilUnixTime();
-            EXPECT_EQ( 0, ret );
-            EXPECT_LE( 190, stop - start );
+            DZ_EXPECT_EQ( 0, ret );
+            DZ_EXPECT_LE( 190, stop - start );
             DzDelCallbackTimer( timer );
         }else{
             DzSleep( 1000 );
             DzCloseSocket( fd );
         }
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
         if( fd != -1 ){
             DzCloseSocket( fd );
         }
@@ -878,7 +878,7 @@ void __stdcall TcpSvrRecvCloseRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpCltSendCloseRoutine( intptr_t context )
+CotEntry TcpCltSendCloseRoutine( intptr_t context )
 {
     FuncRead readFunc = GetReadFunc();
     FuncWrite writeFunc = GetWriteFunc();
@@ -902,11 +902,11 @@ void __stdcall TcpCltSendCloseRoutine( intptr_t context )
         if( type == 0 ){
             DzShutdown( fd, 1 );
             ret = writeFunc( fd, &idx, sizeof( idx ), NULL, 0 );
-            EXPECT_EQ( -1, ret );
+            DZ_EXPECT_EQ( -1, ret );
             int idx1;
             ret = readFunc( fd, &idx1, sizeof( idx1 ), NULL, NULL );
-            EXPECT_EQ( sizeof( idx1 ), ret );
-            EXPECT_EQ( idx, idx1 );
+            DZ_EXPECT_EQ( sizeof( idx1 ), ret );
+            DZ_EXPECT_EQ( idx, idx1 );
             DzCloseSocket( fd );
         }else if( type == 1 ){
             DzSleep( 1000 );
@@ -915,16 +915,16 @@ void __stdcall TcpCltSendCloseRoutine( intptr_t context )
             DzHandle timer = DzCreateCallbackTimer( 200, FALSE, HelpCloseSocket, (intptr_t)fd );
             unsigned long long start = DzMilUnixTime();
             do{
-                ret = writeFunc( fd, buff, sizeof( buff ), NULL, NULL );
+                ret = writeFunc( fd, buff, sizeof( buff ), NULL, 0 );
                 DzSleep( 1 );
             }while( ret > 0 );
             unsigned long long stop = DzMilUnixTime();
-            EXPECT_EQ( -1, ret );
-            EXPECT_LE( 190, stop - start );
+            DZ_EXPECT_EQ( -1, ret );
+            DZ_EXPECT_LE( 190, stop - start );
             DzDelCallbackTimer( timer );
         }
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
         if( fd != -1 ){
             DzCloseSocket( fd );
         }
@@ -932,7 +932,7 @@ void __stdcall TcpCltSendCloseRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall UdpSvrRecvSendRoutine( intptr_t context )
+CotEntry UdpSvrRecvSendRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -951,7 +951,7 @@ void __stdcall UdpSvrRecvSendRoutine( intptr_t context )
         }
         UdpWriteOneStream( GetWriteFunc(), fd, idx + 1 );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -959,7 +959,7 @@ void __stdcall UdpSvrRecvSendRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall UdpCltSendRecvRoutine( intptr_t context )
+CotEntry UdpCltSendRecvRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -991,9 +991,9 @@ void __stdcall UdpCltSendRecvRoutine( intptr_t context )
         UdpWriteOneStream( GetWriteFunc(), fd, idx );
 
         int ret = UdpReadOneStream( GetReadFunc(), recvFd );
-        EXPECT_EQ( idx + 1, ret );
+        DZ_EXPECT_EQ( idx + 1, ret );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -1004,7 +1004,7 @@ void __stdcall UdpCltSendRecvRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall UdpSvrRecvSendNoConnRoutine( intptr_t context )
+CotEntry UdpSvrRecvSendNoConnRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -1029,7 +1029,7 @@ void __stdcall UdpSvrRecvSendNoConnRoutine( intptr_t context )
 
         UdpWriteOneStream( GetWriteFunc(), fd, idx + 1, (sockaddr*)&addr1, sizeof( addr1 ) );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -1037,7 +1037,7 @@ void __stdcall UdpSvrRecvSendNoConnRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall UdpCltSendRecvNoConnRoutine( intptr_t context )
+CotEntry UdpCltSendRecvNoConnRoutine( intptr_t context )
 {
     int idx = (int)context;
     int fd = -1;
@@ -1062,11 +1062,11 @@ void __stdcall UdpCltSendRecvNoConnRoutine( intptr_t context )
         sockaddr_in addr1;
         int addr1Len = sizeof( addr1 );
         int ret = UdpReadOneStream( GetReadFunc(), fd, (sockaddr*)&addr1, &addr1Len );
-        EXPECT_EQ( idx + 1, ret );
-        EXPECT_EQ( hton16( gPort - 1 - idx ), addr1.sin_port );
-        EXPECT_EQ( ( (sockaddr_in*)gAddr )->sin_addr.s_addr, addr1.sin_addr.s_addr );
+        DZ_EXPECT_EQ( idx + 1, ret );
+        DZ_EXPECT_EQ( hton16( gPort - 1 - idx ), addr1.sin_port );
+        DZ_EXPECT_EQ( ( (sockaddr_in*)gAddr )->sin_addr.s_addr, addr1.sin_addr.s_addr );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );
@@ -1074,67 +1074,67 @@ void __stdcall UdpCltSendRecvNoConnRoutine( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpSvrRecvMain( intptr_t context )
+CotEntry TcpSvrRecvMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRecvRoutine, (int)context );
 }
 
-void __stdcall TcpCltSendMain( intptr_t context )
+CotEntry TcpCltSendMain( intptr_t context )
 {
     CltMain( TcpCltSendRoutine, (int)context );
 }
 
-void __stdcall TcpSvrSendMain( intptr_t context )
+CotEntry TcpSvrSendMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrSendRoutine, (int)context );
 }
 
-void __stdcall TcpCltRecvMain( intptr_t context )
+CotEntry TcpCltRecvMain( intptr_t context )
 {
     CltMain( TcpCltRecvRoutine, (int)context );
 }
 
-void __stdcall TcpSvrRsrsMain( intptr_t context )
+CotEntry TcpSvrRsrsMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRsrsRoutine, (int)context );
 }
 
-void __stdcall TcpCltSrsrMain( intptr_t context )
+CotEntry TcpCltSrsrMain( intptr_t context )
 {
     CltMain( TcpCltSrsrRoutine, (int)context );
 }
 
-void __stdcall TcpSvrRecvOpCloseMain( intptr_t context )
+CotEntry TcpSvrRecvOpCloseMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRecvOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpCltRecvOpCloseMain( intptr_t context )
+CotEntry TcpCltRecvOpCloseMain( intptr_t context )
 {
     CltMain( TcpCltRecvOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpSvrSendOpCloseMain( intptr_t context )
+CotEntry TcpSvrSendOpCloseMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrSendOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpCltSendOpCloseMain( intptr_t context )
+CotEntry TcpCltSendOpCloseMain( intptr_t context )
 {
     CltMain( TcpCltSendOpCloseRoutine, (int)context );
 }
 
-void __stdcall TcpSvrRecvCloseMain( intptr_t context )
+CotEntry TcpSvrRecvCloseMain( intptr_t context )
 {
     TcpSvrMain( TcpSvrRecvCloseRoutine, (int)context );
 }
 
-void __stdcall TcpCltSendCloseMain( intptr_t context )
+CotEntry TcpCltSendCloseMain( intptr_t context )
 {
     CltMain( TcpCltSendCloseRoutine, (int)context );
 }
 
-void __stdcall TcpSvrAcceptCloseMain( intptr_t context )
+CotEntry TcpSvrAcceptCloseMain( intptr_t context )
 {
     DzStartCot( WaitHello );
 
@@ -1161,11 +1161,11 @@ void __stdcall TcpSvrAcceptCloseMain( intptr_t context )
         sockaddr acptAddr;
         int acptAddrLen = sizeof( sockaddr );
         int fd = DzAccept( lisFd, &acptAddr, &acptAddrLen );
-        EXPECT_EQ( -1, fd );
+        DZ_EXPECT_EQ( -1, fd );
         lisFd = -1;
         DzDelCallbackTimer( timer );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
         if( lisFd != -1 ){
             DzCloseSocket( lisFd );
         }
@@ -1173,7 +1173,7 @@ void __stdcall TcpSvrAcceptCloseMain( intptr_t context )
     CotStop();
 }
 
-void __stdcall TcpCltConnectCloseMain( intptr_t context )
+CotEntry TcpCltConnectCloseMain( intptr_t context )
 {
     int fd = -1;
     try{
@@ -1183,35 +1183,35 @@ void __stdcall TcpCltConnectCloseMain( intptr_t context )
         }
         DzHandle timer = DzCreateCallbackTimer( 200, FALSE, HelpCloseSocket, (intptr_t)fd );
         int ret = DzConnect( fd, gAddr, gAddrLen );
-        EXPECT_EQ( -1, ret );
+        DZ_EXPECT_EQ( -1, ret );
         DzDelCallbackTimer( timer );
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     CotStop();
 }
 
-void __stdcall UdpSvrRecvSendMain( intptr_t context )
+CotEntry UdpSvrRecvSendMain( intptr_t context )
 {
     UdpSvrMain( UdpSvrRecvSendRoutine, (int)context );
 }
 
-void __stdcall UdpCltSendRecvMain( intptr_t context )
+CotEntry UdpCltSendRecvMain( intptr_t context )
 {
     CltMain( UdpCltSendRecvRoutine, (int)context );
 }
 
-void __stdcall UdpSvrRecvSendNoConnMain( intptr_t context )
+CotEntry UdpSvrRecvSendNoConnMain( intptr_t context )
 {
     UdpSvrMain( UdpSvrRecvSendNoConnRoutine, (int)context );
 }
 
-void __stdcall UdpCltSendRecvNoConnMain( intptr_t context )
+CotEntry UdpCltSendRecvNoConnMain( intptr_t context )
 {
     CltMain( UdpCltSendRecvNoConnRoutine, (int)context );
 }
 
-void __stdcall TcpTestSimpleSend( intptr_t context )
+CotEntry TcpTestSimpleSend( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 2345135, cotCount, 1024, 0 );
@@ -1219,7 +1219,7 @@ void __stdcall TcpTestSimpleSend( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestSimpleRecv( intptr_t context )
+CotEntry TcpTestSimpleRecv( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 82534, cotCount, 1024, 0 );
@@ -1227,7 +1227,7 @@ void __stdcall TcpTestSimpleRecv( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestLargeBuffer( intptr_t context )
+CotEntry TcpTestLargeBuffer( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 9672122, cotCount, 64 * 1024 * 1024, 0 );
@@ -1235,7 +1235,7 @@ void __stdcall TcpTestLargeBuffer( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestSendRecvSendRecv( intptr_t context )
+CotEntry TcpTestSendRecvSendRecv( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 654752, cotCount + 3, 4* 1024 * 1024, 512 * 1024 );
@@ -1243,7 +1243,7 @@ void __stdcall TcpTestSendRecvSendRecv( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestMultiSendRecvSendRecv( intptr_t context )
+CotEntry TcpTestMultiSendRecvSendRecv( intptr_t context )
 {
     int cotCount = 100;
     InitBuffArray( 654752, cotCount + 3, 1024, 512 );
@@ -1251,7 +1251,7 @@ void __stdcall TcpTestMultiSendRecvSendRecv( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestHugeSendRecvSendRecv( intptr_t context )
+CotEntry TcpTestHugeSendRecvSendRecv( intptr_t context )
 {
     int cotCount = 500;
     InitBuffArray( 654752, cotCount + 3, 64, 32 );
@@ -1259,27 +1259,27 @@ void __stdcall TcpTestHugeSendRecvSendRecv( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall TcpTestRecvOpCloseValue( intptr_t context )
+CotEntry TcpTestRecvOpCloseValue( intptr_t context )
 {
     SocketTestFrame( TcpSvrRecvOpCloseMain, TcpCltRecvOpCloseMain, 5 );
 }
 
-void __stdcall TcpTestSendOpCloseValue( intptr_t context )
+CotEntry TcpTestSendOpCloseValue( intptr_t context )
 {
     SocketTestFrame( TcpSvrSendOpCloseMain, TcpCltSendOpCloseMain, 5 );
 }
 
-void __stdcall TcpTestSendRecvClose( intptr_t context )
+CotEntry TcpTestSendRecvClose( intptr_t context )
 {
     SocketTestFrame( TcpSvrRecvCloseMain, TcpCltSendCloseMain, 15 );
 }
 
-void __stdcall TcpTestConnectAcceptClose( intptr_t context )
+CotEntry TcpTestConnectAcceptClose( intptr_t context )
 {
     SocketTestFrame( TcpSvrAcceptCloseMain, TcpCltConnectCloseMain, 0 );
 }
 
-void __stdcall UdpTestSendRecv( intptr_t context )
+CotEntry UdpTestSendRecv( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 2546257, cotCount + 1, 1024, 256 );
@@ -1287,7 +1287,7 @@ void __stdcall UdpTestSendRecv( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall UdpTestMultiSendRecv( intptr_t context )
+CotEntry UdpTestMultiSendRecv( intptr_t context )
 {
     int cotCount = 100;
     InitBuffArray( 342553, cotCount + 1, 1024, 256 );
@@ -1295,7 +1295,7 @@ void __stdcall UdpTestMultiSendRecv( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall UdpTestSendRecvNoConn( intptr_t context )
+CotEntry UdpTestSendRecvNoConn( intptr_t context )
 {
     int cotCount = 1;
     InitBuffArray( 2546257, cotCount + 1, 1024, 256 );
@@ -1303,7 +1303,7 @@ void __stdcall UdpTestSendRecvNoConn( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall UdpTestMultiSendRecvNoConn( intptr_t context )
+CotEntry UdpTestMultiSendRecvNoConn( intptr_t context )
 {
     int cotCount = 100;
     InitBuffArray( 342553, cotCount + 1, 1024, 256 );
@@ -1311,7 +1311,7 @@ void __stdcall UdpTestMultiSendRecvNoConn( intptr_t context )
     DeleteBuffArray();
 }
 
-void __stdcall UdpTestRecvClose( intptr_t context )
+CotEntry UdpTestRecvClose( intptr_t context )
 {
     InitParam();
     int count = (int)context;
@@ -1332,14 +1332,14 @@ void __stdcall UdpTestRecvClose( intptr_t context )
             unsigned long long start = DzMilUnixTime();
             int ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
             unsigned long long stop = DzMilUnixTime();
-            EXPECT_EQ( -1, ret );
-            EXPECT_LT( 190, stop - start );
-            EXPECT_GT( 300, stop - start );
+            DZ_EXPECT_EQ( -1, ret );
+            DZ_EXPECT_LT( 190, stop - start );
+            DZ_EXPECT_GT( 300, stop - start );
             DzDelCallbackTimer( timer );
             count--;
         }
     }catch( int line ){
-        ADD_FAILURE() << "socket error, line : " << line;
+        DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
         DzCloseSocket( fd );

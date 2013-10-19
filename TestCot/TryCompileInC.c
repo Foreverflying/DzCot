@@ -3,7 +3,7 @@
 #include "TryCompileInC.h"
 
 
-void __stdcall TryCompileInCRoutine( intptr_t context )
+CotEntry TryCompileInCRoutine( intptr_t context )
 {
     DzSleep( 50 );
 }

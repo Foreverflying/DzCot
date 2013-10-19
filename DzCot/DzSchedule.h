@@ -37,14 +37,15 @@ inline void DispatchCot( DzHost* host, DzCot* dzCot )
     AddLItrToTail( &host->taskLs[ dzCot->priority ], &dzCot->lItr );
 }
 
-inline void TemporaryPushCot( DzHost* host, DzCot* dzCot )
+inline void PushCotToTop( DzHost* host, DzCot* dzCot )
 {
-    AddLItrToHead( &host->taskLs[ dzCot->priority ], &dzCot->lItr );
+    AddLItrToHead( &host->taskLs[ CP_FIRST ], &dzCot->lItr );
+    host->currPri = CP_FIRST;
 }
 
 inline void SwitchToCot( DzHost* host, DzCot* dzCot )
 {
-    __DbgCheckCotStackOverflow( host->currCot );
+    __Dbg( CheckCotStackOverflow )( host, host->currCot );
     DzSwitch( host, dzCot );
 }
 

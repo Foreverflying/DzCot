@@ -40,7 +40,7 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
         epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, fd, &evt );
         return (int)( (intptr_t)dzFd - host->handleBase );
     }else{
-        __DbgSetLastErr( host, errno );
+        __Dbg( SetLastErr )( host, errno );
         return -1;
     }
 }
@@ -121,7 +121,7 @@ inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addr
             CloneDzFd( dzFd );
             WaitEasyEvt( host, &dzFd->outEvt );
             if( dzFd->err ){
-                __DbgSetLastErr( host, dzFd->err );
+                __Dbg( SetLastErr )( host, dzFd->err );
                 CloseDzFd( host, dzFd );
                 return -1;
             }
@@ -129,11 +129,11 @@ inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addr
             errLen = sizeof( err );
             getsockopt( dzFd->fd, SOL_SOCKET, SO_ERROR, &err, &errLen );
             if( err ){
-                __DbgSetLastErr( host, err );
+                __Dbg( SetLastErr )( host, err );
                 return -1;
             }
         }else{
-            __DbgSetLastErr( host, errno );
+            __Dbg( SetLastErr )( host, errno );
             return -1;
         }
     }
@@ -154,18 +154,18 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
             CloneDzFd( dzFd );
             WaitEasyEvt( host, &dzFd->inEvt );
             if( dzFd->err ){
-                __DbgSetLastErr( host, dzFd->err );
+                __Dbg( SetLastErr )( host, dzFd->err );
                 CloseDzFd( host, dzFd );
                 return -1;
             }
             CloseDzFd( host, dzFd );
             ret = accept( dzFd->fd, addr, (socklen_t*)addrLen );
             if( ret < 0 ){
-                __DbgSetLastErr( host, errno );
+                __Dbg( SetLastErr )( host, errno );
                 return -1;
             }
         }else{
-            __DbgSetLastErr( host, errno );
+            __Dbg( SetLastErr )( host, errno );
             return -1;
         }
     }
@@ -191,18 +191,18 @@ inline int SendMsg( DzHost* host, int hFd, struct msghdr* msg, int flags )
             CloneDzFd( dzFd );
             WaitEasyEvt( host, &dzFd->outEvt );
             if( dzFd->err ){
-                __DbgSetLastErr( host, dzFd->err );
+                __Dbg( SetLastErr )( host, dzFd->err );
                 CloseDzFd( host, dzFd );
                 return -1;
             }
             CloseDzFd( host, dzFd );
             ret = sendmsg( dzFd->fd, msg, flags | MSG_NOSIGNAL );
             if( ret < 0 ){
-                __DbgSetLastErr( host, errno );
+                __Dbg( SetLastErr )( host, errno );
                 return -1;
             }
         }else{
-            __DbgSetLastErr( host, errno );
+            __Dbg( SetLastErr )( host, errno );
             return -1;
         }
     }
@@ -221,18 +221,18 @@ inline int RecvMsg( DzHost* host, int hFd, struct msghdr* msg, int flags )
             CloneDzFd( dzFd );
             WaitEasyEvt( host, &dzFd->inEvt );
             if( dzFd->err ){
-                __DbgSetLastErr( host, dzFd->err );
+                __Dbg( SetLastErr )( host, dzFd->err );
                 CloseDzFd( host, dzFd );
                 return -1;
             }
             CloseDzFd( host, dzFd );
             ret = recvmsg( dzFd->fd, msg, flags );
             if( ret < 0 ){
-                __DbgSetLastErr( host, errno );
+                __Dbg( SetLastErr )( host, errno );
                 return -1;
             }
         }else{
-            __DbgSetLastErr( host, errno );
+            __Dbg( SetLastErr )( host, errno );
             return -1;
         }
     }
@@ -441,7 +441,7 @@ inline int OpenA( DzHost* host, const char* fileName, int flags )
         epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, fd, &evt );
         return (int)( (intptr_t)dzFd - host->handleBase );
     }else{
-        __DbgSetLastErr( host, errno );
+        __Dbg( SetLastErr )( host, errno );
         return -1;
     }
 }
@@ -481,18 +481,18 @@ inline size_t Read( DzHost* host, int hFd, void* buf, size_t count )
             CloneDzFd( dzFd );
             WaitEasyEvt( host, &dzFd->inEvt );
             if( dzFd->err ){
-                __DbgSetLastErr( host, dzFd->err );
+                __Dbg( SetLastErr )( host, dzFd->err );
                 CloseDzFd( host, dzFd );
                 return -1;
             }
             CloseDzFd( host, dzFd );
             ret = read( dzFd->fd, buf, count );
             if( ret < 0 ){
-                __DbgSetLastErr( host, errno );
+                __Dbg( SetLastErr )( host, errno );
                 return -1;
             }
         }else{
-            __DbgSetLastErr( host, errno );
+            __Dbg( SetLastErr )( host, errno );
             return -1;
         }
     }
@@ -514,18 +514,18 @@ inline size_t Write( DzHost* host, int hFd, const void* buf, size_t count )
             CloneDzFd( dzFd );
             WaitEasyEvt( host, &dzFd->outEvt );
             if( dzFd->err ){
-                __DbgSetLastErr( host, dzFd->err );
+                __Dbg( SetLastErr )( host, dzFd->err );
                 CloseDzFd( host, dzFd );
                 return -1;
             }
             CloseDzFd( host, dzFd );
             ret = write( dzFd->fd, buf, count );
             if( ret < 0 ){
-                __DbgSetLastErr( host, errno );
+                __Dbg( SetLastErr )( host, errno );
                 return -1;
             }
         }else{
-            __DbgSetLastErr( host, errno );
+            __Dbg( SetLastErr )( host, errno );
             return -1;
         }
     }
@@ -581,7 +581,7 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
             break;
         }
         if( signAtWakeUp != 0 ){
-            read( host->os.pipe[0], evtList, PAGE_SIZE );
+            listCount = read( host->os.pipe[0], evtList, PAGE_SIZE );
         }
     }
 }

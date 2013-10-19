@@ -44,7 +44,7 @@ void HandleCppExpFunc( int delay, TestExpData* data, int type )
     }
 }
 
-void __stdcall CppExpRoutine( intptr_t context )
+CotEntry CppExpRoutine( intptr_t context )
 {
     gCount++;
     int delay = (int)context;
@@ -55,33 +55,33 @@ void __stdcall CppExpRoutine( intptr_t context )
     data.x = 0;
     data.y = 0;
     HandleCppExpFunc( delay, &data, 1 );
-    EXPECT_EQ( 8, data.a );
-    EXPECT_EQ( 0, data.b );
-    EXPECT_EQ( 0, data.x );
-    EXPECT_EQ( 0, data.y );
+    DZ_EXPECT_EQ( 8, data.a );
+    DZ_EXPECT_EQ( 0, data.b );
+    DZ_EXPECT_EQ( 0, data.x );
+    DZ_EXPECT_EQ( 0, data.y );
 
     data.a = 0;
     data.b = 0;
     data.x = 0;
     data.y = 0;
     HandleCppExpFunc( delay, &data, 2 );
-    EXPECT_EQ( 0, data.a );
-    EXPECT_EQ( 5, data.b );
-    EXPECT_EQ( 0, data.x );
-    EXPECT_EQ( 0, data.y );
+    DZ_EXPECT_EQ( 0, data.a );
+    DZ_EXPECT_EQ( 5, data.b );
+    DZ_EXPECT_EQ( 0, data.x );
+    DZ_EXPECT_EQ( 0, data.y );
 
     data.a = 0;
     data.b = 0;
     data.x = 0;
     data.y = 0;
     HandleCppExpFunc( delay, &data, 3 );
-    EXPECT_EQ( 1, data.a );
-    EXPECT_EQ( 2, data.b );
-    EXPECT_EQ( 3, data.x );
-    EXPECT_EQ( 4, data.y );
+    DZ_EXPECT_EQ( 1, data.a );
+    DZ_EXPECT_EQ( 2, data.b );
+    DZ_EXPECT_EQ( 3, data.x );
+    DZ_EXPECT_EQ( 4, data.y );
 }
 
-void __stdcall TestCppException( intptr_t context )
+CotEntry TestCppException( intptr_t context )
 {
     gCount = 0;
     int n = (int)context;
@@ -96,7 +96,7 @@ void __stdcall TestCppException( intptr_t context )
     for( int i = 0; i < n; i++ ){
         DzDelSynObj( evt[i] );
     }
-    EXPECT_EQ( n, gCount );
+    DZ_EXPECT_EQ( n, gCount );
 }
 
 TEST( TestException, CppException )
@@ -135,7 +135,7 @@ void ContinueExpFunc( int delay, TestExpData* data )
     }
 }
 
-void __stdcall SehExpRoutine( intptr_t context )
+CotEntry SehExpRoutine( intptr_t context )
 {
     gCount++;
     int delay = (int)context;
@@ -146,20 +146,20 @@ void __stdcall SehExpRoutine( intptr_t context )
     data.x = 0;
     data.y = 0;
     HandleExpFunc( delay, &data );
-    EXPECT_EQ( 0, data.x );
-    EXPECT_EQ( 104, data.y );
+    DZ_EXPECT_EQ( 0, data.x );
+    DZ_EXPECT_EQ( 104, data.y );
 
     data.a = 0;
     data.b = 0;
     data.x = 0;
     data.y = 0;
     ContinueExpFunc( delay, &data );
-    EXPECT_EQ( 2, data.b );
-    EXPECT_EQ( 2, data.x );
-    EXPECT_EQ( 104, data.y );
+    DZ_EXPECT_EQ( 2, data.b );
+    DZ_EXPECT_EQ( 2, data.x );
+    DZ_EXPECT_EQ( 104, data.y );
 }
 
-void __stdcall TestWinSehException( intptr_t context )
+CotEntry TestWinSehException( intptr_t context )
 {
     gCount = 0;
     int n = (int)context;
@@ -174,7 +174,7 @@ void __stdcall TestWinSehException( intptr_t context )
     for( int i = 0; i < n; i++ ){
         DzDelSynObj( evt[i] );
     }
-    EXPECT_EQ( n, gCount );
+    DZ_EXPECT_EQ( n, gCount );
 }
 
 TEST( TestException, WinSehException )

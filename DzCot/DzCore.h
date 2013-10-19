@@ -69,6 +69,7 @@ inline void FreeDzCot( DzHost* host, DzCot* dzCot )
 {
     DzCot* tmp;
 
+    __Dbg( InitDzCot )( host, dzCot );
     if( host->cotPoolNowDepth[ dzCot->sSize ] > 0 ){
         dzCot->lItr.next = host->cotPools[ dzCot->sSize ];
         host->cotPools[ dzCot->sSize ] = &dzCot->lItr;
@@ -86,7 +87,7 @@ inline void FreeDzCot( DzHost* host, DzCot* dzCot )
             host->cotPool = &tmp->lItr;
         }else{
             //switch to a helper cot to free it
-            StartCot( host, DelayFreeCotHelper, (intptr_t)dzCot, host->lowestPri, SS_FIRST );
+            StartCot( host, DelayFreeCotHelper, (intptr_t)dzCot, host->currPri, SS_MIN );
         }
     }
 }
@@ -95,7 +96,7 @@ inline void FreeDzCot( DzHost* host, DzCot* dzCot )
 // create a new cot
 inline int StartCot(
     DzHost*     host,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -122,7 +123,7 @@ inline int StartCot(
 // current cot is paused and will continue at next schedule
 inline int StartCotInstant(
     DzHost*     host,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -138,7 +139,7 @@ inline int StartCotInstant(
     host->cotCount++;
     host->scheduleCd++;
     SetCotEntry( dzCot, entry, context );
-    TemporaryPushCot( host, host->currCot );
+    PushCotToTop( host, host->currCot );
     SwitchToCot( host, dzCot );
     return DS_OK;
 }
@@ -148,7 +149,7 @@ inline int StartCotInstant(
 inline int EvtStartCot(
     DzHost*     host,
     DzSynObj*   evt,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -177,7 +178,7 @@ inline int EvtStartCot(
 inline int EvtStartCotInstant(
     DzHost*     host,
     DzSynObj*   evt,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -195,7 +196,7 @@ inline int EvtStartCotInstant(
     SetCotEntry( dzCot, EventNotifyCotEntry, context );
     dzCot->evt = CloneSynObj( evt );
     dzCot->evt->ref++;
-    TemporaryPushCot( host, host->currCot );
+    PushCotToTop( host, host->currCot );
     SwitchToCot( host, dzCot );
     return DS_OK;
 }
@@ -203,7 +204,7 @@ inline int EvtStartCotInstant(
 inline int StartRemoteCot(
     DzHost*     host,
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -228,7 +229,7 @@ inline int EvtStartRemoteCot(
     DzHost*     host,
     DzSynObj*   evt,
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -254,7 +255,7 @@ inline int EvtStartRemoteCot(
 inline int RunRemoteCot(
     DzHost*     host,
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -279,7 +280,7 @@ inline int RunRemoteCot(
     return DS_OK;
 }
 
-inline int RunWorker( DzHost* host, DzRoutine entry, intptr_t context )
+inline int RunWorker( DzHost* host, DzEntry entry, intptr_t context )
 {
     DzLItr* lItr;
     DzSysParam param;
@@ -318,9 +319,9 @@ inline int RunHost(
     int         lowestPri,
     int         dftPri,
     int         dftSSize,
-    DzRoutine   firstEntry,
+    DzEntry     firstEntry,
     intptr_t    context,
-    DzRoutine   cleanEntry
+    DzEntry     cleanEntry
     )
 {
     int i;
@@ -413,6 +414,7 @@ inline int RunHost(
         host->cotPoolNowDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
         host->cotPoolSetDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
     }
+    __Dbg( InitDzHost )( host );
 
     if( MemeryPoolGrow( host ) && InitOsStruct( host ) ){
         AtomOrInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN );
@@ -436,7 +438,7 @@ inline int RunHost(
         //after all cot finished, CotScheduleCenter will return.
         //so cleanup the host struct
         SetHost( NULL );
-        DeleteOsStruct( host );
+        CleanOsStruct( host );
     }else{
         ret = DS_NO_MEMORY;
     }
@@ -454,9 +456,9 @@ inline int RunHosts(
     int         lowestPri,
     int         dftPri,
     int         dftSSize,
-    DzRoutine   firstEntry,
+    DzEntry     firstEntry,
     intptr_t    context,
-    DzRoutine   cleanEntry
+    DzEntry     cleanEntry
     )
 {
     int i;
@@ -527,6 +529,11 @@ inline int GetCotCount( DzHost* host )
     return host->cotCount;
 }
 
+inline int GetHostId( DzHost* host )
+{
+    return host->hostId;
+}
+
 inline int SetCurrCotPriority( DzHost* host, int priority )
 {
     int ret;
@@ -591,7 +598,6 @@ inline int SetHostParam(
             SetCotPoolDepth( host, dftSSize, DFT_SSIZE_POOL_DEPTH );
         }
     }
-
     return ret;
 }
 

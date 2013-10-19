@@ -4,7 +4,7 @@
 
 static int gCheck = 0;
 
-void __stdcall HelpCheckAsynTimerEntry( intptr_t context )
+CotEntry HelpCheckAsynTimerEntry( intptr_t context )
 {
     gCheck++;
 }
@@ -37,23 +37,23 @@ void ReadFileEntry( char* buff, size_t buffLen )
     md5_context mc;
 
     int fd = DzOpenFile( _T( "../../test/Sailing.mp3" ), DZ_O_RD );
-    ASSERT_NE( -1, fd );
+    DZ_ASSERT_NE( -1, fd );
     size_t n = DzGetFileSize( fd );
-    ASSERT_EQ( 3678906, n );
-    ASSERT_GE( buffLen, n );
+    DZ_ASSERT_EQ( 3678906, n );
+    DZ_ASSERT_GE( buffLen, n );
 
     unsigned char md5a[] = {
         0x81, 0x1B, 0x87, 0xB5, 0xA1, 0xDC, 0x52, 0x97,
         0x7A, 0x2D, 0xFF, 0x50, 0x4A, 0xC1, 0xCA, 0xBD
     };
     size_t count = ReadFileFull( fd, buff, n );
-    ASSERT_EQ( n, count );
+    DZ_ASSERT_EQ( n, count );
 
     md5_starts( &mc );
     md5_update( &mc, (uint8*)buff, (uint32)count );
     md5_finish( &mc, md5Ret );
     int ret = memcmp( md5Ret, md5a, 16 );
-    ASSERT_EQ( 0, ret );
+    DZ_ASSERT_EQ( 0, ret );
 
     unsigned char md5b[] = {
         0x09, 0xA5, 0x06, 0x9C, 0xA7, 0xB5, 0x13, 0x90,
@@ -61,20 +61,20 @@ void ReadFileEntry( char* buff, size_t buffLen )
     };
     size_t seekHead = 0x296040;
     size_t seekEnd = 0x29806b;
-    ssize_t seekLen = seekEnd - seekHead;
+    size_t seekLen = seekEnd - seekHead;
     size_t seekRet = DzSeekFile( fd, seekHead, DZ_SEEK_SET );
-    ASSERT_EQ( seekHead, seekRet );
+    DZ_ASSERT_EQ( seekHead, seekRet );
     count = ReadFileFull( fd, buff, seekLen );
-    ASSERT_EQ( seekLen, count );
+    DZ_ASSERT_EQ( seekLen, count );
 
     md5_starts( &mc );
     md5_update( &mc, (uint8*)buff, (uint32)count );
     md5_finish( &mc, md5Ret );
     ret = memcmp( md5Ret, md5b, 16 );
-    ASSERT_EQ( 0, ret );
+    DZ_ASSERT_EQ( 0, ret );
 
     seekRet = DzSeekFile( fd, 0, DZ_SEEK_CUR );
-    ASSERT_EQ( seekEnd, seekRet );
+    DZ_ASSERT_EQ( seekEnd, seekRet );
 
     unsigned char content[] = {
         0xff, 0xfb, 0x82, 0x00, 0xff, 0x80, 0x0a, 0x50,
@@ -82,16 +82,16 @@ void ReadFileEntry( char* buff, size_t buffLen )
     };
     seekHead = 0x382200;
     seekLen = n - seekHead;
-    seekRet = DzSeekFile( fd, - seekLen, DZ_SEEK_END );
+    seekRet = DzSeekFile( fd, - (ssize_t)seekLen, DZ_SEEK_END );
     count = ReadFileFull( fd, buff, 16 );
-    ASSERT_EQ( 16, count );
+    DZ_ASSERT_EQ( 16, count );
     ret = memcmp( buff, content, 16 );
-    ASSERT_EQ( 0, ret );
+    DZ_ASSERT_EQ( 0, ret );
 
     DzCloseFile( fd );
 }
 
-void __stdcall TestReadFile( intptr_t context )
+CotEntry TestReadFile( intptr_t context )
 {
     gCheck = 0;
     DzHandle checkTimer = DzCreateCallbackTimer( 10, TRUE, HelpCheckAsynTimerEntry );
@@ -120,11 +120,10 @@ void WriteFileEntry( char* buff, size_t buffLen )
         _T( "../../test/test_write.txt" ),
         DZ_O_RDWR | DZ_O_TRUNC | DZ_O_CREATE
         );
-    ASSERT_NE( -1, fd );
-    //size_t n = DzGetFileSize( fd );
-    //ASSERT_EQ( (size_t)0, n );
+    DZ_ASSERT_NE( -1, fd );
+
     size_t count = WriteFileFull( fd, buff, buffLen );
-    ASSERT_EQ( buffLen, count );
+    DZ_ASSERT_EQ( buffLen, count );
 
     char tmpBuff[] = {
         '_', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'
@@ -132,19 +131,23 @@ void WriteFileEntry( char* buff, size_t buffLen )
     size_t tmpLen = sizeof( tmpBuff );
     size_t seekRet = DzSeekFile( fd, 256, DZ_SEEK_SET );
     count = WriteFileFull( fd, tmpBuff, tmpLen );
-    ASSERT_EQ( tmpLen, count );
+    DZ_ASSERT_EQ( seekRet, 256 );
+    DZ_ASSERT_EQ( tmpLen, count );
 
     seekRet = DzSeekFile( fd, 32, DZ_SEEK_CUR );
     count = WriteFileFull( fd, tmpBuff, tmpLen );
-    ASSERT_EQ( tmpLen, count );
+    DZ_ASSERT_EQ( seekRet, 300 );
+    DZ_ASSERT_EQ( tmpLen, count );
 
     seekRet = DzSeekFile( fd, -32, DZ_SEEK_END );
     count = WriteFileFull( fd, tmpBuff, tmpLen );
-    ASSERT_EQ( tmpLen, count );
+    DZ_ASSERT_EQ( seekRet, 4194272 );
+    DZ_ASSERT_EQ( tmpLen, count );
 
-    DzSeekFile( fd, 0, DZ_SEEK_SET );
+    seekRet = DzSeekFile( fd, 0, DZ_SEEK_SET );
     count = ReadFileFull( fd, buff, buffLen );
-    ASSERT_EQ( buffLen, count );
+    DZ_ASSERT_EQ( seekRet, 0 );
+    DZ_ASSERT_EQ( buffLen, count );
 
     unsigned char md5[] = {
         0xB4, 0x49, 0x72, 0xAE, 0x2C, 0x5E, 0x2B, 0xDF,
@@ -156,12 +159,12 @@ void WriteFileEntry( char* buff, size_t buffLen )
     md5_update( &mc, (uint8*)buff, (uint32)count );
     md5_finish( &mc, md5Ret );
     int ret = memcmp( md5Ret, md5, 16 );
-    ASSERT_EQ( 0, ret );
+    DZ_ASSERT_EQ( 0, ret );
 
     DzCloseFile( fd );
 }
 
-void __stdcall TestWriteFile( intptr_t context )
+CotEntry TestWriteFile( intptr_t context )
 {
     gCheck = 0;
     DzHandle checkTimer = DzCreateCallbackTimer( 10, TRUE, HelpCheckAsynTimerEntry );

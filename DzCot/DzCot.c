@@ -20,9 +20,9 @@ int DzRunHosts(
     int         lowestPri,
     int         dftPri,
     int         dftSSize,
-    DzRoutine   firstEntry,
+    DzEntry     firstEntry,
     intptr_t    context,
-    DzRoutine   cleanEntry
+    DzEntry     cleanEntry
     )
 {
     assert( !GetHost() );
@@ -48,7 +48,7 @@ int DzRunHosts(
 }
 
 int DzStartCot(
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -70,7 +70,7 @@ int DzStartCot(
 }
 
 int DzStartCotInstant(
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -93,7 +93,7 @@ int DzStartCotInstant(
 
 int DzEvtStartCot(
     DzHandle    evt,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -117,7 +117,7 @@ int DzEvtStartCot(
 
 int DzEvtStartCotInstant(
     DzHandle    evt,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -141,7 +141,7 @@ int DzEvtStartCotInstant(
 
 int DzStartRemoteCot(
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -167,7 +167,7 @@ int DzStartRemoteCot(
 int DzEvtStartRemoteCot(
     DzHandle    evt,
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -193,7 +193,7 @@ int DzEvtStartRemoteCot(
 
 int DzRunRemoteCot(
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -216,7 +216,7 @@ int DzRunRemoteCot(
     return RunRemoteCot( host, rmtId, entry, context, priority, sSize );
 }
 
-int DzRunWorker( DzRoutine entry, intptr_t context )
+int DzRunWorker( DzEntry entry, intptr_t context )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -231,6 +231,14 @@ int DzGetCotCount()
     assert( host );
 
     return GetCotCount( host );
+}
+
+int DzGetHostId()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return GetHostId( host );
 }
 
 int DzSetPriority( int priority )
@@ -429,7 +437,7 @@ BOOL DzDelSynObj( DzHandle obj )
 DzHandle DzCreateCallbackTimer(
     int             milSec,
     BOOL            repeat,
-    DzRoutine       callback,
+    DzEntry         callback,
     intptr_t        context,
     int             priority,
     int             sSize
@@ -820,7 +828,7 @@ void* DzAllocPermanentChunk( size_t size )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( size % PAGE_SIZE == 0 );
+    assert( size % MIN_PERMANENT_CHUNK_SIZE == 0 );
 
     return AllocChunk( host, size );
 }
@@ -899,7 +907,16 @@ int __DzDbgLastErr()
     DzHost* host = GetHost();
     assert( host );
 
-    return __DbgGetLastErr( host );
+    return __Dbg( GetLastErr )( host );
+}
+
+int __DzDbgMaxStackUse( int sSize )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+
+    return __Dbg( GetMaxStackUse )( host, sSize );
 }
 
 #ifdef __cplusplus

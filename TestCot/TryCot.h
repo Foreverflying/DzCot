@@ -6,7 +6,7 @@ extern "C"{
 extern int gHostCount;
 extern int gServMask[];
 
-void __stdcall TestCotTryEntry( intptr_t context );
+CotEntry TestCotTryEntry( intptr_t context );
 
 #ifdef __cplusplus
 };

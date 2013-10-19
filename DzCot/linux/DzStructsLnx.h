@@ -32,7 +32,7 @@ struct _DzCot
             int                 sSize;
             int                 priority;
             //used for remote cot
-            DzRoutine           entry;
+            DzEntry             entry;
             union{
                 DzEasyEvt*      easyEvt;
                 DzSynObj*       evt;
@@ -44,7 +44,7 @@ struct _DzCot
         DzCacheChunk            _padding;
     };
 
-    __DBG_DATA_DEFINE( DzCot )
+    __DBG_STRUCT( DzCot )
 };
 
 struct _DzSysAutoEvt

@@ -32,7 +32,7 @@ struct _DzCot
             char*               stackLimit;
             int                 sSize;
             int                 priority;
-            DzRoutine           entry;
+            DzEntry             entry;
             union{
                 DzEasyEvt*      easyEvt;
                 DzSynObj*       evt;
@@ -45,7 +45,7 @@ struct _DzCot
         DzCacheChunk            _padding;
     };
 
-    __DBG_DATA_DEFINE( DzCot )
+    __DBG_STRUCT( DzCot )
 };
 
 struct _DzSysAutoEvt

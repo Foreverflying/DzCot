@@ -184,7 +184,9 @@ typedef enum{
 #endif
 
 /** Cot entry function type */
-typedef void (__stdcall *DzRoutine)( intptr_t context );
+typedef void (__stdcall *DzEntry)( intptr_t context );
+
+#define CotEntry    void __stdcall 
 
 /** default parameter used in c++ */
 #ifndef __cplusplus
@@ -233,13 +235,13 @@ extern "C"{
  *  It will block current thread, and create cot hosts.
  *  Cot hosts have their own host ids start from 0 like 0, 1, 2 ...
  *  Every host use a system thread,
- *  host 0 uses the 'blocked' current thread, and others create their own.
+ *  host 0 uses the "blocked" current thread, and others create their own.
  *  After all hosts created, firstEntry with parameter context will be
  *  executed as the first cot in the cot host 0, and other cot hosts pause.
  *  After all hosts' cot finished, all hosts quit,
  *  cleanEntry with parameter context will be called.
  *  Then in the cot host 0's system thread, DzRunHosts function returns,
- *  and other hosts' system thread are terminated.
+ *  and other hosts' system threads are terminated.
  *
  *  @remarks
  *      hostCount had better not set greater than CPU count,
@@ -250,9 +252,9 @@ int DzRunHosts(
     int         lowestPri,
     int         dftPri,
     int         dftSSize,
-    DzRoutine   firstEntry,
+    DzEntry     firstEntry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
-    DzRoutine   cleanEntry      __DZ_DFT_ARG( NULL )
+    DzEntry     cleanEntry      __DZ_DFT_ARG( NULL )
     );
 
 /**	DzStartCot
@@ -278,7 +280,7 @@ int DzRunHosts(
  *  current host's corresponding schedule queue.
  */
 int DzStartCot(
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -305,12 +307,11 @@ int DzStartCot(
  *
  *  This function will create a cot, and schedule it immediately in current
  *  host, despite of it's priority at this time.
- *  Current cot will be put to the head of current host' corresponding
- *  schedule queue, so, latter it will be scheduled before all other cots
- *  with the same priority.
+ *  Current cot will be put to the top of current host's schedule queue,
+ *  so, latter it will be scheduled before all other cots.
  */
 int DzStartCotInstant(
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -345,7 +346,7 @@ int DzStartCotInstant(
  */
 int DzEvtStartCot(
     DzHandle    evt,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -377,13 +378,12 @@ int DzEvtStartCot(
  *
  *  This function will create a cot, and schedule it immediately in current
  *  host, despite of it's priority at this time.
- *  Current cot will be put to the head of current host' corresponding
- *  schedule queue, so, latter it will be scheduled before all other cots
- *  with the same priority.
+ *  Current cot will be put to the top of current host's schedule queue,
+ *  so, latter it will be scheduled before all other cots.
  */
 int DzEvtStartCotInstant(
     DzHandle    evt,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -394,7 +394,7 @@ int DzEvtStartCotInstant(
  *  @param rmtId
  *      remote host's id.
  *      0 <= rmtId < hosts count
- *      and rmtId != current host' id
+ *      and rmtId != current host's id
  *  @param entry
  *      The cot entry to be execute.
  *  @param context
@@ -418,7 +418,7 @@ int DzEvtStartCotInstant(
  */
 int DzStartRemoteCot(
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -433,7 +433,7 @@ int DzStartRemoteCot(
  *  @param rmtId
  *      remote host's id.
  *      0 <= rmtId < hosts count
- *      and rmtId != current host' id
+ *      and rmtId != current host's id
  *  @param entry
  *      The cot entry to be execute.
  *  @param context
@@ -458,7 +458,7 @@ int DzStartRemoteCot(
 int DzEvtStartRemoteCot(
     DzHandle    evt,
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -470,7 +470,7 @@ int DzEvtStartRemoteCot(
  *  @param rmtId
  *      remote host's id.
  *      0 <= rmtId < hosts count
- *      and rmtId != current host' id
+ *      and rmtId != current host's id
  *  @param entry
  *      The cot entry to be execute.
  *  @param context
@@ -495,7 +495,7 @@ int DzEvtStartRemoteCot(
  */
 int DzRunRemoteCot(
     int         rmtId,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -518,7 +518,7 @@ int DzRunRemoteCot(
  *      the worker system thread's stack size is coded to 64k.
  */
 int DzRunWorker(
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 )
     );
 
@@ -528,6 +528,13 @@ int DzRunWorker(
  *      The cot count of current host.
  */
 int DzGetCotCount();
+
+/**	DzGetHostId
+ *  gets current host's id.
+ *  @return
+ *      The current host's id;
+ */
+int DzGetHostId();
 
 /**	DzSetPriority
  *  changes current cot's priority.
@@ -936,7 +943,7 @@ BOOL DzDelSynObj( DzHandle obj );
 DzHandle DzCreateCallbackTimer(
     int         milSec,
     BOOL        repeat,
-    DzRoutine   callback,
+    DzEntry     callback,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
     int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
@@ -1258,13 +1265,18 @@ int DzListen( int fd, int backlog );
  *  @return
  *      0 if succeed or else -1.
  *
+ *  Shutdown writing before close will ensure all data in the socket's
+ *  send buffer flush to the target, rather than dropping all data when
+ *  call CloseSocket directly.
+ *
  *  @note
  *      There's a bit of difference between Windows and Linux.
  *      Trying to receive data on a socket that receiving has been disabled
  *      will leads an error, the receive function will return -1 on
  *      Windows and return 0 on Linux.
  *  @remarks
- *      Never shutdown a socket when it is reading or writing!
+ *      Never shutdown reading when a socket is reading, and never
+ *      shutdown writing when a socket is writing.
  */
 int DzShutdown( int fd, int how );
 
@@ -1440,6 +1452,7 @@ unsigned long long DzMilUnixTime();
 unsigned long long DzLatestMilUnixTime();
 
 int __DzDbgLastErr();
+int __DzDbgMaxStackUse( int sSize );
 
 #ifdef _WIN32
 

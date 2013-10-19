@@ -19,7 +19,7 @@ extern "C"{
 
 inline int StartCot(
     DzHost*     host,
-    DzRoutine   entry,
+    DzEntry     entry,
     intptr_t    context,
     int         priority,
     int         sSize
@@ -258,7 +258,7 @@ inline DzSynObj* CreateCallbackTimer(
     DzHost*         host,
     int             milSec,
     BOOL            repeat,
-    DzRoutine       callback,
+    DzEntry         callback,
     intptr_t        context,
     int             priority,
     int             sSize

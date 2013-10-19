@@ -91,7 +91,7 @@ inline void StartLazyTimer( DzHost* host )
 {
     host->lazyTimer = CreateCallbackTimer(
         host, LAZY_TIMER_INTERVAL, 1,
-        DealLazyResEntry, 0, CP_FIRST, SS_FIRST
+        DealLazyResEntry, 0, CP_FIRST, SS_MIN
         );
     host->cotCount--;
 }

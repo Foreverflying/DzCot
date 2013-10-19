@@ -31,7 +31,7 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
 
     fd = socket( domain, type, protocol );
     if( fd == INVALID_SOCKET ){
-        __DbgSetLastErr( host, WSAGetLastError() );
+        __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
     CreateIoCompletionPort( (HANDLE)fd, host->os.iocp, (ULONG_PTR)NULL, 0 );
@@ -133,13 +133,13 @@ inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addr
                     return 0;
                 }
             }
-            __DbgSetLastErr( host, err );
+            __Dbg( SetLastErr )( host, err );
             return -1;
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -165,7 +165,7 @@ inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addr
         &flag
         );
     if( !ret ){
-        __DbgSetLastErr( host, WSAGetLastError() );
+        __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
     setsockopt( dzFd->s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0 );
@@ -199,13 +199,13 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             closesocket( s );
-            __DbgSetLastErr( host, err );
+            __Dbg( SetLastErr )( host, err );
             return -1;
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -232,7 +232,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
         );
     if( !ret ){
         closesocket( s );
-        __DbgSetLastErr( host, WSAGetLastError() );
+        __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
     key = (ULONG_PTR)dzFd->s;
@@ -264,13 +264,13 @@ inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
     if( WSASend( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, flags, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            __DbgSetLastErr( host, err );
+            __Dbg( SetLastErr )( host, err );
             return -1;
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -296,7 +296,7 @@ inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
         &tmpFlag
         );
     if( !ret ){
-        __DbgSetLastErr( host, WSAGetLastError() );
+        __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
     return bytes;
@@ -320,13 +320,13 @@ inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
     if( WSARecv( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            __DbgSetLastErr( host, err );
+            __Dbg( SetLastErr )( host, err );
             return -1;
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -352,7 +352,7 @@ inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
         &tmpFlag
         );
     if( !ret ){
-        __DbgSetLastErr( host, WSAGetLastError() );
+        __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
     return bytes;
@@ -401,13 +401,13 @@ inline int SendToEx(
     if( WSASendTo( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, flags, to, tolen, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            __DbgSetLastErr( host, err );
+            __Dbg( SetLastErr )( host, err );
             return -1;
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -433,7 +433,7 @@ inline int SendToEx(
         &tmpFlag
         );
     if( !ret ){
-        __DbgSetLastErr( host, WSAGetLastError() );
+        __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
     return bytes;
@@ -465,13 +465,13 @@ inline int RecvFromEx(
     if( WSARecvFrom( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, from, fromlen, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
-            __DbgSetLastErr( host, err );
+            __Dbg( SetLastErr )( host, err );
             return -1;
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -497,7 +497,7 @@ inline int RecvFromEx(
         &tmpFlag
         );
     if( !ret ){
-        __DbgSetLastErr( host, WSAGetLastError() );
+        __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
     return bytes;
@@ -708,14 +708,14 @@ inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
             if( err == ERROR_HANDLE_EOF ){
                 return 0;
             }else{
-                __DbgSetLastErr( host, (int)err );
+                __Dbg( SetLastErr )( host, (int)err );
                 return -1;
             }
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -744,7 +744,7 @@ inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
         if( err == ERROR_HANDLE_EOF ){
             return 0;
         }else{
-            __DbgSetLastErr( host, (int)err );
+            __Dbg( SetLastErr )( host, (int)err );
             return -1;
         }
     }
@@ -784,14 +784,14 @@ inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
             if( err == ERROR_HANDLE_EOF ){
                 return 0;
             }else{
-                __DbgSetLastErr( host, (int)err );
+                __Dbg( SetLastErr )( host, (int)err );
                 return -1;
             }
         }
         CloneDzFd( dzFd );
         WaitEasyEvt( host, &helper.easyEvt );
         if( dzFd->err ){
-            __DbgSetLastErr( host, dzFd->err );
+            __Dbg( SetLastErr )( host, dzFd->err );
             CloseDzFd( host, dzFd );
             return -1;
         }
@@ -817,7 +817,7 @@ inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
         );
     if( !ret ){
         err = GetLastError();
-        __DbgSetLastErr( host, (int)err );
+        __Dbg( SetLastErr )( host, (int)err );
         if( err == ERROR_HANDLE_EOF ){
             return 0;
         }else{

@@ -16,18 +16,23 @@ extern "C"{
 #endif
 
 #ifdef __DBG_DEBUG_CHECK_MODE
+#define __Dbg( func )       __Dbg##func
+#else
+#define __Dbg( func )       __EmptyCall
+#endif
+
+inline int __EmptyCall( DzHost* host, ... )
+{
+    return 0;
+}
 
 int __DbgGetLastErr( DzHost* host );
+int __DbgGetMaxStackUse( DzHost* host, int sSize );
 void __DbgSetLastErr( DzHost* host, int err );
-void __DbgCheckCotStackOverflow( DzCot* dzCot );
-
-#else
-
-#define __DbgGetLastErr( host ) (0)
-#define __DbgSetLastErr( host, err )
-#define __DbgCheckCotStackOverflow( dzCot )
-
-#endif
+void __DbgMarkCurrStackForCheck();
+void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot );
+void __DbgInitDzHost( DzHost* host );
+void __DbgInitDzCot( DzHost* host, DzCot* dzCot );
 
 #ifdef __cplusplus
 };

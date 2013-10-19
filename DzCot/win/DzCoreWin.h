@@ -19,15 +19,15 @@ extern "C"{
 void __stdcall CallDzCotEntry( void );
 void __stdcall DzCotEntry(
     DzHost*             host,
-    DzRoutine volatile* entryPtr,
+    DzEntry volatile*   entryPtr,
     intptr_t volatile*  contextPtr
     );
 BOOL InitOsStruct( DzHost* host );
-void DeleteOsStruct( DzHost* host );
+void CleanOsStruct( DzHost* host );
 
 inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
-    __DBG_INIT_INFO( DzCot, NULL, dzCot );
+    __Dbg( InitDzCot )( host, dzCot );
 }
 
 inline void InitDzFd( DzFd* dzFd )
@@ -78,7 +78,7 @@ struct DzStackBottom
     void*       _unusedEbp;
     void*       ipEntry;
     DzHost*     host;
-    DzRoutine   entry;
+    DzEntry     entry;
     intptr_t    context;
 };
 
@@ -98,14 +98,14 @@ struct DzStackBottom
     void*       _unusedRbp;
     void*       ipEntry;
     DzHost*     host;
-    DzRoutine   entry;
+    DzEntry     entry;
     intptr_t    context;
     void*       _unusedPadding;
 };
 
 #endif
 
-inline void SetCotEntry( DzCot* dzCot, DzRoutine entry, intptr_t context )
+inline void SetCotEntry( DzCot* dzCot, DzEntry entry, intptr_t context )
 {
     ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
     ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->context = context;
@@ -127,10 +127,7 @@ inline char* AllocStack( DzHost* host, int size )
 
 inline void FreeStack( char* stack, int size )
 {
-    char* base;
-    
-    base = stack - size;
-    VirtualFree( base, 0, MEM_RELEASE );
+    VirtualFree( stack - size, 0, MEM_RELEASE );
 }
 
 inline char* CommitStack( char* stack, int size )
