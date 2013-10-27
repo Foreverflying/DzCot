@@ -24,7 +24,7 @@ void __DbgSetLastErr( DzHost* host, int err )
     __DbgPtr( host->currCot )->lastErr = err;
 }
 
-void __DbgMarkCurrStackForCheck()
+void __DbgMarkCurrStackForCheck( DzHost* host )
 {
     DzCot* dzCot;
     int* begin;
