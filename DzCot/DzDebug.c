@@ -24,7 +24,7 @@ void __DbgSetLastErr( DzHost* host, int err )
     __DbgPtr( host->currCot )->lastErr = err;
 }
 
-void __DbgMarkCurrStackForCheck()
+void __DbgMarkCurrStackForCheck( DzHost* host )
 {
     DzCot* dzCot;
     int* begin;
@@ -40,6 +40,7 @@ void __DbgMarkCurrStackForCheck()
     for( begin = &size - 64; begin >= end; begin-- ){
         *begin = DEBUG_CHECK_MARK;
     }
+    __DbgPtr( dzCot )->maxStkUse = begin + 1 - end;
 }
 
 void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot )
