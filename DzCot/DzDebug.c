@@ -40,7 +40,7 @@ void __DbgMarkCurrStackForCheck( DzHost* host )
     for( begin = &size - 64; begin >= end; begin-- ){
         *begin = DEBUG_CHECK_MARK;
     }
-    __DbgPtr( dzCot )->maxStkUse = begin + 1 - end;
+    __DbgPtr( dzCot )->maxStkUse = (int)( begin + 1 - end );
 }
 
 void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot )
