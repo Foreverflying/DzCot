@@ -79,8 +79,6 @@ CotEntry RunSimplePrintCot( intptr_t context )
 }
 //*/
 
-#pragma comment(lib,"Ws2_32.lib")
-
 CotEntry GetHostByNameEntry( intptr_t context )
 {
     int* ip = (int*)context;
