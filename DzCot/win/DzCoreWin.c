@@ -65,7 +65,7 @@ void __stdcall DzCotEntry(
     intptr_t volatile*  contextPtr
     )
 {
-    __Dbg( MarkCurrStackForCheck )();
+    __Dbg( MarkCurrStackForCheck )( host );
     __try{
         while(1){
             //call the entry
