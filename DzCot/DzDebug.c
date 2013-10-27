@@ -37,8 +37,6 @@ void __DbgMarkCurrStackForCheck()
     if( dzCot->sSize > DZ_MAX_PERSIST_STACK_SIZE ){
         end += CHECK_RESERV_SIZE / sizeof( int );
     }
-    assert( (char*)&size < dzCot->stack );
-    assert( &size > end );
     for( begin = &size - 64; begin >= end; begin-- ){
         *begin = DEBUG_CHECK_MARK;
     }

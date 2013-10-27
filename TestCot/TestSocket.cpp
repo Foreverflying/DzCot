@@ -429,6 +429,8 @@ int TcpReadOneStream( FuncRead readFunc, int lisFd )
     char* buff = new char[ buffLen ];
 
     TestStream ts;
+    ts.idx = 0;
+    ts.len = 0;
     char* cmp = NULL;
     int tmp;
     int recvTimeCount = 0;
