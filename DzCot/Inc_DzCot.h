@@ -14,6 +14,7 @@
 #elif defined( __linux__ )
 #include <stddef.h>
 #include <sys/socket.h>
+#include <string.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
