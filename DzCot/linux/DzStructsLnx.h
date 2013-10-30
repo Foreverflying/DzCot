@@ -29,7 +29,7 @@ struct _DzCot
             DzLItr              lItr;
             void*               sp;
             char*               stack;
-            int                 sSize;
+            int                 sType;
             int                 priority;
             //used for remote cot
             DzEntry             entry;

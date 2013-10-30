@@ -36,18 +36,14 @@ enum
     CP_DEFAULT
 };
 
-/** Cot stack sizes */
+/** Cot stack types */
 enum
 {
-    SS_1K,
-    SS_4K,
-    SS_16K,
-    SS_64K,
-    SS_256K,
-    SS_1M,
-    SS_4M,
-    SS_16M,
-    SS_DEFAULT
+    ST_MIN,
+    ST_US,
+    ST_UM,
+    ST_UL,
+    ST_DEFAULT
 };
 
 /** open file flags */
@@ -205,6 +201,15 @@ extern "C"{
  *      a single cot host without worker support will be used,
  *      it will slightly improve performance, but you can not use
  *      worker thread, neither DzGetNameInfo nor DzGetAddrInfo.
+ *  @param smallStackSize
+ *      The cot stack size for cots that sType is SS_US.
+ *      0 = smallStackSize <= 8192 * 1024 * 1024, in bytes.
+ *  @param middleStackSize
+ *      The cot stack size for cots that sType is SS_UM.
+ *      0 = middleStackSize <= 8192 * 1024 * 1024, in bytes.
+ *  @param largeStackSize
+ *      The cot stack size for cots that sType is SS_UL.
+ *      0 = largeStackSize <= 8192 * 1024 * 1024, in bytes.
  *  @param lowestPri
  *      Lowest cot priority you can use.
  *      CP_HIGH <= lowestPri <= CP_LOW, smaller value means higher priority.
@@ -215,11 +220,11 @@ extern "C"{
  *      CP_HIGH <= dftPri <= lowestPri.
  *      When creating cot with a priority CP_DEFAULT,
  *      the cot's priority will be set to this value.
- *  @param dftSSize
- *      Default cot stack size for these hosts.
- *      SS_1K <= dftSSize <= SS_16M.
- *      when creating cot with a stack size SS_DEFAULT,
- *      the cot's stack size will be set to this value.
+ *  @param dftSType
+ *      Default cot stack type for these hosts.
+ *      ST_MIN <= dftSType <= ST_UL.
+ *      when creating cot with a stack type ST_DEFAULT,
+ *      the cot's stack type will be set to this value.
  *  @param firstEntry
  *      The first cot entry to be execute.
  *      The parameter context will be passed in.
@@ -244,15 +249,28 @@ extern "C"{
  *  Then in the cot host 0's system thread, DzRunHosts function returns,
  *  and other hosts' system threads are terminated.
  *
+ *  @note
+ *      Stack size will round up to a boundary, there are two kinds of cots:
+ *      1. For stack size less than 16384, the stack memory is full allocated,
+ *      when the cot exits, the stack will be pushed to it's stack pool so
+ *      it's memory will be never freed. It's stack boundary is 1024.
+ *      2. For stack size greater than or equal to 16384, the stack memory
+ *      space is reserved, and only several pages on the stack top are
+ *      committed, stack memory grows when needed, when the cot exits, if
+ *      it's stack pool is full, the committed pages and the memory space will
+ *      be freed. It's stack boundary is 65536 in windows, 16384 in linux.
  *  @remarks
  *      hostCount had better not set greater than CPU count,
  *      to avoid frequently system thread switching.
  */
 int DzRunHosts(
     int         hostCount,
+    int         smallStackSize,
+    int         middleStackSize,
+    int         largeStackSize,
     int         lowestPri,
     int         dftPri,
-    int         dftSSize,
+    int         dftSType,
     DzEntry     firstEntry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     DzEntry     cleanEntry      __DZ_DFT_ARG( NULL )
@@ -269,11 +287,11 @@ int DzRunHosts(
  *      CP_HIGH <= priority <= lowestPri assigned in DzRunHosts,
  *      or priority == CP_DEFAULT, cot's priority will be set to
  *      current host's default cot priority.
- *  @param sSize
- *      The cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      DS_OK if no error, DS_NO_MEMORY if not enough memory.
  *
@@ -284,7 +302,7 @@ int DzStartCot(
     DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 /**	DzStartCotInstant
@@ -298,11 +316,11 @@ int DzStartCot(
  *      CP_HIGH <= priority <= lowestPri assigned in DzRunHosts,
  *      or priority == CP_DEFAULT, cot's priority will be set to
  *      current host's default cot priority.
- *  @param sSize
- *      The cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      DS_OK if no error, DS_NO_MEMORY if not enough memory.
  *
@@ -315,7 +333,7 @@ int DzStartCotInstant(
     DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 
@@ -334,11 +352,11 @@ int DzStartCotInstant(
  *      CP_HIGH <= priority <= lowestPri assigned in DzRunHosts,
  *      or priority == CP_DEFAULT, cot's priority will be set to
  *      current host's default cot priority.
- *  @param sSize
- *      The cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      DS_OK if no error, DS_NO_MEMORY if not enough memory.
  *
@@ -350,7 +368,7 @@ int DzEvtStartCot(
     DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 /**	DzEvtStartCotInstant
@@ -369,11 +387,11 @@ int DzEvtStartCot(
  *      CP_HIGH <= priority <= lowestPri assigned in DzRunHosts,
  *      or priority == CP_DEFAULT, cot's priority will be set to
  *      current host's default cot priority.
- *  @param sSize
- *      The cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      DS_OK if no error, DS_NO_MEMORY if not enough memory.
  *
@@ -387,7 +405,7 @@ int DzEvtStartCotInstant(
     DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 /**	DzStartRemoteCot
@@ -407,11 +425,11 @@ int DzEvtStartCotInstant(
  *      current host's default cot priority.
  *      Then, if the cot's priority is lower than remote host's
  *      lowest priority, this cot's priority will be set to it.
- *  @param sSize
- *      The cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      DS_OK if no error, DS_NO_MEMORY if not enough memory.
  *
@@ -422,7 +440,7 @@ int DzStartRemoteCot(
     DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 /**	DzEvtStartRemoteCot
@@ -446,11 +464,11 @@ int DzStartRemoteCot(
  *      current host's default cot priority.
  *      Then, if the cot's priority is lower than remote host's
  *      lowest priority, this cot's priority will be set to it.
- *  @param sSize
- *      The cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      DS_OK if no error, DS_NO_MEMORY if not enough memory.
  *
@@ -462,7 +480,7 @@ int DzEvtStartRemoteCot(
     DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 /**	DzRunRemoteCot
@@ -483,11 +501,11 @@ int DzEvtStartRemoteCot(
  *      current host's default cot priority.
  *      Then, if the cot's priority is lower than remote host's
  *      lowest priority, this cot's priority will be set to it.
- *  @param sSize
- *      The cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      DS_OK if no error, DS_NO_MEMORY if not enough memory.
  *
@@ -499,7 +517,7 @@ int DzRunRemoteCot(
     DzEntry     entry,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 /**	DzRunWorker
@@ -516,7 +534,7 @@ int DzRunRemoteCot(
  *  then block current cot, wait the worker system thread finished.
  *
  *  @remarks
- *      the worker system thread's stack size is coded to 64k.
+ *      the worker system thread's stack size is hard coded to 64k.
  */
 int DzRunWorker(
     DzEntry     entry,
@@ -552,30 +570,30 @@ int DzGetHostId();
 int DzSetPriority( int priority );
 
 /**	DzSetCotPoolDepth
- *  sets current cot host's cot pool's depth.
- *  @param sSize
- *      The stack size of cot which you want to set.
- *      SS_1K <= sSize <= SS_16M.
+ *  sets current host's cot pool's depth.
+ *  @param sType
+ *      The stack type of cot which you want to set.
+ *      ST_MIN <= sType <= ST_UL.
  *  @param depth
  *      The new cot pool depth value.
  *      depth < 1024 * 1024 * 1024.
  *  @return
  *      The old cot pool depth value.
  *
- *  By avoiding cot stack's allocation and release,
- *  cot pool make cot's creation and destruction faster.
- *  Different stack size cots use different cot pools.
- *  when host starting most pools' depth is 0, but the default stack size
- *  cot pool's depth is set to 64. Also, the cot stack whose size smaller
- *  than system's minimum page allocate limitation will never be released,
- *  so, for cots with these stacks their pool depth is always infinite
- *  and can't be set to other value.
+ *  By avoiding cot stack's allocation and release, cot pool make cot's
+ *  creation and destruction faster.
+ *  Different stack type cots use different cot pools.
+ *  when host starting most pools' depth is 0, but the default stack type
+ *  cot pool's depth is set to 64.
+ *  Also, the cot stack whose size smaller than 16384 will never be released,
+ *  so, for cots with these stacks their pool depth is always infinite and
+ *  can't be set to other value.
  *
  *  @remarks
  *      if depth < 0, the cot's pool depth doesn't change,
  *      use this way to fetch the current depth of the cot pool.
  */
-int DzSetCotPoolDepth( int sSize, int depth );
+int DzSetCotPoolDepth( int sType, int depth );
 
 /**	DzSetWorkerPoolDepth
  *  sets worker thread pool depth.
@@ -594,7 +612,7 @@ int DzSetWorkerPoolDepth( int depth );
 
 /**	DzSetHostParam
  *  sets current cot host's lowest priority, default priority and
- *  default cot stack size.
+ *  default cot stack type.
  *  @param lowestPri
  *      The new lowest priority value of current cot host.
  *      CP_HIGH <= lowestPri <= CP_LOW, if the new value is smaller than
@@ -603,20 +621,20 @@ int DzSetWorkerPoolDepth( int depth );
  *  @param dftPri
  *      The new default cot priority value.
  *      dftPri <= lowestPri.
- *  @param defSSize
- *      The new default cot stack size value.
- *      defSSize <= SS_16M.
- *      If new default stack size cot pool's depth is smaller than 64,
+ *  @param defSType
+ *      The new default cot stack type value.
+ *      defSType <= ST_UL.
+ *      If new default stack type cot pool's depth is smaller than 64,
  *      it's depth is set to 64.
  *  @return
  *      The old lowest priority value of current cot host.
  *
  *  @remarks
  *      If dftPri < 0, the default priority of current host doesn't change.
- *      If defSSize < 0, the default cot stack size of current host
+ *      If defSType < 0, the default cot stack type of current host
  *      doesn't change.
  */
-int DzSetHostParam( int lowestPri, int dftPri, int dftSSize );
+int DzSetHostParam( int lowestPri, int dftPri, int dftSType );
 
 /**	DzSetHostIoReaction
  *  sets the current host's i/o reaction rate.
@@ -924,11 +942,11 @@ BOOL DzDelSynObj( DzHandle obj );
  *      CP_HIGH <= priority <= lowestPri assigned in DzRunHosts,
  *      or priority == CP_DEFAULT, cot's priority will be set to
  *      current host's default cot priority.
- *  @param sSize
- *      The callback cot's stack size.
- *      SS_1K <= sSize <= SS_16M,
- *      or sSize == SS_DEFAULT, cot's stack size will be set to
- *      current host's default stack size.
+ *  @param sType
+ *      The callback cot's stack type.
+ *      ST_MIN <= sType <= ST_UL,
+ *      or sType == ST_DEFAULT, cot's stack type will be set to
+ *      current host's default stack type.
  *  @return
  *      The handle of the callback timer.
  *
@@ -947,7 +965,7 @@ DzHandle DzCreateCallbackTimer(
     DzEntry     callback,
     intptr_t    context         __DZ_DFT_ARG( 0 ),
     int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sSize           __DZ_DFT_ARG( SS_DEFAULT )
+    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
 /**	DzDelCallbackTimer
@@ -1453,7 +1471,7 @@ unsigned long long DzMilUnixTime();
 unsigned long long DzLatestMilUnixTime();
 
 int __DzDbgLastErr();
-int __DzDbgMaxStackUse( int sSize );
+int __DzDbgMaxStackUse( int sType );
 
 #ifdef _WIN32
 

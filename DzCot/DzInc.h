@@ -19,8 +19,9 @@
 #define CPU_CACHE_ALIGN_MASK        ( CPU_CACHE_ALIGN - 1 )
 #define PAGE_SIZE                   ( 4096 )
 #define MIN_PERMANENT_CHUNK_SIZE    ( 1024 )
-#define DZ_STACK_UNIT_SIZE          ( 1024 )
-#define DZ_STACK_SIZE_STEP          ( 2 )
+#define DZ_MAX_STACK_SIZE           ( 1024 * 1024 * 16 )
+#define DZ_MIN_PAGE_STACK_SIZE      ( 16384 )
+#define DZ_PERMENENT_STACK_BOUNDARY ( 1024 )
 #define DZ_MAX_COT_POOL_DEPTH       ( 1024 * 1024 * 1024 )
 #define DZ_MAX_WORKER_POOL_DEPTH    ( 1024 )
 #define MEMERY_POOL_GROW_SIZE       ( 16 * 1024 * 1024 )
@@ -64,17 +65,13 @@ enum
 
 enum
 {
-    SS_FIRST,
-    SS_1K = SS_FIRST,
-    SS_4K,
-    SS_16K,
-    SS_64K,
-    SS_256K,
-    SS_1M,
-    SS_4M,
-    SS_16M,
-    STACK_SIZE_COUNT,
-    SS_DEFAULT = STACK_SIZE_COUNT
+    ST_FIRST,
+    ST_MIN = ST_FIRST,
+    ST_US,
+    ST_UM,
+    ST_UL,
+    STACK_TYPE_COUNT,
+    ST_DEFAULT = STACK_TYPE_COUNT
 };
 
 enum
@@ -87,11 +84,5 @@ enum
     DZ_O_TRUNC      =   00001000,
     DZ_O_APPEND     =   00002000
 };
-
-#ifdef _DEBUG
-#define SS_MIN      SS_4K
-#else
-#define SS_MIN      SS_1K
-#endif
 
 #endif // __DzInc_h__

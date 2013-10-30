@@ -12,6 +12,9 @@
 CotEntry CleanEntry( intptr_t context )
 {
     __DzTceEnableScopePrint( 1 );
+    for( int i = 0; i < 4; i++ ){
+        __DzTce1( "stack %d used size: %d", i, __DzDbgMaxStackUse( i ) );
+    }
     __DzTce1( "Hosts exit" );
 }
 
@@ -21,7 +24,7 @@ CotEntry CleanEntry( intptr_t context )
 
 int MainEntry( int argc, _TCHAR* argv[] )
 {
-    return DzRunHosts( gHostCount, CP_LOW, CP_LOW, SS_64K, TestCotTryEntry, 0, CleanEntry );
+    return DzRunHosts( gHostCount, 4000, 64000, 128000, CP_LOW, CP_LOW, ST_UM, TestCotTryEntry, 0, CleanEntry );
 }
 
 #else
@@ -43,6 +46,6 @@ int MainEntry( int argc, _TCHAR* argv[] )
 
 void TestCot( DzEntry entry, intptr_t context )
 {
-    int ret = DzRunHosts( 0, CP_LOW, CP_LOW, SS_64K, entry, context, NULL );
+    int ret = DzRunHosts( 0, 4000, 64000, 1024 * 1024, CP_LOW, CP_LOW, ST_UM, entry, context, NULL );
     DZ_EXPECT_EQ( DS_OK, ret );
 }

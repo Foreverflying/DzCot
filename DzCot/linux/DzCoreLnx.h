@@ -140,12 +140,12 @@ inline void InitCotStack( DzHost* host, DzCot* dzCot )
     dzCot->sp = bottom;
 }
 
-inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sSize )
+inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
 {
     int size;
 
-    size = DZ_STACK_UNIT_SIZE << ( sSize * DZ_STACK_SIZE_STEP );
-    if( sSize <= DZ_MAX_PERSIST_STACK_SIZE ){
+    size = host->cotStackSize[ sType ];
+    if( size < DZ_MIN_PAGE_STACK_SIZE ){
         dzCot->stack = (char*)AllocChunk( host, size );
         if( !dzCot->stack ){
             return NULL;
@@ -157,14 +157,14 @@ inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sSize )
             return NULL;
         }
     }
-    dzCot->sSize = sSize;
+    dzCot->sType = sType;
     InitCotStack( host, dzCot );
     return dzCot;
 }
 
-inline void FreeCotStack( DzCot* dzCot )
+inline void FreeCotStack( DzHost* host, DzCot* dzCot )
 {
-    FreeStack( dzCot->stack, DZ_STACK_UNIT_SIZE << ( dzCot->sSize * DZ_STACK_SIZE_STEP ) );
+    FreeStack( dzCot->stack, host->cotStackSize[ dzCot->sType ] );
 }
 
 #ifdef __cplusplus

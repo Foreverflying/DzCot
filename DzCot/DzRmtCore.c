@@ -28,7 +28,7 @@ inline void MoveCurCotToRmt( DzHost* host, int rmtId, int feedType )
 {
     DzCot* helpCot;
 
-    helpCot = AllocDzCot( host, SS_MIN );
+    helpCot = AllocDzCot( host, ST_FIRST );
     SetCotEntry( helpCot, PauseCotHelpEntry, (intptr_t)host->currCot );
     helpCot->hostId = rmtId;
     helpCot->feedType = feedType;
@@ -103,7 +103,7 @@ void __stdcall DealLazyResEntry( intptr_t context )
             node = MEMBER_BASE( lItr, DzLNode, lItr );
             node->d2 = (intptr_t)tail;
             node->d3 = (intptr_t)host->hostId;
-            dzCot = AllocDzCot( host, SS_MIN );
+            dzCot = AllocDzCot( host, ST_FIRST );
             dzCot->priority = CP_FIRST;
             SetCotEntry( dzCot, LazyFreeMemEntry, (intptr_t)node );
             SendRmtCot( host, i, FALSE, dzCot );
@@ -147,8 +147,7 @@ void __stdcall RunRmtHostMain( intptr_t context )
 
     param = (DzSysParam*)context;
     ret = RunHost(
-        param->hs.hostMgr, param->hs.hostId, param->hs.lowestPri,
-        param->hs.dftPri, param->hs.dftSSize, RmtHostFirstEntry, context, NULL
+        param->hs.hostMgr, param->hs.hostId, RmtHostFirstEntry, context, NULL
         );
     if( ret != DS_OK ){
         param->result = ret;
@@ -195,7 +194,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
     evt = CreateCdEvt( host, host->hostCount - 1 );
     cotParam = (DzSysParam*)context;
     for( i = 1; i < host->hostCount; i++ ){
-        dzCot = AllocDzCot( host, SS_MIN );
+        dzCot = AllocDzCot( host, ST_FIRST );
         dzCot->priority = CP_FIRST;
         SetCotEntry( dzCot, StartRmtHostRetEntry, (intptr_t)&param[i] );
         param[i].threadEntry = RunRmtHostMain;
@@ -203,9 +202,6 @@ void __stdcall MainHostFirstEntry( intptr_t context )
         param[i].hs.hostMgr = host->mgr;
         param[i].hs.returnCot = dzCot;
         param[i].hs.hostId = i;
-        param[i].hs.lowestPri = host->lowestPri;
-        param[i].hs.dftPri = host->dftPri;
-        param[i].hs.dftSSize = host->dftSSize;
         StartSystemThread( param + i, THREAD_STACK_MIN );
     }
     WaitSynObj( host, evt, -1 );
@@ -224,7 +220,7 @@ void __stdcall MainHostFirstEntry( intptr_t context )
     }
     cotParam->result = StartCot(
         host, cotParam->cs.entry, cotParam->cs.context,
-        host->dftPri, host->dftSSize
+        host->dftPri, host->dftSType
         );
 }
 
@@ -259,7 +255,7 @@ DzCot* CreateWaitFifoCot( DzHost* host )
 {
     DzCot* ret;
 
-    ret = AllocDzCot( host, SS_MIN );
+    ret = AllocDzCot( host, ST_FIRST );
     ret->priority = CP_FIRST;
     SetCotEntry( ret, WaitFifoWritableEntry, (intptr_t)host->hostId );
     return ret;
