@@ -27,7 +27,7 @@ CotEntry CotTryEntry( intptr_t context )
 void TryCotPool()
 {
     printf( "Size of BOOL is %d\r\n", (int)sizeof( BOOL ) );
-    DzSetCotPoolDepth( SS_64K, 5 );
+    DzSetCotPoolDepth( ST_UM, 5 );
     for( int i = 0; i < 10; i++ ){
         DzStartCotInstant( CotTryEntry );
     }

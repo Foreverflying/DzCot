@@ -24,31 +24,16 @@ void __stdcall DelayFreeCotHelper( intptr_t context );
 void __stdcall EventNotifyCotEntry( intptr_t context );
 void CotScheduleCenter( DzHost* host );
 void CotScheduleCenterNoRmtCheck( DzHost* host );
+void ReleaseAllPoolStack( DzHost* host );
 
-inline void ReleaseAllPoolStack( DzHost* host )
-{
-    DzLItr* lItr;
-    DzCot* dzCot;
-    int i;
-
-    for( i = DZ_MAX_PERSIST_STACK_SIZE + 1; i <= host->lowestPri; i++ ){
-        lItr = host->cotPools[i];
-        while( lItr ){
-            dzCot = MEMBER_BASE( lItr, DzCot, lItr );
-            FreeCotStack( dzCot );
-            lItr = lItr->next;
-        }
-    }
-}
-
-inline DzCot* AllocDzCot( DzHost* host, int sSize )
+inline DzCot* AllocDzCot( DzHost* host, int sType )
 {
     DzCot* dzCot;
 
-    if( host->cotPools[ sSize ] ){
-        dzCot = MEMBER_BASE( host->cotPools[ sSize ], DzCot, lItr );
-        host->cotPools[ sSize ] = host->cotPools[ sSize ]->next;
-        host->cotPoolNowDepth[ sSize ] ++;
+    if( host->cotPools[ sType ] ){
+        dzCot = MEMBER_BASE( host->cotPools[ sType ], DzCot, lItr );
+        host->cotPools[ sType ] = host->cotPools[ sType ]->next;
+        host->cotPoolNowDepth[ sType ] ++;
     }else{
         if( !host->cotPool ){
             if( !AllocDzCotPool( host ) ){
@@ -56,7 +41,7 @@ inline DzCot* AllocDzCot( DzHost* host, int sSize )
             }
         }
         dzCot = MEMBER_BASE( host->cotPool, DzCot, lItr );
-        if( InitCot( host, dzCot, sSize ) ){
+        if( InitCot( host, dzCot, sType ) ){
             host->cotPool = host->cotPool->next;
         }else{
             return NULL;
@@ -70,24 +55,24 @@ inline void FreeDzCot( DzHost* host, DzCot* dzCot )
     DzCot* tmp;
 
     __Dbg( InitDzCot )( host, dzCot );
-    if( host->cotPoolNowDepth[ dzCot->sSize ] > 0 ){
-        dzCot->lItr.next = host->cotPools[ dzCot->sSize ];
-        host->cotPools[ dzCot->sSize ] = &dzCot->lItr;
-        host->cotPoolNowDepth[ dzCot->sSize ] --;
+    if( host->cotPoolNowDepth[ dzCot->sType ] > 0 ){
+        dzCot->lItr.next = host->cotPools[ dzCot->sType ];
+        host->cotPools[ dzCot->sType ] = &dzCot->lItr;
+        host->cotPoolNowDepth[ dzCot->sType ] --;
     }else{
         //can not FreeCotStack( dzCot ) here!!
         //the stack is still in use before switch
-        if( host->cotPools[ dzCot->sSize ] ){
+        if( host->cotPools[ dzCot->sType ] ){
             //if the cotPool is not empty swap and free the head
-            tmp = MEMBER_BASE( host->cotPools[ dzCot->sSize ], DzCot, lItr );
+            tmp = MEMBER_BASE( host->cotPools[ dzCot->sType ], DzCot, lItr );
             dzCot->lItr.next = tmp->lItr.next;
-            host->cotPools[ dzCot->sSize ] = &dzCot->lItr;
-            FreeCotStack( tmp );
+            host->cotPools[ dzCot->sType ] = &dzCot->lItr;
+            FreeCotStack( host, tmp );
             tmp->lItr.next = host->cotPool;
             host->cotPool = &tmp->lItr;
         }else{
             //switch to a helper cot to free it
-            StartCot( host, DelayFreeCotHelper, (intptr_t)dzCot, host->currPri, SS_MIN );
+            StartCot( host, DelayFreeCotHelper, (intptr_t)dzCot, host->currPri, ST_FIRST );
         }
     }
 }
@@ -99,12 +84,12 @@ inline int StartCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzCot* dzCot;
 
-    dzCot = AllocDzCot( host, sSize );
+    dzCot = AllocDzCot( host, sType );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
@@ -126,12 +111,12 @@ inline int StartCotInstant(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzCot* dzCot;
 
-    dzCot = AllocDzCot( host, sSize );
+    dzCot = AllocDzCot( host, sType );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
@@ -152,12 +137,12 @@ inline int EvtStartCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzCot* dzCot;
 
-    dzCot = AllocDzCot( host, sSize );
+    dzCot = AllocDzCot( host, sType );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
@@ -181,12 +166,12 @@ inline int EvtStartCotInstant(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzCot* dzCot;
 
-    dzCot = AllocDzCot( host, sSize );
+    dzCot = AllocDzCot( host, sType );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
@@ -207,12 +192,12 @@ inline int StartRemoteCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzCot* dzCot;
 
-    dzCot = AllocDzCot( host, sSize );
+    dzCot = AllocDzCot( host, sType );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
@@ -232,12 +217,12 @@ inline int EvtStartRemoteCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzCot* dzCot;
 
-    dzCot = AllocDzCot( host, sSize );
+    dzCot = AllocDzCot( host, sType );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
@@ -258,13 +243,13 @@ inline int RunRemoteCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzCot* dzCot;
     DzEasyEvt easyEvt;
 
-    dzCot = AllocDzCot( host, sSize );
+    dzCot = AllocDzCot( host, sType );
     if( !dzCot ){
         return DS_NO_MEMORY;
     }
@@ -316,9 +301,6 @@ inline int RunWorker( DzHost* host, DzEntry entry, intptr_t context )
 inline int RunHost(
     DzHostsMgr* hostMgr,
     int         hostId,
-    int         lowestPri,
-    int         dftPri,
-    int         dftSSize,
     DzEntry     firstEntry,
     intptr_t    context,
     DzEntry     cleanEntry
@@ -353,8 +335,8 @@ inline int RunHost(
     host->currCot = &host->centerCot;
     host->ioReactionRate = SCHEDULE_COUNTDOWN;
     host->scheduleCd = host->ioReactionRate;
-    host->lowestPri = lowestPri;
-    host->currPri = lowestPri + 1;
+    host->lowestPri = hostMgr->lowestPri;
+    host->currPri = host->lowestPri + 1;
     host->timerHeap = (DzTimerNode**)tmp;
     host->timerCount = 0;
     host->timerHeapSize = 0;
@@ -372,18 +354,22 @@ inline int RunHost(
         host->rmtFifoArr[i].rmtCotArr = NULL;
         host->rmtFifoArr[i].pendRmtCot = NULL;
     }
-    for( i = 0; i <= lowestPri; i++ ){
+    for( i = 0; i <= host->lowestPri; i++ ){
         InitSList( &host->taskLs[i] );
     }
     host->mSpace = mallocSpace;
     host->handleBase = (intptr_t)handlePool - host->hostId;
-    for( i = SS_FIRST; i <= DZ_MAX_PERSIST_STACK_SIZE; i++ ){
+    host->cotStackSize[ ST_FIRST ] = DZ_MIN_STACK_SIZE;
+    host->cotStackSize[ ST_US ] = hostMgr->smallStackSize;
+    host->cotStackSize[ ST_UM ] = hostMgr->middleStackSize;
+    host->cotStackSize[ ST_UL ] = hostMgr->largeStackSize;
+    for( i = ST_FIRST; i < STACK_TYPE_COUNT; i++ ){
         host->cotPools[i] = NULL;
-        host->cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
-    }
-    for( ; i < STACK_SIZE_COUNT; i++ ){
-        host->cotPools[i] = NULL;
-        host->cotPoolNowDepth[i] = 0;
+        if( host->cotStackSize[i] < DZ_MIN_PAGE_STACK_SIZE ){
+            host->cotPoolNowDepth[i] = DZ_MAX_COT_POOL_DEPTH;
+        }else{
+            host->cotPoolNowDepth[i] = 0;
+        }
     }
     host->cotPool = NULL;
     host->synObjPool = NULL;
@@ -405,14 +391,14 @@ inline int RunHost(
     host->handlePoolEnd = handlePool + HANDLE_POOL_SIZE;
     host->lazyTimer = NULL;
     host->hostCount = hostMgr->hostCount;
-    host->dftPri = dftPri;
-    host->dftSSize = dftSSize;
-    for( i = 0; i < STACK_SIZE_COUNT; i++ ){
+    host->dftPri = hostMgr->dftPri;
+    host->dftSType = hostMgr->dftSType;
+    for( i = 0; i < STACK_TYPE_COUNT; i++ ){
         host->cotPoolSetDepth[i] = 0;
     }
-    if( dftSSize > DZ_MAX_PERSIST_STACK_SIZE ){
-        host->cotPoolNowDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
-        host->cotPoolSetDepth[ dftSSize ] = DFT_SSIZE_POOL_DEPTH;
+    if( host->dftSType >= DZ_MIN_PAGE_STACK_SIZE ){
+        host->cotPoolNowDepth[ host->dftSType ] = DFT_SSIZE_POOL_DEPTH;
+        host->cotPoolSetDepth[ host->dftSType ] = DFT_SSIZE_POOL_DEPTH;
     }
     __Dbg( InitDzHost )( host );
 
@@ -422,7 +408,7 @@ inline int RunHost(
         SetHost( host );
         host->mgr->hostArr[ hostId ] = host;
 
-        ret = StartCot( host, firstEntry, context, dftPri, dftSSize );
+        ret = StartCot( host, firstEntry, context, host->dftPri, host->dftSType );
         if( ret == DS_OK ){
             Schedule( host );
         }
@@ -453,9 +439,12 @@ inline int RunHost(
 
 inline int RunHosts(
     int         hostCount,
+    int         smallStackSize,
+    int         middleStackSize,
+    int         largeStackSize,
     int         lowestPri,
     int         dftPri,
-    int         dftSSize,
+    int         dftSType,
     DzEntry     firstEntry,
     intptr_t    context,
     DzEntry     cleanEntry
@@ -494,6 +483,37 @@ inline int RunHosts(
     hostMgr->workerPool = NULL;
     hostMgr->rmtFifoRes = (DzRmtCotFifo*)tmp;
     hostMgr->rmtFifoCotArrRes = NULL;
+    hostMgr->lowestPri = lowestPri;
+    hostMgr->dftPri = dftPri;
+    hostMgr->dftSType = dftSType;
+
+    if( smallStackSize < DZ_MIN_PAGE_STACK_SIZE ){
+        smallStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
+        smallStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
+    }else{
+        smallStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
+        smallStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
+    }
+
+    if( middleStackSize < DZ_MIN_PAGE_STACK_SIZE ){
+        middleStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
+        middleStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
+    }else{
+        middleStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
+        middleStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
+    }
+
+    if( largeStackSize < DZ_MIN_PAGE_STACK_SIZE ){
+        largeStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
+        largeStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
+    }else{
+        largeStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
+        largeStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
+    }
+
+    hostMgr->smallStackSize = smallStackSize;
+    hostMgr->middleStackSize = middleStackSize;
+    hostMgr->largeStackSize = largeStackSize;
 
     for( i = 0; i < hostCount; i++ ){
         InitSysAutoEvt( hostMgr->sysAutoEvt + i );
@@ -507,10 +527,7 @@ inline int RunHosts(
         firstEntry = MainHostFirstEntry;
         context = (intptr_t)&param;
     }
-    ret = RunHost(
-        hostMgr, 0, lowestPri, dftPri, dftSSize,
-        firstEntry, context, cleanEntry
-        );
+    ret = RunHost( hostMgr, 0, firstEntry, context, cleanEntry );
     while( hostMgr->workerPool ){
         worker = MEMBER_BASE( hostMgr->workerPool, DzWorker, lItr );
         hostMgr->workerPool = hostMgr->workerPool->next;
@@ -548,16 +565,16 @@ inline int SetCurrCotPriority( DzHost* host, int priority )
     return ret;
 }
 
-inline int SetCotPoolDepth( DzHost* host, int sSize, int depth )
+inline int SetCotPoolDepth( DzHost* host, int sType, int depth )
 {
     int deta;
     int ret;
 
-    ret = host->cotPoolSetDepth[ sSize ];
-    if( depth >= 0 && sSize > DZ_MAX_PERSIST_STACK_SIZE ){
-        deta = depth - host->cotPoolSetDepth[ sSize ];
-        host->cotPoolNowDepth[ sSize ] += deta;
-        host->cotPoolSetDepth[ sSize ] = depth;
+    ret = host->cotPoolSetDepth[ sType ];
+    if( depth >= 0 && host->cotStackSize[ sType ] >= DZ_MIN_PAGE_STACK_SIZE ){
+        deta = depth - host->cotPoolSetDepth[ sType ];
+        host->cotPoolNowDepth[ sType ] += deta;
+        host->cotPoolSetDepth[ sType ] = depth;
     }
     return ret;
 }
@@ -580,7 +597,7 @@ inline int SetHostParam(
     DzHost*     host,
     int         lowestPri,
     int         dftPri,
-    int         dftSSize
+    int         dftSType
     )
 {
     int ret;
@@ -592,10 +609,10 @@ inline int SetHostParam(
     if( dftPri >= CP_FIRST ){
         host->dftPri = dftPri;
     }
-    if( dftSSize >= SS_FIRST ){
-        host->dftSSize = dftSSize;
-        if( host->cotPoolSetDepth[ dftSSize ] < DFT_SSIZE_POOL_DEPTH ){
-            SetCotPoolDepth( host, dftSSize, DFT_SSIZE_POOL_DEPTH );
+    if( dftSType >= ST_FIRST ){
+        host->dftSType = dftSType;
+        if( host->cotPoolSetDepth[ dftSType ] < DFT_SSIZE_POOL_DEPTH ){
+            SetCotPoolDepth( host, dftSType, DFT_SSIZE_POOL_DEPTH );
         }
     }
     return ret;

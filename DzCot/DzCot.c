@@ -17,16 +17,22 @@ extern "C"{
 
 int DzRunHosts(
     int         hostCount,
+    int         smallStackSize,
+    int         middleStackSize,
+    int         largeStackSize,
     int         lowestPri,
     int         dftPri,
-    int         dftSSize,
+    int         dftSType,
     DzEntry     firstEntry,
     intptr_t    context,
     DzEntry     cleanEntry
     )
 {
     assert( !GetHost() );
-    assert( hostCount >= 0 && hostCount < DZ_MAX_HOST );
+    assert( hostCount >= 0 && hostCount <= DZ_MAX_HOST );
+    assert( smallStackSize > 0 && smallStackSize <= DZ_MAX_STACK_SIZE );
+    assert( middleStackSize > 0 && middleStackSize <= DZ_MAX_STACK_SIZE );
+    assert( largeStackSize > 0 && largeStackSize <= DZ_MAX_STACK_SIZE );
     assert(
         lowestPri >= CP_FIRST &&
         lowestPri < COT_PRIORITY_COUNT
@@ -36,14 +42,14 @@ int DzRunHosts(
         dftPri <= lowestPri
         );
     assert(
-        dftSSize >= SS_FIRST &&
-        dftSSize < STACK_SIZE_COUNT
+        dftSType >= ST_FIRST &&
+        dftSType < STACK_TYPE_COUNT
         );
     assert( firstEntry );
 
     return RunHosts(
-        hostCount, lowestPri, dftPri, dftSSize,
-        firstEntry, context, cleanEntry
+        hostCount, smallStackSize, middleStackSize, largeStackSize,
+        lowestPri, dftPri, dftSType, firstEntry, context, cleanEntry
         );
 }
 
@@ -51,7 +57,7 @@ int DzStartCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzHost* host = GetHost();
@@ -59,21 +65,21 @@ int DzStartCot(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return StartCot( host, entry, context, priority, sSize );
+    return StartCot( host, entry, context, priority, sType );
 }
 
 int DzStartCotInstant(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzHost* host = GetHost();
@@ -81,14 +87,14 @@ int DzStartCotInstant(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return StartCotInstant( host, entry, context, priority, sSize );
+    return StartCotInstant( host, entry, context, priority, sType );
 }
 
 int DzEvtStartCot(
@@ -96,7 +102,7 @@ int DzEvtStartCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzHost* host = GetHost();
@@ -104,15 +110,15 @@ int DzEvtStartCot(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return EvtStartCot( host, evt, entry, context, priority, sSize );
+    return EvtStartCot( host, evt, entry, context, priority, sType );
 }
 
 int DzEvtStartCotInstant(
@@ -120,7 +126,7 @@ int DzEvtStartCotInstant(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzHost* host = GetHost();
@@ -128,15 +134,15 @@ int DzEvtStartCotInstant(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return EvtStartCotInstant( host, evt, entry, context, priority, sSize );
+    return EvtStartCotInstant( host, evt, entry, context, priority, sType );
 }
 
 int DzStartRemoteCot(
@@ -144,7 +150,7 @@ int DzStartRemoteCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzHost* host = GetHost();
@@ -152,16 +158,16 @@ int DzStartRemoteCot(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return StartRemoteCot( host, rmtId, entry, context, priority, sSize );
+    return StartRemoteCot( host, rmtId, entry, context, priority, sType );
 }
 
 int DzEvtStartRemoteCot(
@@ -170,7 +176,7 @@ int DzEvtStartRemoteCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzHost* host = GetHost();
@@ -178,17 +184,17 @@ int DzEvtStartRemoteCot(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
     assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return EvtStartRemoteCot( host, evt, rmtId, entry, context, priority, sSize );
+    return EvtStartRemoteCot( host, evt, rmtId, entry, context, priority, sType );
 }
 
 int DzRunRemoteCot(
@@ -196,7 +202,7 @@ int DzRunRemoteCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     )
 {
     DzHost* host = GetHost();
@@ -204,16 +210,16 @@ int DzRunRemoteCot(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( rmtId >= 0 && rmtId < host->hostCount );
     assert( host->hostId != rmtId );
     assert( entry );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return RunRemoteCot( host, rmtId, entry, context, priority, sSize );
+    return RunRemoteCot( host, rmtId, entry, context, priority, sType );
 }
 
 int DzRunWorker( DzEntry entry, intptr_t context )
@@ -250,14 +256,14 @@ int DzSetPriority( int priority )
     return SetCurrCotPriority( host, priority );
 }
 
-int DzSetCotPoolDepth( int sSize, int depth )
+int DzSetCotPoolDepth( int sType, int depth )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
     assert( depth <= DZ_MAX_COT_POOL_DEPTH );
 
-    return SetCotPoolDepth( host, sSize, depth );
+    return SetCotPoolDepth( host, sType, depth );
 }
 
 int DzSetWorkerPoolDepth( int depth )
@@ -269,7 +275,7 @@ int DzSetWorkerPoolDepth( int depth )
     return SetWorkerPoolDepth( host, depth );
 }
 
-int DzSetHostParam( int lowestPri, int dftPri, int dftSSize )
+int DzSetHostParam( int lowestPri, int dftPri, int dftSType )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -278,9 +284,9 @@ int DzSetHostParam( int lowestPri, int dftPri, int dftSSize )
         lowestPri < COT_PRIORITY_COUNT
         );
     assert( dftPri <= lowestPri );
-    assert( dftSSize < STACK_SIZE_COUNT );
+    assert( dftSType < STACK_TYPE_COUNT );
 
-    return SetHostParam( host, lowestPri, dftPri, dftSSize );
+    return SetHostParam( host, lowestPri, dftPri, dftSType );
 }
 
 int DzSetHostIoReaction( int rate )
@@ -440,7 +446,7 @@ DzHandle DzCreateCallbackTimer(
     DzEntry         callback,
     intptr_t        context,
     int             priority,
-    int             sSize
+    int             sType
     )
 {
     DzHost* host = GetHost();
@@ -448,16 +454,16 @@ DzHandle DzCreateCallbackTimer(
     if( priority == CP_DEFAULT ){
         priority = host->dftPri;
     }
-    if( sSize == SS_DEFAULT ){
-        sSize = host->dftSSize;
+    if( sType == ST_DEFAULT ){
+        sType = host->dftSType;
     }
     assert( milSec > 0 );
     assert( host->timerCount < TIME_HEAP_SIZE );
     assert( callback );
     assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return CreateCallbackTimer( host, milSec, repeat, callback, context, priority, sSize );
+    return CreateCallbackTimer( host, milSec, repeat, callback, context, priority, sType );
 }
 
 BOOL DzDelCallbackTimer( DzHandle timer )
@@ -910,13 +916,13 @@ int __DzDbgLastErr()
     return __Dbg( GetLastErr )( host );
 }
 
-int __DzDbgMaxStackUse( int sSize )
+int __DzDbgMaxStackUse( int sType )
 {
     DzHost* host = GetHost();
     assert( host );
-    assert( sSize >= SS_FIRST && sSize < STACK_SIZE_COUNT );
+    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
-    return __Dbg( GetMaxStackUse )( host, sSize );
+    return __Dbg( GetMaxStackUse )( host, sType );
 }
 
 #ifdef __cplusplus

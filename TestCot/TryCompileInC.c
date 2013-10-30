@@ -10,5 +10,5 @@ CotEntry TryCompileInCRoutine( intptr_t context )
 
 void TryCompileInC()
 {
-    DzRunHosts( 1, CP_LOW, CP_LOW, SS_64K, TryCompileInCRoutine, 0, NULL );
+    DzRunHosts( 1, 4096, 65536, 1024 * 1024, CP_LOW, CP_LOW, ST_UM, TryCompileInCRoutine, 0, NULL );
 }

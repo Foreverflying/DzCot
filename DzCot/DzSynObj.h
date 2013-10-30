@@ -22,7 +22,7 @@ inline int StartCot(
     DzEntry     entry,
     intptr_t    context,
     int         priority,
-    int         sSize
+    int         sType
     );
 
 inline DzSynObj* AllocSynObj( DzHost* host )
@@ -261,7 +261,7 @@ inline DzSynObj* CreateCallbackTimer(
     DzEntry         callback,
     intptr_t        context,
     int             priority,
-    int             sSize
+    int             sType
     )
 {
     DzSynObj* obj;
@@ -278,7 +278,7 @@ inline DzSynObj* CreateCallbackTimer(
     obj->routine = callback;
     obj->context = context;
     obj->priority = priority;
-    obj->sSize = sSize;
+    obj->sType = sType;
     obj->ref++;
     host->cotCount++;
 
@@ -327,7 +327,7 @@ inline BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
     case TYPE_CALLBACK_TIMER:
         timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
         timer->ref++;
-        StartCot( host, CallbackTimerEntry, (intptr_t)timer, timer->priority, timer->sSize );
+        StartCot( host, CallbackTimerEntry, (intptr_t)timer, timer->priority, timer->sType );
         return TRUE;
 
     case TYPE_TIMEOUT:

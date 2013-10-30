@@ -84,7 +84,7 @@ struct _DzSynObj
             DzEntry     routine;
             intptr_t    context;
             int         priority;
-            int         sSize;
+            int         sType;
         };
     };
 };
@@ -135,6 +135,12 @@ struct _DzHostsMgr
     DzLItr*         workerPool;
     DzRmtCotFifo*   rmtFifoRes;
     DzCot**         rmtFifoCotArrRes;
+    int             lowestPri;
+    int             dftPri;
+    int             dftSType;
+    int             smallStackSize;
+    int             middleStackSize;
+    int             largeStackSize;
 };
 
 struct _DzHost
@@ -216,8 +222,9 @@ struct _DzHost
     //resource pools, local access only, frequently
 
     //DzCot struct pool
-    DzLItr*         cotPools[ STACK_SIZE_COUNT ];
-    int             cotPoolNowDepth[ STACK_SIZE_COUNT ];
+    DzLItr*         cotPools[ STACK_TYPE_COUNT ];
+    int             cotPoolNowDepth[ STACK_TYPE_COUNT ];
+    int             cotStackSize[ STACK_TYPE_COUNT ];
     DzLItr*         cotPool;
 
     //DzSynObj struct pool
@@ -228,8 +235,6 @@ struct _DzHost
 
     //DzFd struct Pool
     DzLItr*         dzFdPool;
-
-    //the sixth cache align on 64 bit platform
 
     //multi hosts manager
     DzHostsMgr*     mgr;
@@ -243,6 +248,8 @@ struct _DzHost
     //lazy free memory list
     DzSList*        lazyFreeMem;
 
+    //the sixth cache align on 64 bit platform
+
     //lazy checking timer
     DzSynObj*       lazyTimer;
 
@@ -253,9 +260,7 @@ struct _DzHost
     //record pool alloc history
     DzLItr*         poolGrowList;
 
-    //the seventh cache align on 64 bit platform begin
-
-    //handle like struct chunk pool
+    //handle struct chunk pool
     char*           handlePoolPos;
     char*           handlePoolEnd;
 
@@ -265,10 +270,12 @@ struct _DzHost
 
     //default cot value
     int             dftPri;
-    int             dftSSize;
+    int             dftSType;
+
+    //the seventh cache align on 64 bit platform begin
 
     //configure data
-    int             cotPoolSetDepth[ STACK_SIZE_COUNT ];
+    int             cotPoolSetDepth[ STACK_TYPE_COUNT ];
 
     //debug struct
     __DBG_STRUCT( DzHost )
@@ -284,9 +291,6 @@ struct _DzSysParam
             DzHostsMgr* hostMgr;
             DzCot*      returnCot;
             int         hostId;
-            int         lowestPri;
-            int         dftPri;
-            int         dftSSize;
         } hs;   //used for host start
         struct{
             DzEntry     entry;

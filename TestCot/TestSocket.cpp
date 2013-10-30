@@ -138,12 +138,12 @@ void CotStart(
     DzEntry     entry,
     intptr_t    context,
     int         priority = CP_DEFAULT,
-    int         sSize = SS_DEFAULT
+    int         sType = ST_DEFAULT
     )
 {
     gMaxCotCount++;
     gCotCount++;
-    DzStartCot( entry, context, priority, sSize );
+    DzStartCot( entry, context, priority, sType );
 }
 
 void CotStop()

@@ -52,8 +52,13 @@ typedef long long int64;
 
 //global constants on windows
 #define THREAD_STACK_MIN            ( 64 * 1024 )
-#define DZ_MAX_PERSIST_STACK_SIZE   ( SS_16K )
+#define DZ_PAGE_STACK_BOUNDARY      ( 65536 )
 
+#ifdef _DEBUG
+#define DZ_MIN_STACK_SIZE           ( 2048 )
+#else
+#define DZ_MIN_STACK_SIZE           ( 1024 )
+#endif
 
 //windows specific constants
 
