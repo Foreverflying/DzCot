@@ -9,12 +9,30 @@
 #include "DzCore.h"
 #include "DzIoOs.h"
 
+void ReleaseAllPoolStack( DzHost* host )
+{
+    DzLItr* lItr;
+    DzCot* dzCot;
+    int i;
+
+    for( i = 0; i < STACK_TYPE_COUNT; i++ ){
+        if( host->cotStackSize[i] >= DZ_MIN_PAGE_STACK_SIZE ){
+            lItr = host->cotPools[i];
+            while( lItr ){
+                dzCot = MEMBER_BASE( lItr, DzCot, lItr );
+                FreeCotStack( host, dzCot );
+                lItr = lItr->next;
+            }
+        }
+    }
+}
+
 void __stdcall DelayFreeCotHelper( intptr_t context )
 {
     DzHost* host = GetHost();
     DzCot* dzCot = (DzCot*)context;
 
-    FreeCotStack( dzCot );
+    FreeCotStack( host, dzCot );
     dzCot->lItr.next = host->cotPool;
     host->cotPool = &dzCot->lItr;
 }

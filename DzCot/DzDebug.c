@@ -32,9 +32,9 @@ void __DbgMarkCurrStackForCheck( DzHost* host )
     int size;
 
     dzCot = GetHost()->currCot;
-    size = DZ_STACK_UNIT_SIZE << ( dzCot->sSize * DZ_STACK_SIZE_STEP );
+    size = host->cotStackSize[ dzCot->sType ];
     end = (int*)( dzCot->stack - size );
-    if( dzCot->sSize > DZ_MAX_PERSIST_STACK_SIZE ){
+    if( size >= DZ_MIN_PAGE_STACK_SIZE ){
         end += CHECK_RESERV_SIZE / sizeof( int );
     }
     for( begin = &size - 64; begin >= end; begin-- ){
@@ -53,10 +53,10 @@ void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot )
     if( dzCot == &host->centerCot ){
         return;
     }
-    tmp = DZ_STACK_UNIT_SIZE << ( dzCot->sSize * DZ_STACK_SIZE_STEP );
+    tmp = host->cotStackSize[ dzCot->sType ];
     begin = (int*)dzCot->stack - p->maxStkUse - 1;
     end = (int*)( dzCot->stack - tmp );
-    if( dzCot->sSize > DZ_MAX_PERSIST_STACK_SIZE ){
+    if( tmp >= DZ_MIN_PAGE_STACK_SIZE ){
         end += CHECK_RESERV_SIZE / sizeof( int );
     }
     //*
@@ -66,8 +66,8 @@ void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot )
     for( tmp = 0; end < begin; end++ ){
         if( *end != DEBUG_CHECK_MARK ){
             p->maxStkUse = (int)( (int*)dzCot->stack - end );
-            if( p->maxStkUse > __DbgPtr( host )->maxStkUse[ dzCot->sSize ] ){
-                __DbgPtr( host )->maxStkUse[ dzCot->sSize ] = p->maxStkUse;
+            if( p->maxStkUse > __DbgPtr( host )->maxStkUse[ dzCot->sType ] ){
+                __DbgPtr( host )->maxStkUse[ dzCot->sType ] = p->maxStkUse;
             }
             return;
         }
@@ -80,8 +80,8 @@ void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot )
             tmp++;
             if( tmp == 16 ){
                 p->maxStkUse = (int)( (int*)dzCot->stack - begin - tmp );
-                if( p->maxStkUse > __DbgPtr( host )->maxStkUse[ dzCot->sSize ] ){
-                    __DbgPtr( host )->maxStkUse[ dzCot->sSize ] = p->maxStkUse;
+                if( p->maxStkUse > __DbgPtr( host )->maxStkUse[ dzCot->sType ] ){
+                    __DbgPtr( host )->maxStkUse[ dzCot->sType ] = p->maxStkUse;
                 }
                 return;
             }
@@ -98,7 +98,7 @@ void __DbgInitDzHost( DzHost* host )
 {
     int i;
 
-    for( i = 0; i < STACK_SIZE_COUNT; i++ ){
+    for( i = 0; i < STACK_TYPE_COUNT; i++ ){
         __DbgPtr( host )->maxStkUse[i] = 0;
     }
 }
@@ -109,9 +109,9 @@ void __DbgInitDzCot( DzHost* host, DzCot* dzCot )
     __DbgPtr( dzCot )->maxStkUse = 0;
 }
 
-int __DbgGetMaxStackUse( DzHost* host, int sSize )
+int __DbgGetMaxStackUse( DzHost* host, int sType )
 {
-    return __DbgPtr( host )->maxStkUse[ sSize ] * sizeof( int ); 
+    return __DbgPtr( host )->maxStkUse[ sType ] * sizeof( int ); 
 }
 
 #endif

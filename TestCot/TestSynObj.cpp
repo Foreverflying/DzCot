@@ -151,14 +151,14 @@ CotEntry TestAllSynObj2( intptr_t context )
     int i = 0;
     retCount = 0;
 
-    DzStartCot( Wait7Evt1_Sem1_Timer1, 0, CP_DEFAULT, SS_4K );
-    DzStartCot( Wait2Evt1_Evt2, 0, CP_DEFAULT, SS_4K );
-    DzStartCot( Wait4Sem1_Evt2, 0, CP_DEFAULT, SS_16K );
-    DzStartCot( Wait2Evt1_Evt2, 0, CP_DEFAULT, SS_256K );
-    DzStartCot( Wait3Evt1_Timer1, 0, CP_DEFAULT, SS_1M );
-    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, SS_4M );
-    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, SS_16M );
-    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, SS_64K );
+    DzStartCot( Wait7Evt1_Sem1_Timer1, 0, CP_DEFAULT, ST_US );
+    DzStartCot( Wait2Evt1_Evt2, 0, CP_DEFAULT, ST_UM );
+    DzStartCot( Wait4Sem1_Evt2, 0, CP_DEFAULT, ST_UL );
+    DzStartCot( Wait2Evt1_Evt2, 0, CP_DEFAULT, ST_US );
+    DzStartCot( Wait3Evt1_Timer1, 0, CP_DEFAULT, ST_UM );
+    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, ST_UM );
+    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, ST_UL );
+    DzStartCot( Wait5Sem2_Timer1, 0, CP_DEFAULT, ST_UL );
     DzStartCot( Wait7Evt1_Sem1_Timer1 );
     DzStartCot( Wait6Evt1 );
 

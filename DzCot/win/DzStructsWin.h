@@ -30,7 +30,7 @@ struct _DzCot
             void*               sp;
             char*               stack;
             char*               stackLimit;
-            int                 sSize;
+            int                 sType;
             int                 priority;
             DzEntry             entry;
             union{

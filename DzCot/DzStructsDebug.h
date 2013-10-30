@@ -31,7 +31,7 @@
 
 __DBG_DEF_STRUCT( DzHost )
 {
-    int         maxStkUse[ STACK_SIZE_COUNT ];
+    int         maxStkUse[ STACK_TYPE_COUNT ];
 };
 
 __DBG_DEF_STRUCT( DzCot ){

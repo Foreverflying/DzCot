@@ -27,7 +27,7 @@ inline int __EmptyCall( DzHost* host, ... )
 }
 
 int __DbgGetLastErr( DzHost* host );
-int __DbgGetMaxStackUse( DzHost* host, int sSize );
+int __DbgGetMaxStackUse( DzHost* host, int sType );
 void __DbgSetLastErr( DzHost* host, int err );
 void __DbgMarkCurrStackForCheck( DzHost* host );
 void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot );
