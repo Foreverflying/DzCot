@@ -396,7 +396,7 @@ inline int RunHost(
     for( i = 0; i < STACK_TYPE_COUNT; i++ ){
         host->cotPoolSetDepth[i] = 0;
     }
-    if( host->dftSType >= DZ_MIN_PAGE_STACK_SIZE ){
+    if( host->cotStackSize[ host->dftSType ] >= DZ_MIN_PAGE_STACK_SIZE ){
         host->cotPoolNowDepth[ host->dftSType ] = DFT_SSIZE_POOL_DEPTH;
         host->cotPoolSetDepth[ host->dftSType ] = DFT_SSIZE_POOL_DEPTH;
     }
