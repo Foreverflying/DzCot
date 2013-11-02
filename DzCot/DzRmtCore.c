@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2011/10/13 14:42
-    file:       DzRmtCore.c
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzRmtCore.c
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/10/13
+ *
+ */
 
 #include "DzRmtCore.h"
 #include "DzCore.h"

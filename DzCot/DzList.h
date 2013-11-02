@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:03
-    file:       DzList.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzList.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzList_h__
 #define __DzList_h__

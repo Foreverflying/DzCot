@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:04
-    file:       DzIoLnx.c
-    author:     Foreverflying
-    purpose:
-********************************************************************/
+/**
+ *  @file       DzIoLnx.c
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #include "../DzInc.h"
 #include "../DzCore.h"

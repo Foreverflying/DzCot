@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:04
-    file:       Inc_DzSocketReplace.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       Inc_DzSocketReplace.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __Inc_DzSocketReplace_h__
 #define __Inc_DzSocketReplace_h__

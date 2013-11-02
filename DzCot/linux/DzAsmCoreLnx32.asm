@@ -1,10 +1,9 @@
 #********************************************************************
-#    created:    2010/02/11 22:07
-#    file:       DzAsmCoreLnx32.asm
-#    author:     Foreverflying
-#    purpose:    funciton used for switch cot on linux 32
+#   @file       DzAsmCoreLnx32.asm
+#   @brief      funciton used for switch cot in 32 bit linux
+#   @author	    Foreverflying <foreverflying@live.cn>
+#   @date       2010/02/11
 #********************************************************************
-
 
 #PUBLIC CallDzCotEntry PROC     ; CallDzCotEntry
 #PUBLIC DzSwitch PROC           ; DzSwitch

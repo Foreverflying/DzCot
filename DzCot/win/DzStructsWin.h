@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:06
-    file:       DzStructsWin.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzStructsWin.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzStructsWin_h__
 #define __DzStructsWin_h__

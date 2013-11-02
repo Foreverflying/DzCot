@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:04
-    file:       DzSchedule.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzSchedule.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzSchedule_h__
 #define __DzSchedule_h__

@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2011/10/06 19:53
-    file:       DzDeclareStructs.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzDeclareStructs.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/10/06
+ *
+ */
 
 #ifndef __DzDeclareStructs_h__
 #define __DzDeclareStructs_h__

@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2011/10/24 21:13
-    file:       DzBase.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzBase.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/10/24
+ *
+ */
 
 #ifndef __DzBase_h__
 #define __DzBase_h__

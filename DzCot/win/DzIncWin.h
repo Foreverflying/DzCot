@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:02
-    file:       DzIncWin.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzIncWin.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzIncWin_h__
 #define __DzIncWin_h__

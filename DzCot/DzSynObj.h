@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:07
-    file:       DzSynObj.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzSynObj.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzSynObj_h__
 #define __DzSynObj_h__
@@ -36,6 +37,7 @@ inline DzSynObj* AllocSynObj( DzHost* host )
     }
     obj = MEMBER_BASE( host->synObjPool, DzSynObj, lItr );
     host->synObjPool = host->synObjPool->next;
+    __Dbg( AllocSynObj )( host, obj );
     return obj;
 }
 
@@ -43,6 +45,7 @@ inline void FreeSynObj( DzHost* host, DzSynObj* obj )
 {
     obj->lItr.next = host->synObjPool;
     host->synObjPool = &obj->lItr;
+    __Dbg( FreeSynObj )( host, obj );
 }
 
 inline BOOL IsNotified( DzSynObj* obj )

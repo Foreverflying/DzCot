@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 21:50
-    file:       DzCoreWin.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzCoreWin.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzCoreWin_h__
 #define __DzCoreWin_h__
@@ -48,6 +49,7 @@ inline DzFd* CreateDzFd( DzHost* host )
     host->dzFdPool = host->dzFdPool->next;
     dzFd->err = 0;
     dzFd->ref++;
+    __Dbg( AllocFd )( host, dzFd );
     return dzFd;
 }
 
@@ -60,6 +62,7 @@ inline void CloseDzFd( DzHost* host, DzFd* dzFd )
 {
     dzFd->ref--;
     if( dzFd->ref == 0 ){
+        __Dbg( FreeFd )( host, dzFd );
         dzFd->lItr.next = host->dzFdPool;
         host->dzFdPool = &dzFd->lItr;
     }

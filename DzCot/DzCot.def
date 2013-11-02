@@ -78,6 +78,10 @@ EXPORTS
     DzLatestMilUnixTime
     __DzDbgLastErr
     __DzDbgMaxStackUse
+    __DzDbgSynObjLeak
+    __DzDbgFdLeak
+    __DzDbgHeapLeak
+    __DzDbgParamNodeLeak
     DzOpenFileW
     DzGetNameInfoW
     DzGetAddrInfoW

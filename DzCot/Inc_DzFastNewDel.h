@@ -1,11 +1,16 @@
-/********************************************************************
-    created:    2011/07/21 12:48
-    file:       Inc_DzFastNewDel.h
-    author:     Foreverflying
-    purpose:    Override the global new delete operator with faster
-                function DzMalloc DzFree while using DzCot.
-                just include this file in only one cpp file.
-********************************************************************/
+/**
+ *  @file       Inc_DzFastNewDel.h
+ *  @brief      override global new delete operator in a single host
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/07/21
+ *
+ *  Override global new delete operator with faster function
+ *  DzMalloc DzFree while using DzCot.
+ *
+ *  @remark
+ *      Just include this file in only one cpp file.
+ *      A pointer returned by new must be freed in the same cot host.
+ */
 
 #ifdef __cplusplus
 

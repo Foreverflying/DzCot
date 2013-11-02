@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:03
-    file:       DzResourceMgr.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzResourceMgr.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzResourceMgr_h__
 #define __DzResourceMgr_h__

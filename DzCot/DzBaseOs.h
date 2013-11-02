@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/11/22 17:29
-    file:       DzBaseOs.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzBaseOs.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/11/22
+ *
+ */
 
 #ifndef __DzBaseOs_h__
 #define __DzBaseOs_h__
