@@ -1,11 +1,11 @@
 ;********************************************************************
-;    created:    2010/02/11 22:07
-;    file:       DzAsmCoreWin32.asm
-;    author:     Foreverflying
-;    purpose:    funciton used for switch cot on win32
+;   @file       DzAsmCoreWin32.asm
+;   @brief      funciton used for switch cot in 32 bit windows
+;   @author	    Foreverflying <foreverflying@live.cn>
+;   @date       2010/02/11
 ;********************************************************************
 
-    .386
+.386
 
 ;PUBLIC _CallDzCotEntry@0 PROC  ; CallDzCotEntry
 ;PUBLIC @DzSwitch@8 PROC        ; DzSwitch

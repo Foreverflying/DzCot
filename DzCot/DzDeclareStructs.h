@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2011/10/06 19:53
-    file:       DzDeclareStructs.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzDeclareStructs.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/10/06
+ *
+ */
 
 #ifndef __DzDeclareStructs_h__
 #define __DzDeclareStructs_h__
@@ -27,7 +28,7 @@ struct _DzLNode;
 
 typedef struct _DzLItr          DzLItr;
 typedef struct _DzSList         DzSList;
-typedef struct _DzDLItr         DzDLItr;
+typedef struct _DzDLItr         DzDlItr;
 typedef struct _DzDList         DzDList;
 typedef struct _DzLNode         DzLNode;
 

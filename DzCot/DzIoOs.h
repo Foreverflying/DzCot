@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:02
-    file:       DzIoOs.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzIoOs.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzIoOs_h__
 #define __DzIoOs_h__

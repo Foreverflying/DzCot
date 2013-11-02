@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 21:49
-    file:       DzCore.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzCore.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzCore_h__
 #define __DzCore_h__
@@ -629,12 +630,20 @@ inline int SetHostIoReaction( DzHost* host, int rate )
 
 inline void* Malloc( DzHost* host, size_t size )
 {
-    return mspace_malloc( host->mSpace, size );
+    void* ret;
+
+    ret = mspace_malloc( host->mSpace, size );
+    __Dbg( AllocHeap )( host, ret, size );
+    return ret;
 }
 
 inline void* Calloc( DzHost* host, size_t num, size_t size )
 {
-    return mspace_calloc( host->mSpace, num, size );
+    void* ret;
+
+    ret = mspace_calloc( host->mSpace, num, size );
+    __Dbg( AllocHeap )( host, ret, size * num );
+    return ret;
 }
 
 inline void* ReAlloc( DzHost* host, void* mem, size_t size )
@@ -644,6 +653,7 @@ inline void* ReAlloc( DzHost* host, void* mem, size_t size )
 
 inline void Free( DzHost* host, void* mem )
 {
+    __Dbg( FreeHeap )( host, mem );
     mspace_free( host->mSpace, mem );
 }
 
@@ -651,7 +661,7 @@ inline void* MallocEx( DzHost* host, size_t size )
 {
     DzMemExTag* ret;
 
-    ret = (DzMemExTag*)mspace_malloc( host->mSpace, size + sizeof( int64 ) );
+    ret = (DzMemExTag*)Malloc( host, size + sizeof( int64 ) );
     ret->hostId = host->hostId;
     return ret + 1;
 }

@@ -1472,6 +1472,10 @@ unsigned long long DzLatestMilUnixTime();
 
 int __DzDbgLastErr();
 int __DzDbgMaxStackUse( int sType );
+int __DzDbgSynObjLeak();
+int __DzDbgFdLeak();
+int __DzDbgHeapLeak();
+int __DzDbgParamNodeLeak();
 
 #ifdef _WIN32
 

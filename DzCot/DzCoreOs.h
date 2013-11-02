@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 21:50
-    file:       DzCoreOs.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzCoreOs.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzCoreOs_h__
 #define __DzCoreOs_h__

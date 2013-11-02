@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:06
-    file:       DzStructsList.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzStructsList.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzStructsList_h__
 #define __DzStructsList_h__
@@ -23,13 +24,13 @@ struct _DzSList
 
 struct _DzDLItr
 {
-    DzDLItr*    next;
-    DzDLItr*    prev;
+    DzDlItr*    next;
+    DzDlItr*    prev;
 };
 
 struct _DzDList
 {
-    DzDLItr     entry;
+    DzDlItr     entry;
 };
 
 struct _DzLNode
@@ -44,7 +45,7 @@ struct _DzLNode
                     };
                     intptr_t        d7;
                 };
-                DzDLItr             dlItr;
+                DzDlItr             dlItr;
             };
             intptr_t                d6;
             intptr_t                d5;

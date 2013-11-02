@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 21:55
-    file:       DzIncOs.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzIncOs.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzIncOs_h__
 #define __DzIncOs_h__

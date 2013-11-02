@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/11/22 17:27
-    file:       DzBaseWin.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzBaseWin.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/11/22
+ *
+ */
 
 #ifndef __DzBaseWin_h__
 #define __DzBaseWin_h__

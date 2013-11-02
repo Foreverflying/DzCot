@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:04
-    file:       DzIoWin.c
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzIoWin.c
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #include "../DzInc.h"
 #include "../DzCore.h"

@@ -1,8 +1,8 @@
 ;********************************************************************
-;    created:    2010/02/11 22:07
-;    file:       DzAsmCoreWin64.asm
-;    author:     Foreverflying
-;    purpose:    funciton used for switch cot on win64
+;   @file       DzAsmCoreWin64.asm
+;   @brief      funciton used for switch cot in 64 bit windows
+;   @author	    Foreverflying <foreverflying@live.cn>
+;   @date       2010/02/11
 ;********************************************************************
 
 ;PUBLIC CallDzCotEntry PROC     ; CallDzCotEntry

@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:07
-    file:       DzTimer.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzTimer.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzTimer_h__
 #define __DzTimer_h__

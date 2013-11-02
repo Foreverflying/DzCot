@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:05
-    file:       DzStructsIoLnx.h
-    author:     Foreverflying
-    purpose:
-********************************************************************/
+/**
+ *  @file       DzStructsIoLnx.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzStructsIoLnx_h__
 #define __DzStructsIoLnx_h__

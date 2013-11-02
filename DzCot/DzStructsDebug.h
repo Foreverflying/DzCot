@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2011/10/07 18:25
-    file:       DzStructsDebug.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzStructsDebug.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/10/07
+ *
+ */
 
 #ifndef __DzStructsDebug_h__
 #define __DzStructsDebug_h__
@@ -32,6 +33,10 @@
 __DBG_DEF_STRUCT( DzHost )
 {
     int         maxStkUse[ STACK_TYPE_COUNT ];
+    int         synObjLeak;
+    int         fdLeak;
+    int         heapLeak;
+    int         paramNodeLeak;
 };
 
 __DBG_DEF_STRUCT( DzCot ){

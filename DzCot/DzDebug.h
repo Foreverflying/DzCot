@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2011/10/06 18:51
-    file:       DzDebug.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzDebug.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/10/06
+ *
+ */
 
 #ifndef __DzDebug_h__
 #define __DzDebug_h__
@@ -26,13 +27,31 @@ inline int __EmptyCall( DzHost* host, ... )
     return 0;
 }
 
-int __DbgGetLastErr( DzHost* host );
-int __DbgGetMaxStackUse( DzHost* host, int sType );
-void __DbgSetLastErr( DzHost* host, int err );
-void __DbgMarkCurrStackForCheck( DzHost* host );
-void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot );
 void __DbgInitDzHost( DzHost* host );
 void __DbgInitDzCot( DzHost* host, DzCot* dzCot );
+
+int __DbgGetLastErr( DzHost* host );
+void __DbgSetLastErr( DzHost* host, int err );
+
+void __DbgMarkCurrStackForCheck( DzHost* host );
+void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot );
+int __DbgGetMaxStackUse( DzHost* host, int sType );
+
+void __DbgAllocSynObj( DzHost* host, DzSynObj* obj );
+void __DbgFreeSynObj( DzHost* host, DzSynObj* obj );
+int __DbgGetSynObjLeak( DzHost* host );
+
+void __DbgAllocFd( DzHost* host, DzFd* fd );
+void __DbgFreeFd( DzHost* host, DzFd* fd );
+int __DbgGetFdLeak( DzHost* host );
+
+void __DbgAllocHeap( DzHost* host, void* p, size_t size );
+void __DbgFreeHeap( DzHost* host, void* p );
+int __DbgGetHeapLeak( DzHost* host );
+
+void __DbgAllocParamNode( DzHost* host, DzParamNode* node );
+void __DbgFreeParamNode( DzHost* host, DzParamNode* node );
+int __DbgGetParamNodeLeak( DzHost* host );
 
 #ifdef __cplusplus
 };

@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:05
-    file:       DzStructs.h
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzStructs.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #ifndef __DzStructs_h__
 #define __DzStructs_h__
@@ -93,7 +94,7 @@ struct _DzWaitNode
 {
     union{
         DzLItr      lItr;
-        DzDLItr     dlItr;
+        DzDlItr     dlItr;
     };
     DzWaitHelper*   helper;
     DzSynObj*       synObj;

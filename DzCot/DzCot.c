@@ -1,9 +1,10 @@
-/********************************************************************
-    created:    2010/02/11 22:12
-    file:       DzCot.c
-    author:     Foreverflying
-    purpose:    
-********************************************************************/
+/**
+ *  @file       DzCot.c
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2010/02/11
+ *
+ */
 
 #include "DzInc.h"
 #include "DzSynObj.h"
@@ -815,10 +816,13 @@ const char* DzInetNtopA( int af, const void* src, char* dst, int size )
 
 DzParamNode* DzAllocParamNode()
 {
+    DzParamNode* ret;
     DzHost* host = GetHost();
     assert( host );
 
-    return AllocLNode( host );
+    ret = AllocLNode( host );
+    __Dbg( AllocParamNode )( host, ret );
+    return ret;
 }
 
 void DzFreeParamNode( DzParamNode* node )
@@ -827,6 +831,7 @@ void DzFreeParamNode( DzParamNode* node )
     assert( host );
     assert( node );
 
+    __Dbg( FreeParamNode )( host, node );
     FreeLNode( host, (DzLNode*)node );
 }
 
@@ -923,6 +928,38 @@ int __DzDbgMaxStackUse( int sType )
     assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
 
     return __Dbg( GetMaxStackUse )( host, sType );
+}
+
+int __DzDbgSynObjLeak()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return __Dbg( GetSynObjLeak )( host );
+}
+
+int __DzDbgFdLeak()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return __Dbg( GetFdLeak )( host );
+}
+
+int __DzDbgHeapLeak()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return __Dbg( GetHeapLeak )( host );
+}
+
+int __DzDbgParamNodeLeak()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return __Dbg( GetParamNodeLeak )( host );
 }
 
 #ifdef __cplusplus
