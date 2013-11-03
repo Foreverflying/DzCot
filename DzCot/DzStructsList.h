@@ -24,13 +24,13 @@ struct _DzSList
 
 struct _DzDLItr
 {
-    DzDLItr*    next;
-    DzDLItr*    prev;
+    DzDlItr*    next;
+    DzDlItr*    prev;
 };
 
 struct _DzDList
 {
-    DzDLItr     entry;
+    DzDlItr     entry;
 };
 
 struct _DzLNode
@@ -45,7 +45,7 @@ struct _DzLNode
                     };
                     intptr_t        d7;
                 };
-                DzDLItr             dlItr;
+                DzDlItr             dlItr;
             };
             intptr_t                d6;
             intptr_t                d5;

@@ -28,7 +28,7 @@ struct _DzLNode;
 
 typedef struct _DzLItr          DzLItr;
 typedef struct _DzSList         DzSList;
-typedef struct _DzDLItr         DzDLItr;
+typedef struct _DzDLItr         DzDlItr;
 typedef struct _DzDList         DzDList;
 typedef struct _DzLNode         DzLNode;
 

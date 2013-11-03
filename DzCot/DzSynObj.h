@@ -67,7 +67,7 @@ inline void WaitNotified( DzSynObj* obj )
 
 inline void AppendToWaitQ( DzDList* queue, DzWaitNode* node )
 {
-    AddDLItrToTail( queue, &node->dlItr );
+    AddDlItrToTail( queue, &node->dlItr );
 }
 
 inline void ClearWait( DzHost* host, DzWaitHelper* helper )
@@ -75,7 +75,7 @@ inline void ClearWait( DzHost* host, DzWaitHelper* helper )
     int i;
 
     for( i = 0; i < helper->waitCount; i++ ){
-        EraseDLItr( &helper->nodeArray[i].dlItr );
+        EraseDlItr( &helper->nodeArray[i].dlItr );
     }
     if( IsTimeNodeInHeap( &helper->timeout.timerNode ) ){
         RemoveTimer( host, &helper->timeout.timerNode );
@@ -85,7 +85,7 @@ inline void ClearWait( DzHost* host, DzWaitHelper* helper )
 inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
 {
     DzDList* queue;
-    DzDLItr* dlItr;
+    DzDlItr* dlItr;
     DzWaitNode* node;
     DzWaitNode* head;
     int priority;

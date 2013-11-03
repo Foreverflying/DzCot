@@ -24,7 +24,7 @@ inline void InitDList( DzDList* list )
     list->entry.next = &list->entry;
 }
 
-inline void AddDLItrToHead( DzDList* list, DzDLItr* dlItr )
+inline void AddDlItrToHead( DzDList* list, DzDlItr* dlItr )
 {
     list->entry.next->prev = dlItr;
     dlItr->next = list->entry.next;
@@ -32,7 +32,7 @@ inline void AddDLItrToHead( DzDList* list, DzDLItr* dlItr )
     list->entry.next = dlItr;
 }
 
-inline void AddDLItrToTail( DzDList* list, DzDLItr* dlItr )
+inline void AddDlItrToTail( DzDList* list, DzDlItr* dlItr )
 {
     list->entry.prev->next = dlItr;
     dlItr->prev = list->entry.prev;
@@ -40,13 +40,13 @@ inline void AddDLItrToTail( DzDList* list, DzDLItr* dlItr )
     list->entry.prev = dlItr;
 }
 
-inline void EraseDLItr( DzDLItr* dlItr )
+inline void EraseDlItr( DzDlItr* dlItr )
 {
     dlItr->prev->next = dlItr->next;
     dlItr->next->prev = dlItr->prev;
 }
 
-inline void LinkDList( DzDLItr* left, DzDLItr* right )
+inline void LinkDList( DzDlItr* left, DzDlItr* right )
 {
     left->next = right;
     right->prev = left;

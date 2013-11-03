@@ -94,7 +94,7 @@ struct _DzWaitNode
 {
     union{
         DzLItr      lItr;
-        DzDLItr     dlItr;
+        DzDlItr     dlItr;
     };
     DzWaitHelper*   helper;
     DzSynObj*       synObj;
