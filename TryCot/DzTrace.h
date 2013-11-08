@@ -1,12 +1,12 @@
-/**
- *  @file       DzTrace.h
- *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
- *  @date       2011/10/31
- *
- */
+/********************************************************************
+    created:    2011/10/31 23:26
+    file:       DzTrace.h
+    author:     Foreverflying
+    purpose:    
+********************************************************************/
 
-#pragma once
+#ifndef __DzTrace_h__
+#define __DzTrace_h__
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -122,3 +122,5 @@ using namespace __DzTrace;
 
 #define __DzTceEnableScopePrintLe( level )\
     __z_DbgRptDef_##level( __DzTceEnableScopePrint )
+
+#endif // __DzTrace_h__

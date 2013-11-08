@@ -1,4 +1,12 @@
+/**
+ *  @file       ConfigTestCot.h
+ *  @brief      
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2011/09/14
+ *
+ */
 
+#pragma once
 
 const char* gArgv[] = {
     "TestCot",
