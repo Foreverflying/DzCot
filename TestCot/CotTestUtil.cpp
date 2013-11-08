@@ -7,7 +7,7 @@
 
 #include "stdafx.h"
 #include "CotTestUtil.h"
-#include "TryCot.h"
+#include "ConfigTestCot.h"
 
 CotEntry CleanEntry( intptr_t context )
 {
@@ -17,19 +17,6 @@ CotEntry CleanEntry( intptr_t context )
     }
     __DzTce1( "Hosts exit" );
 }
-
-#ifdef TEST_COT_JUST_RUN_TRY
-
-//#include "../DzCot/Inc_DzFastNewDelEx.h"
-
-int MainEntry( int argc, _TCHAR* argv[] )
-{
-    return DzRunHosts( gHostCount, 4000, 64000, 128000, CP_LOW, CP_LOW, ST_UM, TestCotTryEntry, 0, CleanEntry );
-}
-
-#else
-
-#include "ConfigTestCot.h"
 
 int MainEntry( int argc, _TCHAR* argv[] )
 {
@@ -42,10 +29,22 @@ int MainEntry( int argc, _TCHAR* argv[] )
     return RUN_ALL_TESTS();
 }
 
-#endif
-
 void TestCot( DzEntry entry, intptr_t context )
 {
     int ret = DzRunHosts( 0, 4000, 64000, 1024 * 1024, CP_LOW, CP_LOW, ST_UM, entry, context, NULL );
     DZ_EXPECT_EQ( DS_OK, ret );
+}
+
+int main(int argc, _TCHAR* argv[])
+{
+    int ret = MainEntry( argc, argv );
+    getchar();
+    return ret;
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+    int ret = MainEntry( argc, argv );
+    getchar();
+    return ret;
 }
