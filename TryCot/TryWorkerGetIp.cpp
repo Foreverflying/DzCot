@@ -1,7 +1,7 @@
 
 #include "CotTryUtil.h"
 
-CotEntry GetHostByNameEntry( intptr_t context )
+CotEntry GetHostByName( intptr_t context )
 {
     int* ip = (int*)context;
     struct hostent* ret;
@@ -15,7 +15,7 @@ CotEntry GetIpEntry( intptr_t context )
     DzSetWorkerPoolDepth( 2 );
 
     int ip;
-    DzRunWorker( GetHostByNameEntry, (intptr_t)&ip );
+    DzRunWorker( GetHostByName, (intptr_t)&ip );
     printf(
         "ip is %d %d %d %d\r\n",
         ( ip >> 24 ) & 0xff,
@@ -26,7 +26,7 @@ CotEntry GetIpEntry( intptr_t context )
 
     DzSleep( 5000 );
 
-    DzRunWorker( GetHostByNameEntry, (intptr_t)&ip );
+    DzRunWorker( GetHostByName, (intptr_t)&ip );
     printf(
         "ip is %d %d %d %d\r\n",
         ( ip >> 24 ) & 0xff,
@@ -36,7 +36,7 @@ CotEntry GetIpEntry( intptr_t context )
         );
 }
  
-CotEntry TryGetAddrInfoEntry()
+CotEntry GetAddrInfoEntry()
 {
 #ifdef _WIN32
     addrinfoW* infow;
