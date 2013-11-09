@@ -20,7 +20,7 @@ CotEntry RunSimplePrintCot( intptr_t context )
     DzRunWorker( SimplePrint, context );
 }
 
-CotEntry TrySimplePrintEntry( intptr_t context )
+CotEntry SimplePrintEntry( intptr_t context )
 {
     for( int i = 0; i < 5; i++ ){
         DzStartCot( RunSimplePrintCot, 1000 + i * 200 );
@@ -35,5 +35,5 @@ CotEntry TrySimplePrintEntry( intptr_t context )
 
 void TryWorker()
 {
-    StartHosts( TrySimplePrintEntry, 1, 2000 );
+    StartHosts( SimplePrintEntry, 1, 2000 );
 }
