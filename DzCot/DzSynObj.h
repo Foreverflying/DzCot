@@ -111,21 +111,15 @@ inline BOOL NotifyWaitQueue( DzHost* host, DzSynObj* obj )
             }else{
                 head = node->helper->nodeArray;
                 if( head + node->helper->checkIdx == node ){
-                    i = node->helper->checkIdx + 1;
-                    while(
-                        i < node->helper->waitCount &&
-                        IsNotified( head[i].synObj )
-                        ){
-                        i++;
-                    }
+                    for( i = node->helper->checkIdx + 1;
+                        i < node->helper->waitCount && IsNotified( head[i].synObj );
+                        i++
+                        );
                     if( i == node->helper->waitCount ){
-                        i = node->helper->checkIdx - 1;
-                        while(
-                            i >= 0 &&
-                            IsNotified( head[i].synObj )
-                            ){
-                            i--;
-                        }
+                        for( i = node->helper->checkIdx - 1;
+                            i >= 0 && IsNotified( head[i].synObj );
+                            i--
+                            );
                     }
                     if( i >= 0 ){
                         node->helper->checkIdx = i;

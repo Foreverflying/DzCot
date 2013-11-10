@@ -1,7 +1,5 @@
 
 #include "../DzCot/Inc_DzCot.h"
-#include "TryCompileInC.h"
-
 
 CotEntry CompileInCEntry( intptr_t context )
 {
