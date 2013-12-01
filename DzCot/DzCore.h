@@ -14,8 +14,8 @@
 #include "DzResourceMgr.h"
 #include "DzSchedule.h"
 #include "DzRmtCore.h"
-#include "dlmalloc.h"
 #include "DzCoreOs.h"
+#include "thirdparty/dlmalloc.h"
 
 #ifdef __cplusplus
 extern "C"{
@@ -432,9 +432,9 @@ inline int RunHost(
 
     ReleaseAllPoolStack( host );
     ReleaseMemoryPool( host );
+    PageFree( handlePool, HANDLE_POOL_SIZE );
     PageFree( host->timerHeap, sizeof(DzTimerNode*) * TIME_HEAP_SIZE );
     destroy_mspace( host->mSpace );
-
     return ret;
 }
 

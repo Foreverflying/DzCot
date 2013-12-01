@@ -491,12 +491,12 @@ void DzSleep( int milSec )
     }
 }
 
-int DzOpenFileA( const char* fileName, int flags )
+int DzOpenFile( const char* fileName, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
 
-    return OpenA( host, fileName, flags );
+    return Open( host, fileName, flags );
 }
 
 int DzCloseFile( int fd )
@@ -770,7 +770,7 @@ int DzRecvFrom(
     return RecvFrom( host, fd, buf, len, flags, from, fromlen );
 }
 
-int DzGetNameInfoA(
+int DzGetNameInfo(
     const struct sockaddr*  sa,
     int                     salen,
     char*                   host,
@@ -783,10 +783,10 @@ int DzGetNameInfoA(
     DzHost* dzHost = GetHost();
     assert( dzHost );
 
-    return DGetNameInfoA( dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags );
+    return DGetNameInfo( dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags );
 }
 
-int DzGetAddrInfoA(
+int DzGetAddrInfo(
     const char*             node,
     const char*             service,
     const struct addrinfo*  hints,
@@ -796,22 +796,22 @@ int DzGetAddrInfoA(
     DzHost* host = GetHost();
     assert( host );
 
-    return DGetAddrInfoA( host, node, service, hints, res );
+    return DGetAddrInfo( host, node, service, hints, res );
 }
 
-void DzFreeAddrInfoA( struct addrinfo *res )
+void DzFreeAddrInfo( struct addrinfo *res )
 {
-    DFreeAddrInfoA( res );
+    DFreeAddrInfo( res );
 }
 
-int DzInetPtonA( int af, const char* src, void* dst )
+int DzInetPton( int af, const char* src, void* dst )
 {
-    return DInetPtonA( af, src, dst );
+    return DInetPton( af, src, dst );
 }
 
-const char* DzInetNtopA( int af, const void* src, char* dst, int size )
+const char* DzInetNtop( int af, const void* src, char* dst, int size )
 {
-    return DInetNtopA( af, src, dst, size );
+    return DInetNtop( af, src, dst, size );
 }
 
 DzParamNode* DzAllocParamNode()

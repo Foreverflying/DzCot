@@ -14,11 +14,11 @@
 extern "C"{
 #endif
 
-void __stdcall GetNameInfoEntryA( intptr_t context )
+void __stdcall GetNameInfoEntry( intptr_t context )
 {
     DzLNode* node = (DzLNode*)context;
 
-    *(int*)(node->d8) = GetNameInfoA(
+    *(int*)(node->d8) = getnameinfo(
         (const SOCKADDR*)node->d1,
         (socklen_t)node->d2,
         (PCHAR)node->d3,
@@ -44,11 +44,11 @@ void __stdcall GetNameInfoEntryW( intptr_t context )
         );
 }
 
-void __stdcall GetAddrInfoEntryA( intptr_t context )
+void __stdcall GetAddrInfoEntry( intptr_t context )
 {
     DzLNode* node = (DzLNode*)context;
 
-    *(int*)(node->d8) = GetAddrInfoA(
+    *(int*)(node->d8) = getaddrinfo(
         (PCSTR)node->d1,
         (PCSTR)node->d2,
         (const ADDRINFOA*)node->d3,

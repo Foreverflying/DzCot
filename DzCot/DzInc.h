@@ -12,7 +12,7 @@
 #include "DzIncOs.h"
 
 //debug switchers
-#define __DBG_DEBUG_CHECK_MODE
+//#define __DBG_DEBUG_CHECK_MODE
 
 //global constants
 #define DZ_TLS_IDX                  ( 16 )

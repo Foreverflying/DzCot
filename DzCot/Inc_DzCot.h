@@ -1029,7 +1029,7 @@ void DzSleep( int milSec );
  *      be used only in the cot host which creates it, never pass it to
  *      a remote cot host.
  */
-int DzOpenFileA( const char* fileName, int flags );
+int DzOpenFile( const char* fileName, int flags );
 
 /**	DzCloseFile
  *  closes an opened file.
@@ -1436,7 +1436,7 @@ int DzRecvFrom(
     struct sockaddr*        from,
     int*                    fromlen
     );
-int DzGetNameInfoA(
+int DzGetNameInfo(
     const struct sockaddr*  sa,
     int                     salen,
     char*                   host,
@@ -1445,15 +1445,15 @@ int DzGetNameInfoA(
     size_t                  servlen,
     int                     flags
     );
-int DzGetAddrInfoA(
+int DzGetAddrInfo(
     const char*             node,
     const char*             service,
     const struct addrinfo*  hints,
     struct addrinfo**       res
     );
-void DzFreeAddrInfoA( struct addrinfo *res );
-int DzInetPtonA( int af, const char* src, void* dst );
-const char* DzInetNtopA( int af, const void* src, char* dst, int size );
+void DzFreeAddrInfo( struct addrinfo *res );
+int DzInetPton( int af, const char* src, void* dst );
+const char* DzInetNtop( int af, const void* src, char* dst, int size );
 
 DzParamNode* DzAllocParamNode();
 void DzFreeParamNode( DzParamNode* node );
@@ -1503,21 +1503,21 @@ const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, int size );
 
 #if defined( _WIN32 ) && defined( UNICODE )
 
-#define DzOpenFile          DzOpenFileW
-#define DzGetNameInfo       DzGetNameInfoW
-#define DzGetAddrInfo       DzGetAddrInfoW
-#define DzFreeAddrInfo      DzFreeAddrInfoW
-#define DzInetPton          DzInetPtonW
-#define DzInetNtop          DzInetNtopW
+#define DzOpenFileT         DzOpenFileW
+#define DzGetNameInfoT      DzGetNameInfoW
+#define DzGetAddrInfoT      DzGetAddrInfoW
+#define DzFreeAddrInfoT     DzFreeAddrInfoW
+#define DzInetPtonT         DzInetPtonW
+#define DzInetNtopT         DzInetNtopW
 
 #else
 
-#define DzOpenFile          DzOpenFileA
-#define DzGetNameInfo       DzGetNameInfoA
-#define DzGetAddrInfo       DzGetAddrInfoA
-#define DzFreeAddrInfo      DzFreeAddrInfoA
-#define DzInetPton          DzInetPtonA
-#define DzInetNtop          DzInetNtopA
+#define DzOpenFileT         DzOpenFile
+#define DzGetNameInfoT      DzGetNameInfo
+#define DzGetAddrInfoT      DzGetAddrInfo
+#define DzFreeAddrInfoT     DzFreeAddrInfo
+#define DzInetPtonT         DzInetPton
+#define DzInetNtopT         DzInetNtop
 
 #endif
 
