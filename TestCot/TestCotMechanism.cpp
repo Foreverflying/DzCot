@@ -35,6 +35,7 @@ CotEntry TestCotStackGrow( intptr_t context )
         DzEvtStartCot( evt, CotStackGrowRoutine, (intptr_t)32768 );
     }
     DzWaitSynObj( evt );
+    DzDelSynObj( evt );
     DZ_EXPECT_EQ( count, gCount );
     delete gRand;
     gRand = NULL;

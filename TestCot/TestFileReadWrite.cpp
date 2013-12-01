@@ -36,7 +36,7 @@ void ReadFileEntry( char* buff, size_t buffLen )
     unsigned char md5Ret[16];
     md5_context mc;
 
-    int fd = DzOpenFile( _T( "../../test/Sailing.mp3" ), DZ_O_RD );
+    int fd = DzOpenFileT( _T( "../../test/Sailing.mp3" ), DZ_O_RD );
     DZ_ASSERT_NE( -1, fd );
     size_t n = DzGetFileSize( fd );
     DZ_ASSERT_EQ( 3678906, n );
@@ -96,12 +96,14 @@ CotEntry TestReadFile( intptr_t context )
     gCheck = 0;
     DzHandle checkTimer = DzCreateCallbackTimer( 10, TRUE, HelpCheckAsynTimerEntry );
     size_t buffLen = 4 * 1024 * 1024;
-    char *buff = new char[ buffLen ];
+    char *buff = (char*)DzMalloc( buffLen );
 
     ReadFileEntry( buff, buffLen );
     DzDelCallbackTimer( checkTimer );
     //printf( "gCheck : %d\r\n", gCheck );
     //ASSERT_NE( 0, gCheck );
+
+    DzFree( buff );
 }
 
 void WriteFileEntry( char* buff, size_t buffLen )
@@ -116,7 +118,7 @@ void WriteFileEntry( char* buff, size_t buffLen )
         }
     }
 
-    int fd = DzOpenFile(
+    int fd = DzOpenFileT(
         _T( "../../test/test_write.txt" ),
         DZ_O_RDWR | DZ_O_TRUNC | DZ_O_CREATE
         );
@@ -169,12 +171,14 @@ CotEntry TestWriteFile( intptr_t context )
     gCheck = 0;
     DzHandle checkTimer = DzCreateCallbackTimer( 10, TRUE, HelpCheckAsynTimerEntry );
     size_t buffLen = 4 * 1024 * 1024;
-    char* buff = new char[ buffLen ];
+    char* buff = (char*)DzMalloc( buffLen );
 
     WriteFileEntry( buff, buffLen );
     DzDelCallbackTimer( checkTimer );
     //printf( "gCheck : %d\r\n", gCheck );
     //ASSERT_NE( 0, gCheck );
+
+    DzFree( buff );
 }
 
 TEST( TestFileReadWrite, ReadFile )

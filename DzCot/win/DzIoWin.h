@@ -20,9 +20,9 @@
 extern "C"{
 #endif
 
-void __stdcall GetNameInfoEntryA( intptr_t context );
+void __stdcall GetNameInfoEntry( intptr_t context );
 void __stdcall GetNameInfoEntryW( intptr_t context );
-void __stdcall GetAddrInfoEntryA( intptr_t context );
+void __stdcall GetAddrInfoEntry( intptr_t context );
 void __stdcall GetAddrInfoEntryW( intptr_t context );
 
 inline int Socket( DzHost* host, int domain, int type, int protocol )
@@ -538,7 +538,7 @@ inline int RecvFrom(
     return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
-inline int DGetNameInfoA(
+inline int DGetNameInfo(
     DzHost*                 dzHost,
     const struct sockaddr*  sa,
     int                     salen,
@@ -559,12 +559,12 @@ inline int DGetNameInfoA(
     node->d6 = (intptr_t)servlen;
     node->d7 = (intptr_t)flags;
     node->d8 = (intptr_t)&ret;
-    RunWorker( dzHost, GetNameInfoEntryA, (intptr_t)node );
+    RunWorker( dzHost, GetNameInfoEntry, (intptr_t)node );
     FreeLNode( dzHost, node );
     return ret;
 }
 
-inline int DGetAddrInfoA(
+inline int DGetAddrInfo(
     DzHost*                 host,
     const char*             node,
     const char*             service,
@@ -579,24 +579,24 @@ inline int DGetAddrInfoA(
     param->d3 = (intptr_t)hints;
     param->d4 = (intptr_t)res;
     param->d8 = (intptr_t)&ret;
-    RunWorker( host, GetAddrInfoEntryA, (intptr_t)param );
+    RunWorker( host, GetAddrInfoEntry, (intptr_t)param );
     FreeLNode( host, param );
     return ret;
 }
 
-inline void DFreeAddrInfoA( struct addrinfo *res )
+inline void DFreeAddrInfo( struct addrinfo *res )
 {
-    FreeAddrInfoA( res );
+    freeaddrinfo( res );
 }
 
-inline int DInetPtonA( int af, const char* src, void* dst )
+inline int DInetPton( int af, const char* src, void* dst )
 {
-    return InetPtonA( af, src, dst );
+    return inet_pton( af, src, dst );
 }
 
-inline const char* DInetNtopA( int af, const void* src, char* dst, int size )
+inline const char* DInetNtop( int af, const void* src, char* dst, int size )
 {
-    return InetNtopA( af, (PVOID)src, dst, size );
+    return inet_ntop( af, (PVOID)src, dst, size );
 }
 
 inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
@@ -649,7 +649,7 @@ inline int GetFd( DzHost* host, HANDLE file, int flags )
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int OpenA( DzHost* host, const char* fileName, int flags )
+inline int Open( DzHost* host, const char* fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;

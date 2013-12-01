@@ -361,9 +361,6 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dlmalloc.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</CompileAs>
-    </ClCompile>
     <ClCompile Include="DzCore.c" />
     <ClCompile Include="DzDebug.c" />
     <ClCompile Include="DzRmtCore.c" />
@@ -387,6 +384,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="thirdparty\dlmalloc.c" />
     <ClCompile Include="win\DzCoreWin.c" />
     <ClCompile Include="DzCot.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</CompileAs>
@@ -395,8 +393,6 @@
     <ClCompile Include="win\DzIoWin.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dlconfig.h" />
-    <ClInclude Include="dlmalloc.h" />
     <ClInclude Include="DzBase.h" />
     <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzCore.h" />
@@ -467,6 +463,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="thirdparty\dlconfig.h" />
+    <ClInclude Include="thirdparty\dlmalloc.h" />
     <ClInclude Include="win\DzBaseWin.h" />
     <ClInclude Include="win\DzCoreWin.h" />
     <ClInclude Include="DzDebug.h" />

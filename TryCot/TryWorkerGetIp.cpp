@@ -45,11 +45,11 @@ CotEntry GetAddrInfoEntry()
 #endif
 
     addrinfo* info;
-    ret = DzGetAddrInfoA( "www.163.com", "http", NULL, &info );
-    DzFreeAddrInfoA( info );
+    ret = DzGetAddrInfo( "www.163.com", "http", NULL, &info );
+    DzFreeAddrInfo( info );
 
     char buff[32];
-    ret = DzGetNameInfoA( NULL, 0, NULL, 0, buff, 32, 0 );
+    ret = DzGetNameInfo( NULL, 0, NULL, 0, buff, 32, 0 );
 }
 
 void TryWorkerGetIp()

@@ -365,7 +365,7 @@ inline int RecvFrom(
     return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
-inline int DGetNameInfoA(
+inline int DGetNameInfo(
     DzHost*                 dzHost,
     const struct sockaddr*  sa,
     int                     salen,
@@ -391,7 +391,7 @@ inline int DGetNameInfoA(
     return ret;
 }
 
-inline int DGetAddrInfoA(
+inline int DGetAddrInfo(
     DzHost*                 host,
     const char*             node,
     const char*             service,
@@ -411,22 +411,22 @@ inline int DGetAddrInfoA(
     return ret;
 }
 
-inline void DFreeAddrInfoA( struct addrinfo *res )
+inline void DFreeAddrInfo( struct addrinfo *res )
 {
     freeaddrinfo( res );
 }
 
-inline int DInetPtonA( int af, const char* src, void* dst )
+inline int DInetPton( int af, const char* src, void* dst )
 {
     return inet_pton( af, src, dst );
 }
 
-inline const char* DInetNtopA( int af, const void* src, char* dst, int size )
+inline const char* DInetNtop( int af, const void* src, char* dst, int size )
 {
     return inet_ntop( af, src, dst, size );
 }
 
-inline int OpenA( DzHost* host, const char* fileName, int flags )
+inline int Open( DzHost* host, const char* fileName, int flags )
 {
     int fd;
     DzFd* dzFd;

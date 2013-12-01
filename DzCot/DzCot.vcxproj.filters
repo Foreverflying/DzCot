@@ -38,9 +38,6 @@
     <ClCompile Include="DzResourceMgr.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="dlmalloc.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="DzDebug.c">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -57,6 +54,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="linux\DzIoLnx.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="thirdparty\dlmalloc.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -121,12 +121,6 @@
     <ClInclude Include="DzList.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="dlmalloc.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="dlconfig.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Inc_DzSocketReplace.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -170,6 +164,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DzInc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="thirdparty\dlconfig.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="thirdparty\dlmalloc.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

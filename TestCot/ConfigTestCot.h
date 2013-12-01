@@ -1,5 +1,5 @@
 /**
- *  @file       ConfigTestCot.h
+ *  @file       ConfigTestCot.cpp
  *  @brief      
  *  @author	    Foreverflying <foreverflying@live.cn>
  *  @date       2011/09/14

@@ -34,7 +34,7 @@ EXPORTS
     DzCreateCallbackTimer
     DzDelCallbackTimer
     DzSleep
-    DzOpenFileA
+    DzOpenFile
     DzCloseFile
     DzReadFile
     DzWriteFile
@@ -59,11 +59,11 @@ EXPORTS
     DzRecvFromEx
     DzSendTo
     DzRecvFrom
-    DzGetNameInfoA
-    DzGetAddrInfoA
-    DzFreeAddrInfoA
-    DzInetPtonA
-    DzInetNtopA
+    DzGetNameInfo
+    DzGetAddrInfo
+    DzFreeAddrInfo
+    DzInetPton
+    DzInetNtop
     DzAllocParamNode
     DzFreeParamNode
     DzAllocPermanentChunk
