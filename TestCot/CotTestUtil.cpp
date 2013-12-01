@@ -24,17 +24,6 @@ CotEntry CleanEntry( intptr_t context )
     __DzTce1( "\\\\==============================" );
 }
 
-int MainEntry( int argc, _TCHAR* argv[] )
-{
-    int ac = sizeof( gArgv ) / sizeof( char* );
-    if( argc == 1 && ac > 0 && *gArgv[0] == 'T' ){
-        testing::InitGoogleTest( &ac, (char**)gArgv );
-    }else{
-        testing::InitGoogleTest( &argc, argv );
-    }
-    return RUN_ALL_TESTS();
-}
-
 void TestCot( DzEntry entry, intptr_t context )
 {
     int ret = DzRunHosts( 0, 4000, 64000, 1024 * 1024, CP_LOW, CP_LOW, ST_UM, entry, context, CleanEntry );
@@ -43,14 +32,13 @@ void TestCot( DzEntry entry, intptr_t context )
 
 int main(int argc, _TCHAR* argv[])
 {
-    int ret = MainEntry( argc, argv );
-    getchar();
-    return ret;
-}
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-    int ret = MainEntry( argc, argv );
+    int ac = sizeof( gArgv ) / sizeof( char* );
+    if( argc == 1 && ac > 0 && *gArgv[0] == 'T' ){
+        testing::InitGoogleTest( &ac, (char**)gArgv );
+    }else{
+        testing::InitGoogleTest( &argc, argv );
+    }
+    int ret = RUN_ALL_TESTS();
     getchar();
     return ret;
 }

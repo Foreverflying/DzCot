@@ -40,10 +40,3 @@ int main(int argc, _TCHAR* argv[])
     getchar();
     return 0;
 }
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-    MainEntry();
-    getchar();
-    return 0;
-}
