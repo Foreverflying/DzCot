@@ -15,6 +15,33 @@ void __cdecl SysThreadMain( void* context )
     param->threadEntry( (intptr_t)param );
 }
 
+DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
+{
+    int size;
+
+    size = host->cotStackSize[ sType ];
+    if( size < DZ_MIN_PAGE_STACK_SIZE ){
+        dzCot->stackLimit = (char*)AllocChunk( host, size );
+        if( !dzCot->stackLimit ){
+            return NULL;
+        }
+        dzCot->stack = dzCot->stackLimit + size;
+    }else{
+        dzCot->stack = AllocStack( host, size );
+        if( !dzCot->stack ){
+            return NULL;
+        }
+        dzCot->stackLimit = CommitStack( dzCot->stack, PAGE_SIZE * 3 );
+        if( !dzCot->stackLimit )
+        {
+            return NULL;
+        }
+    }
+    dzCot->sType = sType;
+    InitCotStack( host, dzCot );
+    return dzCot;
+}
+
 #ifdef GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
 #include <tchar.h>

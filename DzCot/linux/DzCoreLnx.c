@@ -9,6 +9,28 @@
 #include "../DzInc.h"
 #include "../DzCore.h"
 
+DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
+{
+    int size;
+
+    size = host->cotStackSize[ sType ];
+    if( size < DZ_MIN_PAGE_STACK_SIZE ){
+        dzCot->stack = (char*)AllocChunk( host, size );
+        if( !dzCot->stack ){
+            return NULL;
+        }
+        dzCot->stack += size;
+    }else{
+        dzCot->stack = AllocStack( size );
+        if( !dzCot->stack ){
+            return NULL;
+        }
+    }
+    dzCot->sType = sType;
+    InitCotStack( host, dzCot );
+    return dzCot;
+}
+
 void* SysThreadMain( void* context )
 {
     DzSysParam* param = (DzSysParam*)context;

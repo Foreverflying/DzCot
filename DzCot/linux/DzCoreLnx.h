@@ -18,13 +18,14 @@ extern "C"{
 #endif
 
 void __stdcall CallDzCotEntry( void );
+BOOL InitOsStruct( DzHost* host );
+void CleanOsStruct( DzHost* host );
+DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType );
 void __stdcall DzCotEntry(
     DzHost*             host,
     DzEntry volatile*   entryPtr,
     intptr_t volatile*  contextPtr
     );
-BOOL InitOsStruct( DzHost* host );
-void CleanOsStruct( DzHost* host );
 
 inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
@@ -141,28 +142,6 @@ inline void InitCotStack( DzHost* host, DzCot* dzCot )
     bottom->host = host;
     bottom->ipEntry = CallDzCotEntry;
     dzCot->sp = bottom;
-}
-
-inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
-{
-    int size;
-
-    size = host->cotStackSize[ sType ];
-    if( size < DZ_MIN_PAGE_STACK_SIZE ){
-        dzCot->stack = (char*)AllocChunk( host, size );
-        if( !dzCot->stack ){
-            return NULL;
-        }
-        dzCot->stack += size;
-    }else{
-        dzCot->stack = AllocStack( size );
-        if( !dzCot->stack ){
-            return NULL;
-        }
-    }
-    dzCot->sType = sType;
-    InitCotStack( host, dzCot );
-    return dzCot;
 }
 
 inline void FreeCotStack( DzHost* host, DzCot* dzCot )

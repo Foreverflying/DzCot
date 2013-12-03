@@ -18,13 +18,14 @@ extern "C"{
 #endif
 
 void __stdcall CallDzCotEntry( void );
+BOOL InitOsStruct( DzHost* host );
+void CleanOsStruct( DzHost* host );
+DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType );
 void __stdcall DzCotEntry(
     DzHost*             host,
     DzEntry volatile*   entryPtr,
     intptr_t volatile*  contextPtr
     );
-BOOL InitOsStruct( DzHost* host );
-void CleanOsStruct( DzHost* host );
 
 inline void InitDzCot( DzHost* host, DzCot* dzCot )
 {
@@ -170,33 +171,6 @@ inline void InitCotStack( DzHost* host, DzCot* dzCot )
     bottom->stackLimit = dzCot->stackLimit;
 
     dzCot->sp = bottom;
-}
-
-inline DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
-{
-    int size;
-    
-    size = host->cotStackSize[ sType ];
-    if( size < DZ_MIN_PAGE_STACK_SIZE ){
-        dzCot->stackLimit = (char*)AllocChunk( host, size );
-        if( !dzCot->stackLimit ){
-            return NULL;
-        }
-        dzCot->stack = dzCot->stackLimit + size;
-    }else{
-        dzCot->stack = AllocStack( host, size );
-        if( !dzCot->stack ){
-            return NULL;
-        }
-        dzCot->stackLimit = CommitStack( dzCot->stack, PAGE_SIZE * 3 );
-        if( !dzCot->stackLimit )
-        {
-            return NULL;
-        }
-    }
-    dzCot->sType = sType;
-    InitCotStack( host, dzCot );
-    return dzCot;
 }
 
 inline void FreeCotStack( DzHost* host, DzCot* dzCot )
