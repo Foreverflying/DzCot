@@ -232,6 +232,22 @@ int DzRunWorker( DzEntry entry, intptr_t context )
     return RunWorker( host, entry, context );
 }
 
+intptr_t DzGetCotData()
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return GetCotData( host );
+}
+
+void DzSetCotData( intptr_t data )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    SetCotData( host, data );
+}
+
 int DzGetCotCount()
 {
     DzHost* host = GetHost();

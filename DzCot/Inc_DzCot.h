@@ -541,6 +541,20 @@ int DzRunWorker(
     intptr_t    context         __DZ_DFT_ARG( 0 )
     );
 
+/**	DzGetCotData
+ *  gets current cot's local storage data.
+ *  @return
+ *      The local storage data of current cot.
+ */
+intptr_t DzGetCotData();
+
+/**	DzSetCotData
+ *  sets the current cot's local storage data.
+ *  @param data
+ *      The data to set.
+ */
+void DzSetCotData( intptr_t data );
+
 /**	DzGetCotCount
  *  gets current host's cot count.
  *  @return

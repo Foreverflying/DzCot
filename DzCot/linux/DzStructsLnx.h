@@ -32,12 +32,15 @@ struct _DzCot
             char*               stack;
             int                 sType;
             int                 priority;
-            //used for remote cot
-            DzEntry             entry;
+            union{
+                DzEntry         entry;
+                intptr_t        cotData;
+            };
             union{
                 DzEasyEvt*      easyEvt;
                 DzSynObj*       evt;
             };
+            //used for remote cot
             int                 hostId;
             short               feedType;
             short               evtType;

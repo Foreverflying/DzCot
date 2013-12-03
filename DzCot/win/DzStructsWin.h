@@ -33,7 +33,10 @@ struct _DzCot
             char*               stackLimit;
             int                 sType;
             int                 priority;
-            DzEntry             entry;
+            union{
+                DzEntry         entry;
+                intptr_t        cotData;
+            };
             union{
                 DzEasyEvt*      easyEvt;
                 DzSynObj*       evt;
