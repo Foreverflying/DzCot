@@ -137,11 +137,10 @@ inline void RemoveMinTimer( DzHost* host )
 
     host->timerHeap[0]->index = -1;
     host->timerCount--;
-    if( !host->timerCount ){
-        return;
+    if( host->timerCount ){
+        timerNode = host->timerHeap[ host->timerCount ];
+        ShiftDownNode( host, 0, timerNode );
     }
-    timerNode = host->timerHeap[ host->timerCount ];
-    ShiftDownNode( host, 0, timerNode );
 }
 
 inline void AdjustMinTimer( DzHost* host, DzTimerNode* timerNode )
