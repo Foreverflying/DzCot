@@ -15,9 +15,9 @@
 #endif
 
 #ifdef UNICODE
-#define _TCHAR      wchar_t
-#define _T( str )   L##str
+#include <tchar.h>
 #else
+#define _tmain      main
 #define _TCHAR      char
 #define _T( str )   str
 #endif

@@ -34,7 +34,7 @@ void StartHosts( DzEntry firstEntry, int hostCount, intptr_t context )
         );
 }
 
-int main(int argc, _TCHAR* argv[])
+int _tmain(int argc, _TCHAR* argv[])
 {
     MainEntry();
     getchar();

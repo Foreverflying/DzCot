@@ -30,7 +30,7 @@ void TestCot( DzEntry entry, intptr_t context )
     DZ_EXPECT_EQ( DS_OK, ret );
 }
 
-int main(int argc, _TCHAR* argv[])
+int _tmain(int argc, _TCHAR* argv[])
 {
     int ac = sizeof( gArgv ) / sizeof( char* );
     if( argc == 1 && ac > 0 && *gArgv[0] == 'T' ){
