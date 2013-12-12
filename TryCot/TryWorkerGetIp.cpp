@@ -38,9 +38,10 @@ CotEntry GetIpEntry( intptr_t context )
  
 CotEntry GetAddrInfoEntry()
 {
+    int ret;
 #ifdef _WIN32
     addrinfoW* infow;
-    int ret = DzGetAddrInfoW( L"www.163.com", L"http", NULL, &infow );
+    ret = DzGetAddrInfoW( L"www.163.com", L"http", NULL, &infow );
     DzFreeAddrInfoW( infow );
 #endif
 

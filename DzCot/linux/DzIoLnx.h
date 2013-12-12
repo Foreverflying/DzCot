@@ -34,7 +34,7 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     if( fd >= 0 ){
         dzFd = CreateDzFd( host );
         dzFd->fd = fd;
-        dzFd->isSock = TRUE;
+        dzFd->notSock = FALSE;
         evt.data.ptr = dzFd;
         evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
         flag = fcntl( fd, F_GETFL, 0 );
@@ -151,7 +151,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
     }
     dzFd = CreateDzFd( host );
     dzFd->fd = ret;
-    dzFd->isSock = TRUE;
+    dzFd->notSock = FALSE;
     evt.data.ptr = dzFd;
     evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
     flag = fcntl( ret, F_GETFL, 0 );
@@ -416,7 +416,7 @@ inline int Open( DzHost* host, const char* fileName, int flags )
     if( fd >= 0 ){
         dzFd = CreateDzFd( host );
         dzFd->fd = fd;
-        dzFd->isSock = isfdtype( fd, S_IFSOCK ) > 0;
+        dzFd->notSock = isfdtype( fd, S_IFSOCK ) <= 0;
         evt.data.ptr = dzFd;
         evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
         epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, fd, &evt );
@@ -463,7 +463,7 @@ inline size_t Write( DzHost* host, int hFd, const void* buf, size_t count )
     int ret;
 
     dzFd = (DzFd*)( host->handleBase + hFd );
-    if( dzFd->isSock ){
+    if( !dzFd->notSock ){
         return (size_t)Send( host, hFd, buf, (u_int)count, 0 );
     }
     ret = write( dzFd->fd, buf, count );

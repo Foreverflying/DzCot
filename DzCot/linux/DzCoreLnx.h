@@ -37,7 +37,6 @@ inline void InitDzFd( DzFd* dzFd )
     CleanEasyEvt( &dzFd->inEvt );
     CleanEasyEvt( &dzFd->outEvt );
     dzFd->ref = 0;
-    dzFd->notSock = TRUE;
 }
 
 inline DzFd* CreateDzFd( DzHost* host )
