@@ -36,14 +36,7 @@ EXPORTS
     DzCreateCallbackTimer
     DzDelCallbackTimer
     DzSleep
-    DzOpenFile
-    DzCloseFile
-    DzReadFile
-    DzWriteFile
-    DzSeekFile
-    DzGetFileSize
     DzSocket
-    DzCloseSocket
     DzGetSockOpt
     DzSetSockOpt
     DzGetSockName
@@ -66,6 +59,14 @@ EXPORTS
     DzFreeAddrInfo
     DzInetPton
     DzInetNtop
+    DzOpen
+    DzRead
+    DzWrite
+    DzSeek
+    DzFileSize
+    DzGetFdData
+    DzSetFdData
+    DzClose
     DzAllocParamNode
     DzFreeParamNode
     DzAllocPermanentChunk
@@ -84,10 +85,9 @@ EXPORTS
     __DzDbgFdLeak
     __DzDbgHeapLeak
     __DzDbgParamNodeLeak
-    DzOpenFileW
     DzGetNameInfoW
     DzGetAddrInfoW
     DzFreeAddrInfoW
     DzInetPtonW
     DzInetNtopW
-
+    DzOpenW

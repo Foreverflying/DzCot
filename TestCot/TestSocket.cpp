@@ -174,7 +174,7 @@ CotEntry SayHello( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
 }
 
@@ -210,10 +210,10 @@ CotEntry WaitHello( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     if( lisFd != -1 ){
-        DzCloseSocket( lisFd );
+        DzClose( lisFd );
     }
     DzDelSynObj( helloEvt );
 }
@@ -238,7 +238,7 @@ void WaitAllCotEnd( int expectMaxCotCount )
 
 int ReadFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
-    return (int)DzReadFile( fd, buff, len );
+    return (int)DzRead( fd, buff, len );
 }
 
 int RecvFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
@@ -281,7 +281,7 @@ int RecvFromExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 
 int WriteFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
-    return (int)DzWriteFile( fd, buff, len );
+    return (int)DzWrite( fd, buff, len );
 }
 
 int SendFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
@@ -543,7 +543,7 @@ void TcpSvrMain( DzEntry svrEntry, int count )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( lisFd != -1 ){
-        DzCloseSocket( lisFd );
+        DzClose( lisFd );
     }
     CotStop();
 }
@@ -599,7 +599,7 @@ void UdpSvrMain( DzEntry svrEntry, int count )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -632,7 +632,7 @@ CotEntry HelpCloseSocket( intptr_t context )
 {
     int* fd = (int*)context;
     if( *fd != -1 ){
-        DzCloseSocket( *fd );
+        DzClose( *fd );
     }
     *fd = -1;
 }
@@ -645,7 +645,7 @@ CotEntry TcpSvrRecvRoutine( intptr_t context )
     }catch( int line ){
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
-    DzCloseSocket( fd );
+    DzClose( fd );
     CotStop();
 }
 
@@ -666,7 +666,7 @@ CotEntry TcpCltSendRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -679,7 +679,7 @@ CotEntry TcpSvrSendRoutine( intptr_t context )
     }catch( int line ){
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
-    DzCloseSocket( fd );
+    DzClose( fd );
     CotStop();
 }
 
@@ -700,7 +700,7 @@ CotEntry TcpCltRecvRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -717,7 +717,7 @@ CotEntry TcpSvrRsrsRoutine( intptr_t context )
     }catch( int line ){
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
-    DzCloseSocket( fd );
+    DzClose( fd );
     CotStop();
 }
 
@@ -743,7 +743,7 @@ CotEntry TcpCltSrsrRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -761,7 +761,7 @@ CotEntry TcpSvrRecvOpCloseRoutine( intptr_t context )
     ret = readFunc( fd, buff, 32, NULL, NULL );
     DZ_EXPECT_EQ( 0, ret );
     DZ_EXPECT_GE( 200, stop - start );
-    DzCloseSocket( fd );
+    DzClose( fd );
     CotStop();
 }
 
@@ -777,7 +777,7 @@ CotEntry TcpCltRecvOpCloseRoutine( intptr_t context )
             throw (int)__LINE__;
         }
         DzSleep( 100 );
-        if( DzCloseSocket( fd ) != 0 ){
+        if( DzClose( fd ) != 0 ){
             throw (int)__LINE__;
         }
         fd = -1;
@@ -785,7 +785,7 @@ CotEntry TcpCltRecvOpCloseRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -799,7 +799,7 @@ CotEntry TcpSvrSendOpCloseRoutine( intptr_t context )
         int ret = readFunc( fd, &idx, sizeof( idx ), NULL, NULL );
         DZ_EXPECT_EQ( sizeof( idx ), ret );
         DzSleep( 100 );
-        if( DzCloseSocket( fd ) != 0 ){
+        if( DzClose( fd ) != 0 ){
             throw (int)__LINE__;
         }
         fd = -1;
@@ -807,7 +807,7 @@ CotEntry TcpSvrSendOpCloseRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -838,7 +838,7 @@ CotEntry TcpCltSendOpCloseRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -865,7 +865,7 @@ CotEntry TcpSvrRecvCloseRoutine( intptr_t context )
             DZ_EXPECT_GE( 0, ret );
             ret = writeFunc( fd, &idx, sizeof( idx ), NULL, 0 );
             DZ_EXPECT_EQ( sizeof( idx ), ret );
-            DzCloseSocket( fd );
+            DzClose( fd );
         }else if( type == 1 ){
             DzHandle timer = DzCreateCallbackTimer( 200, FALSE, HelpCloseSocket, (intptr_t)&fd );
             unsigned long long start = DzMilUnixTime();
@@ -875,16 +875,16 @@ CotEntry TcpSvrRecvCloseRoutine( intptr_t context )
             DZ_EXPECT_LE( 190, stop - start );
             DzDelCallbackTimer( timer );
             if( fd != -1 ){
-                DzCloseSocket( fd );
+                DzClose( fd );
             }
         }else{
             DzSleep( 1000 );
-            DzCloseSocket( fd );
+            DzClose( fd );
         }
     }catch( int line ){
         DZ_ADD_FAILURE() << "socket error, line : " << line;
         if( fd != -1 ){
-            DzCloseSocket( fd );
+            DzClose( fd );
         }
     }
     CotStop();
@@ -919,10 +919,10 @@ CotEntry TcpCltSendCloseRoutine( intptr_t context )
             ret = readFunc( fd, &idx1, sizeof( idx1 ), NULL, NULL );
             DZ_EXPECT_EQ( sizeof( idx1 ), ret );
             DZ_EXPECT_EQ( idx, idx1 );
-            DzCloseSocket( fd );
+            DzClose( fd );
         }else if( type == 1 ){
             DzSleep( 1000 );
-            DzCloseSocket( fd );
+            DzClose( fd );
         }else{
             DzHandle timer = DzCreateCallbackTimer( 200, FALSE, HelpCloseSocket, (intptr_t)&fd );
             unsigned long long start = DzMilUnixTime();
@@ -934,13 +934,13 @@ CotEntry TcpCltSendCloseRoutine( intptr_t context )
             DZ_EXPECT_LE( 190, stop - start );
             DzDelCallbackTimer( timer );
             if( fd != -1 ){
-                DzCloseSocket( fd );
+                DzClose( fd );
             }
         }
     }catch( int line ){
         DZ_ADD_FAILURE() << "socket error, line : " << line;
         if( fd != -1 ){
-            DzCloseSocket( fd );
+            DzClose( fd );
         }
     }
     CotStop();
@@ -968,7 +968,7 @@ CotEntry UdpSvrRecvSendRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -1010,10 +1010,10 @@ CotEntry UdpCltSendRecvRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     if( recvFd != -1 ){
-        DzCloseSocket( recvFd );
+        DzClose( recvFd );
     }
     CotStop();
 }
@@ -1046,7 +1046,7 @@ CotEntry UdpSvrRecvSendNoConnRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -1083,7 +1083,7 @@ CotEntry UdpCltSendRecvNoConnRoutine( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     CotStop();
 }
@@ -1179,12 +1179,12 @@ CotEntry TcpSvrAcceptCloseMain( intptr_t context )
         lisFd = -1;
         DzDelCallbackTimer( timer );
         if( lisFd != -1 ){
-            DzCloseSocket( fd );
+            DzClose( fd );
         }
     }catch( int line ){
         DZ_ADD_FAILURE() << "socket error, line : " << line;
         if( lisFd != -1 ){
-            DzCloseSocket( lisFd );
+            DzClose( lisFd );
         }
     }
     CotStop();
@@ -1203,7 +1203,7 @@ CotEntry TcpCltConnectCloseMain( intptr_t context )
         DZ_EXPECT_EQ( -1, ret );
         DzDelCallbackTimer( timer );
         if( fd != -1 ){
-            DzCloseSocket( fd );
+            DzClose( fd );
         }
     }catch( int line ){
         DZ_ADD_FAILURE() << "socket error, line : " << line;
@@ -1357,7 +1357,7 @@ CotEntry UdpTestRecvClose( intptr_t context )
             DZ_EXPECT_GT( 300, stop - start );
             DzDelCallbackTimer( timer );
             if( fd != -1 ){
-                DzCloseSocket( fd );
+                DzClose( fd );
             }
             count--;
         }
@@ -1365,7 +1365,7 @@ CotEntry UdpTestRecvClose( intptr_t context )
         DZ_ADD_FAILURE() << "socket error, line : " << line;
     }
     if( fd != -1 ){
-        DzCloseSocket( fd );
+        DzClose( fd );
     }
     FreeParam();
 }

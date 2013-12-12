@@ -1,7 +1,7 @@
 /**
  *  @file       DzBaseWin.h
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/11/22
  *
  */

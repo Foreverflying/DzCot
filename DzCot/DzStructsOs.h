@@ -1,7 +1,7 @@
 /**
  *  @file       DzStructsOs.h
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */

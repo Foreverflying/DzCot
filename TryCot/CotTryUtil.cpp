@@ -1,7 +1,7 @@
 /**
  *  @file       CotTryUtil.cpp
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2013/11/08
  *
  */

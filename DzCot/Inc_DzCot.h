@@ -193,7 +193,7 @@ typedef void (__stdcall *DzEntry)( intptr_t context );
 extern "C"{
 #endif
 
-/**	DzRunHosts
+/** DzRunHosts
  *  starts cot hosts and blocks current thread.
  *  @param hostCount
  *      How many cot hosts you want to create. 
@@ -276,7 +276,7 @@ int DzRunHosts(
     DzEntry     cleanEntry      __DZ_DFT_ARG( NULL )
     );
 
-/**	DzStartCot
+/** DzStartCot
  *  starts a cot in current cot host.
  *  @param entry
  *      The cot entry to be execute.
@@ -305,7 +305,7 @@ int DzStartCot(
     int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
-/**	DzStartCotInstant
+/** DzStartCotInstant
  *  starts a cot in current cot host and schedule to it immediately.
  *  @param entry
  *      The cot entry to be execute.
@@ -337,7 +337,7 @@ int DzStartCotInstant(
     );
 
 
-/**	DzEvtStartCot
+/** DzEvtStartCot
  *  starts a cot in current cot host, after it finished, notifies an event.
  *  @param evt
  *      An synchronization event object, when the created cot finished,
@@ -371,7 +371,7 @@ int DzEvtStartCot(
     int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
-/**	DzEvtStartCotInstant
+/** DzEvtStartCotInstant
  *  starts a cot in current cot host and schedule to it immediately,
  *  after it finished, notifies an event.
  *  @param evt
@@ -408,7 +408,7 @@ int DzEvtStartCotInstant(
     int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
-/**	DzStartRemoteCot
+/** DzStartRemoteCot
  *  starts a cot in a remote cot host.
  *  @param rmtId
  *      remote host's id.
@@ -443,7 +443,7 @@ int DzStartRemoteCot(
     int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
-/**	DzEvtStartRemoteCot
+/** DzEvtStartRemoteCot
  *  starts a cot in a remote cot host, after it finished, notifies an event.
  *  @param evt
  *      An synchronization event object, when the created cot finished,
@@ -483,7 +483,7 @@ int DzEvtStartRemoteCot(
     int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
-/**	DzRunRemoteCot
+/** DzRunRemoteCot
  *  starts a cot in a remote cot host, and block current cot,
  *  until the created remote cot finished.
  *  @param rmtId
@@ -520,7 +520,7 @@ int DzRunRemoteCot(
     int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
-/**	DzRunWorker
+/** DzRunWorker
  *  starts a worker system thread to do some long period work,
  *  and block current cot, until the worker system thread finished.
  *  @param entry
@@ -541,35 +541,35 @@ int DzRunWorker(
     intptr_t    context         __DZ_DFT_ARG( 0 )
     );
 
-/**	DzGetCotData
+/** DzGetCotData
  *  gets current cot's local storage data.
  *  @return
  *      The local storage data of current cot.
  */
 intptr_t DzGetCotData();
 
-/**	DzSetCotData
+/** DzSetCotData
  *  sets the current cot's local storage data.
  *  @param data
  *      The data to set.
  */
 void DzSetCotData( intptr_t data );
 
-/**	DzGetCotCount
+/** DzGetCotCount
  *  gets current host's cot count.
  *  @return
  *      The cot count of current host.
  */
 int DzGetCotCount();
 
-/**	DzGetHostId
+/** DzGetHostId
  *  gets current host's id.
  *  @return
  *      The current host's id;
  */
 int DzGetHostId();
 
-/**	DzSetPriority
+/** DzSetPriority
  *  changes current cot's priority.
  *  @param priority
  *      The new priority value.
@@ -583,7 +583,7 @@ int DzGetHostId();
  */
 int DzSetPriority( int priority );
 
-/**	DzSetCotPoolDepth
+/** DzSetCotPoolDepth
  *  sets current host's cot pool's depth.
  *  @param sType
  *      The stack type of cot which you want to set.
@@ -609,7 +609,7 @@ int DzSetPriority( int priority );
  */
 int DzSetCotPoolDepth( int sType, int depth );
 
-/**	DzSetWorkerPoolDepth
+/** DzSetWorkerPoolDepth
  *  sets worker thread pool depth.
  *  @param depth
  *      The new worker thread pool depth value.
@@ -624,7 +624,7 @@ int DzSetCotPoolDepth( int sType, int depth );
  */
 int DzSetWorkerPoolDepth( int depth );
 
-/**	DzSetHostParam
+/** DzSetHostParam
  *  sets current cot host's lowest priority, default priority and
  *  default cot stack type.
  *  @param lowestPri
@@ -650,7 +650,7 @@ int DzSetWorkerPoolDepth( int depth );
  */
 int DzSetHostParam( int lowestPri, int dftPri, int dftSType );
 
-/**	DzSetHostIoReaction
+/** DzSetHostIoReaction
  *  sets the current host's i/o reaction rate.
  *  @param rate
  *      The new reaction rate value.
@@ -670,7 +670,7 @@ int DzSetHostParam( int lowestPri, int dftPri, int dftSType );
  */
 int DzSetHostIoReaction( int rate );
 
-/**	DzWaitSynObj
+/** DzWaitSynObj
  *  waits until the synchronize object is signaled state
  *  or timeout interval elapses.
  *  @param obj
@@ -696,7 +696,7 @@ int DzWaitSynObj(
     int         timeout         __DZ_DFT_ARG( -1 )
     );
 
-/**	DzWaitMultiSynObj
+/** DzWaitMultiSynObj
  *  waits until one or all specified synchronize objects is signaled state
  *  or timeout interval elapses.
  *  @param count
@@ -732,7 +732,7 @@ int DzWaitMultiSynObj(
     int         timeout         __DZ_DFT_ARG( -1 )
     );
 
-/**	DzCreateMtx
+/** DzCreateMtx
  *  creates a mutex object.
  *  @param owner
  *      If owner == TRUE, the caller cot takes the ownership of the mutex,
@@ -754,7 +754,7 @@ int DzWaitMultiSynObj(
  */
 DzHandle DzCreateMtx( BOOL owner );
 
-/**	DzReleaseMtx
+/** DzReleaseMtx
  *  releases the ownership of a mutex object.
  *  @param mtx
  *      The handle of the mutex.
@@ -769,7 +769,7 @@ DzHandle DzCreateMtx( BOOL owner );
  */
 BOOL DzReleaseMtx( DzHandle mtx );
 
-/**	DzCreateManualEvt
+/** DzCreateManualEvt
  *  creates a manual event object.
  *  @param notified
  *      If notified == TRUE, the created manual event is initialized to
@@ -790,7 +790,7 @@ BOOL DzReleaseMtx( DzHandle mtx );
  */
 DzHandle DzCreateManualEvt( BOOL notified );
 
-/**	DzCreateAutoEvt
+/** DzCreateAutoEvt
  *  creates an auto event object.
  *  @param notified
  *      If notified == TRUE, the created auto event is initialized to
@@ -812,7 +812,7 @@ DzHandle DzCreateManualEvt( BOOL notified );
  */
 DzHandle DzCreateAutoEvt( BOOL notified );
 
-/**	DzCreateCdEvt
+/** DzCreateCdEvt
  *  creates a countdown event object.
  *  @param count
  *      The initial countdown of the event object, count >= 0.
@@ -834,7 +834,7 @@ DzHandle DzCreateAutoEvt( BOOL notified );
  */
 DzHandle DzCreateCdEvt( int count );
 
-/**	DzSetEvt
+/** DzSetEvt
  *  sets the specified event object to signaled.
  *  @param evt
  *      The handle of an event object.
@@ -847,7 +847,7 @@ DzHandle DzCreateCdEvt( int count );
  */
 BOOL DzSetEvt( DzHandle evt );
 
-/**	DzResetEvt
+/** DzResetEvt
  *  sets the specified event object to non-signaled.
  *  @param evt
  *      The handle of an event object.
@@ -860,7 +860,7 @@ BOOL DzSetEvt( DzHandle evt );
  */
 BOOL DzResetEvt( DzHandle evt );
 
-/**	DzCreateSem
+/** DzCreateSem
  *  creates a semaphore object.
  *  @param count
  *      The initial count of the semaphore, count >= 0.
@@ -880,7 +880,7 @@ BOOL DzResetEvt( DzHandle evt );
  */
 DzHandle DzCreateSem( int count );
 
-/**	DzReleaseSem
+/** DzReleaseSem
  *  increases a semaphore's count by a specified amount.
  *  @param sem
  *      The handle of the semaphore.
@@ -891,7 +891,7 @@ DzHandle DzCreateSem( int count );
  */
 int DzReleaseSem( DzHandle sem, int count );
 
-/**	DzCreateTimer
+/** DzCreateTimer
  *  creates a wait-able timer object.
  *  @param milSec
  *      The interval of the timer, in milliseconds, milSec > 0.
@@ -916,7 +916,7 @@ int DzReleaseSem( DzHandle sem, int count );
  */
 DzHandle DzCreateTimer( int milSec, BOOL repeat );
 
-/**	DzCloneSynObj
+/** DzCloneSynObj
  *  clones a handle of a synchronize object.
  *  @param obj
  *      The handle of the synchronize object.
@@ -929,7 +929,7 @@ DzHandle DzCreateTimer( int milSec, BOOL repeat );
  */
 DzHandle DzCloneSynObj( DzHandle obj );
 
-/**	DzDelSynObj
+/** DzDelSynObj
  *  deletes a synchronize object.
  *  @param obj
  *      The handle of the synchronize object.
@@ -940,7 +940,7 @@ DzHandle DzCloneSynObj( DzHandle obj );
  */
 BOOL DzDelSynObj( DzHandle obj );
 
-/**	DzCreateCallbackTimer
+/** DzCreateCallbackTimer
  *  creates a callback timer.
  *  @param milSec
  *      The interval of the callback timer, in milliseconds, milSec > 0.
@@ -982,7 +982,7 @@ DzHandle DzCreateCallbackTimer(
     int         sType           __DZ_DFT_ARG( ST_DEFAULT )
     );
 
-/**	DzDelCallbackTimer
+/** DzDelCallbackTimer
  *  deletes a callback timer.
  *  @param timer
  *      The handle of the callback timer.
@@ -994,7 +994,7 @@ DzHandle DzCreateCallbackTimer(
  */
 BOOL DzDelCallbackTimer( DzHandle timer );
 
-/**	DzSleep
+/** DzSleep
  *  suspends current cot for a specified period.
  *  @param milSec
  *      The interval you want to suspend the current cot, in milliseconds.
@@ -1008,138 +1008,7 @@ BOOL DzDelCallbackTimer( DzHandle timer );
  */
 void DzSleep( int milSec );
 
-/**	DzOpenFile
- *  creates or opens a file.
- *  @param fileName
- *      A 0 terminated string represents the file's full path or
- *      relative path.
- *  @param flags
- *      Bit masks specifying how to open the file.
- *  @return
- *      If succeed, the return value is the file's descriptor,
- *      or else the return value is -1.
- *
- *  The argument flags must include one of the following access modes:
- *  DZ_O_RD, DZ_O_WR, or DZ_O_RDWR. These request opening the file
- *  read-only, write-only, or read/write, respectively.
- *
- *  In addition, zero or more file creation flags and file status flags
- *  can be combined to flags with bitwise-or.
- *  DZ_O_CREATE:
- *      If the file does not exist it will be created.
- *  DZ_O_EXCL:
- *      Only valid when combined with DZ_O_CREATE.
- *      If the file exists, open will failed.
- *  DZ_O_TRUNC:
- *      If file exists and writable open succeed, the file will be
- *      truncated to length 0.
- *  DZ_O_APPEND:
- *      If file exists and writable open succeed, the file offset is
- *      positioned at the end of the file.
- *
- *  @remarks
- *      The returned file descriptor is not the same as the system's,
- *      so, only use it with DzCot file operate functions. Also, it can
- *      be used only in the cot host which creates it, never pass it to
- *      a remote cot host.
- */
-int DzOpenFile( const char* fileName, int flags );
-
-/**	DzCloseFile
- *  closes an opened file.
- *  @param fd
- *      The file's descriptor.
- *  @return
- *      0 if succeed or else -1.
- */
-int DzCloseFile( int fd );
-
-/**	DzReadFile
- *  reads data from an opened file.
- *  @param fd
- *      The file's descriptor.
- *  @param [out] buf
- *      The buffer to retrieve data.
- *  @param count
- *      The byte size of the buffer.
- *  @return
- *      On success, the number of bytes read is returned
- *      (zero indicates end of file), and the file position
- *      is advanced by this number. It is not an error if this number
- *      is smaller than the number of bytes requested.
- *      On error, -1 is returned.
- *
- *  DzReadFile can also be used for receiving data on a socket, both
- *  connect stream and diagram. See Linux man page for read.
- *
- *  @remarks
- *      Never execute more than one reading or writing (.e.g read in two
- *      active cots) on any device descriptor.
- *      Never read and write simultaneously (.e.g read and write in two
- *      active cots) on a disk file (but you can do this on a full duplex
- *      device descriptor such as a socket).
- */
-ssize_t DzReadFile( int fd, void* buf, size_t count );
-
-/**	DzWriteFile
- *  writes data to an opened file.
- *  @param fd
- *      The file's descriptor.
- *  @param buf
- *      The buffer containing the data.
- *  @param count
- *      The byte size of the data buffer.
- *  @return
- *      On success, the number of bytes written is returned, and the
- *      file position is advanced by this number. It is not an error
- *      if this number is smaller than the number of bytes requested.
- *      On error, -1 is returned.
- *
- *  DzWriteFile can also be used for sending data on a socket, both
- *  connected stream and datagram.
- *  For more information see Linux man page for write.
- *
- *  @remarks
- *      Never execute more than one reading or writing (.e.g read in two
- *      active cots) on a file descriptor.
- *      Never read and write simultaneously (.e.g read and write in two
- *      active cots) on a disk file (but you can do this on a full duplex
- *      device descriptor such as a socket).
- */
-ssize_t DzWriteFile( int fd, const void* buf, size_t count );
-
-/**	DzSeekFile
- *  sets the file's read/write position.
- *  @param fd
- *      The file's descriptor.
- *  @param offset
- *      Number of bytes from whence.
- *  @param whence
- *      If SEEK_SET, the position is set to offset bytes,
- *      else if SEEK_CUR, the position is set to its current
- *      location plus offset bytes, else if SEEK_CUR, the position
- *      is set to its current location plus offset bytes.
- *  @return
- *      On succeed, The resulting offset location as measured in bytes
- *      from the beginning of the file.
- *      On error, -1 is returned.
- *
- *  @remarks
- *      Never set a file's position while reading or writing on it
- *      (.e.g reading in a active cot and seek it in another active cot).
- */
-size_t DzSeekFile( int fd, ssize_t offset, int whence );
-
-/**	DzGetFileSize
- *  gets the file's size.
- *  @param fd
- *      The file's descriptor.
- *  @return
- *      The file's size in bytes.
- */
-size_t DzGetFileSize( int fd );
-
-/**	DzSocket
+/** DzSocket
  *  creates a socket.
  *  @param domain
  *      The protocol family which will be used for communication.
@@ -1170,16 +1039,7 @@ size_t DzGetFileSize( int fd );
  */
 int DzSocket( int domain, int type, int protocol );
 
-/**	DzCloseSocket
- *  closes a socket.
- *  @param fd
- *      The socket's file descriptor.
- *  @return
- *      0 if succeed or else -1.
- */
-int DzCloseSocket( int fd );
-
-/**	DzGetSockOpt
+/** DzGetSockOpt
  *  gets options on sockets.
  *  @param fd
  *      The socket's file descriptor.
@@ -1202,7 +1062,7 @@ int DzCloseSocket( int fd );
  */
 int DzGetSockOpt( int fd, int level, int name, void* option, int* len );
 
-/**	DzSetSockOpt
+/** DzSetSockOpt
  *  sets options on sockets.
  *  @param fd
  *      The socket's file descriptor.
@@ -1229,7 +1089,7 @@ int DzGetSockOpt( int fd, int level, int name, void* option, int* len );
  */
 int DzSetSockOpt( int fd, int level, int name, const void* option, int len );
 
-/**	DzGetSockName
+/** DzGetSockName
  *  retrieves the local name for a socket.
  *  @param fd
  *      The socket's file descriptor.
@@ -1243,7 +1103,7 @@ int DzSetSockOpt( int fd, int level, int name, const void* option, int len );
  */
 int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen );
 
-/**	DzGetPeerName
+/** DzGetPeerName
  *  retrieves the address of the peer to which a socket is connected.
  *  @param fd
  *      The socket's file descriptor.
@@ -1257,7 +1117,7 @@ int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen );
  */
 int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen );
 
-/**	DzBind
+/** DzBind
  *  associates a local address with a socket.
  *  @param fd
  *      The socket's file descriptor.
@@ -1271,7 +1131,7 @@ int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen );
  */
 int DzBind( int fd, const struct sockaddr* addr, int addrLen );
 
-/**	DzListen
+/** DzListen
  *  places a socket in a state in which it is listening for an
  *  incoming connection.
  *  @param fd
@@ -1285,7 +1145,7 @@ int DzBind( int fd, const struct sockaddr* addr, int addrLen );
  */
 int DzListen( int fd, int backlog );
 
-/**	DzShutdown
+/** DzShutdown
  *  disables sends or receives on a socket.
  *  @param fd
  *      The socket's file descriptor.
@@ -1313,7 +1173,7 @@ int DzListen( int fd, int backlog );
  */
 int DzShutdown( int fd, int how );
 
-/**	DzConnect
+/** DzConnect
  *  establishes a connection to a specified socket.
  *  @param fd
  *      The socket's file descriptor.
@@ -1328,7 +1188,7 @@ int DzShutdown( int fd, int how );
  */
 int DzConnect( int fd, const struct sockaddr* addr, int addrLen );
 
-/**	DzAccept
+/** DzAccept
  *  permits an incoming connection attempt on a socket.
  *  @param fd
  *      The socket's file descriptor.
@@ -1354,7 +1214,7 @@ int DzConnect( int fd, const struct sockaddr* addr, int addrLen );
  */
 int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
 
-/**	DzSendEx
+/** DzSendEx
  *  sends data in vectored i/o mode on a socket.
  *  @param fd
  *      The socket's file descriptor.
@@ -1385,7 +1245,7 @@ int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
  */
 int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags );
 
-/**	DzRecvEx
+/** DzRecvEx
  *  receives data in vectored i/o mode on a socket.
  *  @param fd
  *      The socket's file descriptor.
@@ -1469,6 +1329,140 @@ void DzFreeAddrInfo( struct addrinfo *res );
 int DzInetPton( int af, const char* src, void* dst );
 const char* DzInetNtop( int af, const void* src, char* dst, int size );
 
+/** DzOpen
+ *  creates or opens a file.
+ *  @param fileName
+ *      A 0 terminated string represents the file's full path or
+ *      relative path.
+ *  @param flags
+ *      Bit masks specifying how to open the file.
+ *  @return
+ *      If succeed, the return value is the file's descriptor,
+ *      or else the return value is -1.
+ *
+ *  The argument flags must include one of the following access modes:
+ *  DZ_O_RD, DZ_O_WR, or DZ_O_RDWR. These request opening the file
+ *  read-only, write-only, or read/write, respectively.
+ *
+ *  In addition, zero or more file creation flags and file status flags
+ *  can be combined to flags with bitwise-or.
+ *  DZ_O_CREATE:
+ *      If the file does not exist it will be created.
+ *  DZ_O_EXCL:
+ *      Only valid when combined with DZ_O_CREATE.
+ *      If the file exists, open will failed.
+ *  DZ_O_TRUNC:
+ *      If file exists and writable open succeed, the file will be
+ *      truncated to length 0.
+ *  DZ_O_APPEND:
+ *      If file exists and writable open succeed, the file offset is
+ *      positioned at the end of the file.
+ *
+ *  @remarks
+ *      The returned file descriptor is not the same as the system's,
+ *      so, only use it with DzCot file operate functions. Also, it can
+ *      be used only in the cot host which creates it, never pass it to
+ *      a remote cot host.
+ */
+int DzOpen( const char* fileName, int flags );
+
+/** DzRead
+ *  reads data from an opened file.
+ *  @param fd
+ *      The file's descriptor.
+ *  @param [out] buf
+ *      The buffer to retrieve data.
+ *  @param count
+ *      The byte size of the buffer.
+ *  @return
+ *      On success, the number of bytes read is returned
+ *      (zero indicates end of file), and the file position
+ *      is advanced by this number. It is not an error if this number
+ *      is smaller than the number of bytes requested.
+ *      On error, -1 is returned.
+ *
+ *  DzRead can also be used for receiving data on a socket, both
+ *  connect stream and diagram. See Linux man page for read.
+ *
+ *  @remarks
+ *      Never execute more than one reading or writing (.e.g read in two
+ *      active cots) on any device descriptor.
+ *      Never read and write simultaneously (.e.g read and write in two
+ *      active cots) on a disk file (but you can do this on a full duplex
+ *      device descriptor such as a socket).
+ */
+ssize_t DzRead( int fd, void* buf, size_t count );
+
+/** DzWrite
+ *  writes data to an opened file.
+ *  @param fd
+ *      The file's descriptor.
+ *  @param buf
+ *      The buffer containing the data.
+ *  @param count
+ *      The byte size of the data buffer.
+ *  @return
+ *      On success, the number of bytes written is returned, and the
+ *      file position is advanced by this number. It is not an error
+ *      if this number is smaller than the number of bytes requested.
+ *      On error, -1 is returned.
+ *
+ *  DzWrite can also be used for sending data on a socket, both
+ *  connected stream and datagram.
+ *  For more information see Linux man page for write.
+ *
+ *  @remarks
+ *      Never execute more than one reading or writing (.e.g read in two
+ *      active cots) on a file descriptor.
+ *      Never read and write simultaneously (.e.g read and write in two
+ *      active cots) on a disk file (but you can do this on a full duplex
+ *      device descriptor such as a socket).
+ */
+ssize_t DzWrite( int fd, const void* buf, size_t count );
+
+/** DzSeek
+ *  sets the file's read/write position.
+ *  @param fd
+ *      The file's descriptor.
+ *  @param offset
+ *      Number of bytes from whence.
+ *  @param whence
+ *      If SEEK_SET, the position is set to offset bytes,
+ *      else if SEEK_CUR, the position is set to its current
+ *      location plus offset bytes, else if SEEK_CUR, the position
+ *      is set to its current location plus offset bytes.
+ *  @return
+ *      On succeed, The resulting offset location as measured in bytes
+ *      from the beginning of the file.
+ *      On error, -1 is returned.
+ *
+ *  @remarks
+ *      Never set a file's position while reading or writing on it
+ *      (.e.g reading in a active cot and seek it in another active cot).
+ */
+size_t DzSeek( int fd, ssize_t offset, int whence );
+
+/** DzFileSize
+ *  gets the file's size.
+ *  @param fd
+ *      The file's descriptor.
+ *  @return
+ *      The file's size in bytes.
+ */
+size_t DzFileSize( int fd );
+
+intptr_t DzGetFdData( int fd );
+void DzSetFdData( int fd, intptr_t data );
+
+/** DzClose
+ *  closes a socket or an opened file.
+ *  @param fd
+ *      The socket or file's descriptor.
+ *  @return
+ *      0 if succeed or else -1.
+ */
+int DzClose( int fd );
+
 DzParamNode* DzAllocParamNode();
 void DzFreeParamNode( DzParamNode* node );
 
@@ -1493,7 +1487,6 @@ int __DzDbgParamNodeLeak();
 
 #ifdef _WIN32
 
-int DzOpenFileW( const wchar_t* fileName, int flags );
 int DzGetNameInfoW(
     const struct sockaddr*  sa,
     int                     salen,
@@ -1512,12 +1505,13 @@ int DzGetAddrInfoW(
 void DzFreeAddrInfoW( struct addrinfoW *res );
 int DzInetPtonW( int af, const wchar_t* src, void* dst );
 const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, int size );
+int DzOpenW( const wchar_t* fileName, int flags );
 
 #endif
 
 #if defined( _WIN32 ) && defined( UNICODE )
 
-#define DzOpenFileT         DzOpenFileW
+#define DzOpenT             DzOpenW
 #define DzGetNameInfoT      DzGetNameInfoW
 #define DzGetAddrInfoT      DzGetAddrInfoW
 #define DzFreeAddrInfoT     DzFreeAddrInfoW
@@ -1526,7 +1520,7 @@ const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, int size );
 
 #else
 
-#define DzOpenFileT         DzOpenFile
+#define DzOpenT             DzOpen
 #define DzGetNameInfoT      DzGetNameInfo
 #define DzGetAddrInfoT      DzGetAddrInfo
 #define DzFreeAddrInfoT     DzFreeAddrInfo

@@ -1,7 +1,7 @@
 #********************************************************************
 #   @file       DzAsmCoreLnx32.asm
 #   @brief      funciton used for switch cot in 32 bit linux
-#   @author	    Foreverflying <foreverflying@live.cn>
+#   @author     Foreverflying <foreverflying@live.cn>
 #   @date       2010/02/11
 #********************************************************************
 

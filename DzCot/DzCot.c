@@ -1,7 +1,7 @@
 /**
  *  @file       DzCot.c
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
@@ -507,80 +507,12 @@ void DzSleep( int milSec )
     }
 }
 
-int DzOpenFile( const char* fileName, int flags )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return Open( host, fileName, flags );
-}
-
-int DzCloseFile( int fd )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-
-    return Close( host, fd );
-}
-
-ssize_t DzReadFile( int fd, void* buf, size_t count )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-
-    return Read( host, fd, buf, count );
-}
-
-ssize_t DzWriteFile( int fd, const void* buf, size_t count )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-
-    return Write( host, fd, buf, count );
-}
-
-size_t DzSeekFile( int fd, ssize_t offset, int whence )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-
-    return Seek( host, fd, offset, whence );
-}
-
-size_t DzGetFileSize( int fd )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-
-    return FileSize( host, fd );
-}
-
 int DzSocket( int domain, int type, int protocol )
 {
     DzHost* host = GetHost();
     assert( host );
 
     return Socket( host, domain, type, protocol );
-}
-
-int DzCloseSocket( int fd )
-{
-    DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-
-    return CloseSocket( host, fd );
 }
 
 int DzGetSockOpt( int fd, int level, int name, void* option, int* len )
@@ -828,6 +760,84 @@ int DzInetPton( int af, const char* src, void* dst )
 const char* DzInetNtop( int af, const void* src, char* dst, int size )
 {
     return DInetNtop( af, src, dst, size );
+}
+
+int DzOpen( const char* fileName, int flags )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return Open( host, fileName, flags );
+}
+
+ssize_t DzRead( int fd, void* buf, size_t count )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return Read( host, fd, buf, count );
+}
+
+ssize_t DzWrite( int fd, const void* buf, size_t count )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return Write( host, fd, buf, count );
+}
+
+size_t DzSeek( int fd, ssize_t offset, int whence )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return Seek( host, fd, offset, whence );
+}
+
+size_t DzFileSize( int fd )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return FileSize( host, fd );
+}
+
+intptr_t DzGetFdData( int fd )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return GetFdData( host, fd );
+}
+
+void DzSetFdData( int fd, intptr_t data )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    SetFdData( host, fd, data );
+}
+
+int DzClose( int fd )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return Close( host, fd );
 }
 
 DzParamNode* DzAllocParamNode()

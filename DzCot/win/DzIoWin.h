@@ -1,7 +1,7 @@
 /**
  *  @file       DzIoWin.h
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
@@ -27,29 +27,18 @@ void __stdcall GetAddrInfoEntryW( intptr_t context );
 
 inline int Socket( DzHost* host, int domain, int type, int protocol )
 {
-    SOCKET fd;
+    SOCKET s;
     DzFd* dzFd;
 
-    fd = socket( domain, type, protocol );
-    if( fd == INVALID_SOCKET ){
+    s = socket( domain, type, protocol );
+    if( s == INVALID_SOCKET ){
         __Dbg( SetLastErr )( host, WSAGetLastError() );
         return -1;
     }
-    CreateIoCompletionPort( (HANDLE)fd, host->os.iocp, (ULONG_PTR)NULL, 0 );
+    CreateIoCompletionPort( (HANDLE)s, host->os.iocp, (ULONG_PTR)NULL, 0 );
     dzFd = CreateDzFd( host );
-    dzFd->s = fd;
+    dzFd->fd = (HANDLE)s;
     return (int)( (intptr_t)dzFd - host->handleBase );
-}
-
-inline int CloseSocket( DzHost* host, int hFd )
-{
-    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
-    int ret;
-
-    ret = closesocket( dzFd->s );
-    dzFd->err = WSAECONNRESET;
-    CloseDzFd( host, dzFd );
-    return ret;
 }
 
 inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
@@ -244,7 +233,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
         memcpy( addr, rAddr, *addrLen );
     }
     dzFd = CreateDzFd( host );
-    dzFd->s = s;
+    dzFd->fd = (HANDLE)s;
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
@@ -645,6 +634,8 @@ inline int GetFd( DzHost* host, HANDLE file, int flags )
         SetFilePointer( file, 0, 0, FILE_END );
     }
     dzFd = CreateDzFd( host );
+    dzFd->notSock = TRUE;
+    dzFd->isFile = GetFileType( file ) == FILE_TYPE_DISK;
     dzFd->fd = file;
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
@@ -668,22 +659,10 @@ inline int Open( DzHost* host, const char* fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline int Close( DzHost* host, int hFd )
-{
-    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
-    BOOL ret;
-
-    ret = CloseHandle( dzFd->fd );
-    dzFd->err = WSAECONNRESET;
-    CloseDzFd( host, dzFd );
-    return ret ? 0 : -1;
-}
-
 inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
 {
     DzFd* dzFd;
     DWORD bytes;
-    BOOL isFile;
     DzIoHelper helper;
     DWORD err;
     BOOL ret;
@@ -692,9 +671,8 @@ inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
     DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)( host->handleBase + hFd );
-    isFile = GetFileType( dzFd->fd ) == FILE_TYPE_DISK;
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
-    if( isFile ){
+    if( dzFd->isFile ){
         helper.overlapped.OffsetHigh = 0;
         helper.overlapped.Offset = SetFilePointer(
             dzFd->fd,
@@ -749,7 +727,7 @@ inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
             return -1;
         }
     }
-    if( isFile ){
+    if( dzFd->isFile ){
         SetFilePointer( dzFd->fd, (LONG)bytes, 0, FILE_CURRENT );
     }
     return bytes;
@@ -759,7 +737,6 @@ inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
 {
     DzFd* dzFd;
     DWORD bytes;
-    BOOL isFile;
     DzIoHelper helper;
     DWORD err;
     BOOL ret;
@@ -768,9 +745,8 @@ inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
     DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)( host->handleBase + hFd );
-    isFile = GetFileType( dzFd->fd ) == FILE_TYPE_DISK;
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
-    if( isFile ){
+    if( dzFd->isFile ){
         helper.overlapped.OffsetHigh = 0;
         helper.overlapped.Offset = SetFilePointer(
             dzFd->fd,
@@ -825,7 +801,7 @@ inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
             return -1;
         }
     }
-    if( isFile ){
+    if( dzFd->isFile ){
         SetFilePointer( dzFd->fd, (LONG)bytes, 0, FILE_CURRENT );
     }
     return bytes;
@@ -861,25 +837,6 @@ inline size_t FileSize( DzHost* host, int hFd )
 #endif
 
     return ret;
-}
-
-inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
-{
-    DWORD access = 0;
-    DWORD createFlag;
-    HANDLE file;
-
-    createFlag = GetFileFlag( flags, &access );
-    file = CreateFileW(
-        fileName,
-        access,
-        0,
-        0,
-        createFlag,
-        FILE_FLAG_OVERLAPPED,
-        NULL
-        );
-    return GetFd( host, file, flags );
 }
 
 inline int DGetNameInfoW(
@@ -941,6 +898,54 @@ inline int DInetPtonW( int af, const wchar_t* src, void* dst )
 inline const wchar_t* DInetNtopW( int af, const void* src, wchar_t* dst, int size )
 {
     return InetNtopW( af, (PVOID)src, dst, size );
+}
+
+inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
+{
+    DWORD access = 0;
+    DWORD createFlag;
+    HANDLE file;
+
+    createFlag = GetFileFlag( flags, &access );
+    file = CreateFileW(
+        fileName,
+        access,
+        0,
+        0,
+        createFlag,
+        FILE_FLAG_OVERLAPPED,
+        NULL
+        );
+    return GetFd( host, file, flags );
+}
+
+inline intptr_t GetFdData( DzHost* host, int hFd )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    return dzFd->fdData;
+}
+
+inline void SetFdData( DzHost* host, int hFd, intptr_t data )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    dzFd->fdData = data;
+}
+
+inline int Close( DzHost* host, int hFd )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    BOOL ret;
+
+    if( dzFd->notSock ){
+        ret = CloseHandle( dzFd->fd ) == S_OK ? 0 : -1;
+        dzFd->notSock = FALSE;
+        dzFd->isFile = FALSE;
+    }else{
+        ret = closesocket( dzFd->s );
+    }
+    dzFd->err = WSAECONNRESET;
+    CloseDzFd( host, dzFd );
+    return ret;
 }
 
 inline void BlockAndDispatchIo( DzHost* host, int timeout )

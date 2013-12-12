@@ -1,7 +1,7 @@
 /**
  *  @file       DzCoreLnx.h
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
@@ -37,7 +37,7 @@ inline void InitDzFd( DzFd* dzFd )
     CleanEasyEvt( &dzFd->inEvt );
     CleanEasyEvt( &dzFd->outEvt );
     dzFd->ref = 0;
-    dzFd->isSock = TRUE;
+    dzFd->notSock = TRUE;
 }
 
 inline DzFd* CreateDzFd( DzHost* host )

@@ -1,7 +1,7 @@
 /**
  *  @file       DzIoWin.c
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
@@ -68,14 +68,6 @@ void __stdcall GetAddrInfoEntryW( intptr_t context )
         );
 }
 
-int DzOpenFileW( const wchar_t* fileName, int flags )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return OpenW( host, fileName, flags );
-}
-
 int DzGetNameInfoW(
     const struct sockaddr*  sa,
     int                     salen,
@@ -118,6 +110,14 @@ int DzInetPtonW( int af, const wchar_t* src, void* dst )
 const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, int size )
 {
     return DInetNtopW( af, (PVOID)src, dst, size );
+}
+
+int DzOpenW( const wchar_t* fileName, int flags )
+{
+    DzHost* host = GetHost();
+    assert( host );
+
+    return OpenW( host, fileName, flags );
 }
 
 #ifdef __cplusplus

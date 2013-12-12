@@ -1,7 +1,7 @@
 /**
  *  @file       Inc_DzFastNewDel.h
  *  @brief      override global new delete operator in a single host
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2011/07/21
  *
  *  Override global new delete operator with faster function

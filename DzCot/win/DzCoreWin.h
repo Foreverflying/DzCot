@@ -1,7 +1,7 @@
 /**
  *  @file       DzCoreWin.h
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
@@ -35,6 +35,8 @@ inline void InitDzCot( DzHost* host, DzCot* dzCot )
 inline void InitDzFd( DzFd* dzFd )
 {
     dzFd->ref = 0;
+    dzFd->notSock = FALSE;
+    dzFd->isFile = FALSE;
 }
 
 inline DzFd* CreateDzFd( DzHost* host )

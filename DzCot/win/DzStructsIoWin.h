@@ -1,7 +1,7 @@
 /**
  *  @file       DzStructsIoWin.h
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
@@ -17,10 +17,14 @@ struct _DzFd
         DzLItr      lItr;
         HANDLE      fd;
         SOCKET      s;
-        int64       unused;
     };
+    intptr_t        fdData;
     int             ref;
     int             err;
+    BOOL            notSock;
+    BOOL            isFile;
+    void*           unused2;
+    void*           unused3;
 };
 
 struct _DzIoHelper

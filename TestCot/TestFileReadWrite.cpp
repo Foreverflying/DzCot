@@ -15,7 +15,7 @@ ssize_t ReadFileFull( int fd, char* buff, size_t count )
     ssize_t ret = 0;
     do{
         ret += tmp;
-        tmp = DzReadFile( fd, buff + ret, count - ret );
+        tmp = DzRead( fd, buff + ret, count - ret );
     }while( tmp > 0 && ret < (ssize_t)count );
     return tmp < 0 ? -1 : ret;
 }
@@ -26,7 +26,7 @@ ssize_t WriteFileFull( int fd, const char* buff, size_t count )
     ssize_t ret = 0;
     do{
         ret += tmp;
-        tmp = DzWriteFile( fd, buff + ret, count - ret );
+        tmp = DzWrite( fd, buff + ret, count - ret );
     }while( tmp > 0 && ret < (ssize_t)count );
     return tmp < 0 ? -1 : ret;
 }
@@ -36,9 +36,9 @@ void ReadFileEntry( char* buff, size_t buffLen )
     unsigned char md5Ret[16];
     md5_context mc;
 
-    int fd = DzOpenFileT( _T( "../../test/Sailing.mp3" ), DZ_O_RD );
+    int fd = DzOpenT( _T( "../../test/Sailing.mp3" ), DZ_O_RD );
     DZ_ASSERT_NE( -1, fd );
-    size_t n = DzGetFileSize( fd );
+    size_t n = DzFileSize( fd );
     DZ_ASSERT_EQ( 3678906, n );
     DZ_ASSERT_GE( buffLen, n );
 
@@ -62,7 +62,7 @@ void ReadFileEntry( char* buff, size_t buffLen )
     size_t seekHead = 0x296040;
     size_t seekEnd = 0x29806b;
     size_t seekLen = seekEnd - seekHead;
-    size_t seekRet = DzSeekFile( fd, seekHead, DZ_SEEK_SET );
+    size_t seekRet = DzSeek( fd, seekHead, DZ_SEEK_SET );
     DZ_ASSERT_EQ( seekHead, seekRet );
     count = ReadFileFull( fd, buff, seekLen );
     DZ_ASSERT_EQ( seekLen, count );
@@ -73,7 +73,7 @@ void ReadFileEntry( char* buff, size_t buffLen )
     ret = memcmp( md5Ret, md5b, 16 );
     DZ_ASSERT_EQ( 0, ret );
 
-    seekRet = DzSeekFile( fd, 0, DZ_SEEK_CUR );
+    seekRet = DzSeek( fd, 0, DZ_SEEK_CUR );
     DZ_ASSERT_EQ( seekEnd, seekRet );
 
     unsigned char content[] = {
@@ -82,13 +82,13 @@ void ReadFileEntry( char* buff, size_t buffLen )
     };
     seekHead = 0x382200;
     seekLen = n - seekHead;
-    seekRet = DzSeekFile( fd, - (ssize_t)seekLen, DZ_SEEK_END );
+    seekRet = DzSeek( fd, - (ssize_t)seekLen, DZ_SEEK_END );
     count = ReadFileFull( fd, buff, 16 );
     DZ_ASSERT_EQ( 16, count );
     ret = memcmp( buff, content, 16 );
     DZ_ASSERT_EQ( 0, ret );
 
-    DzCloseFile( fd );
+    DzClose( fd );
 }
 
 CotEntry TestReadFile( intptr_t context )
@@ -118,7 +118,7 @@ void WriteFileEntry( char* buff, size_t buffLen )
         }
     }
 
-    int fd = DzOpenFileT(
+    int fd = DzOpenT(
         _T( "../../test/test_write.txt" ),
         DZ_O_RDWR | DZ_O_TRUNC | DZ_O_CREATE
         );
@@ -131,22 +131,22 @@ void WriteFileEntry( char* buff, size_t buffLen )
         '_', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'
     };
     size_t tmpLen = sizeof( tmpBuff );
-    size_t seekRet = DzSeekFile( fd, 256, DZ_SEEK_SET );
+    size_t seekRet = DzSeek( fd, 256, DZ_SEEK_SET );
     count = WriteFileFull( fd, tmpBuff, tmpLen );
     DZ_ASSERT_EQ( seekRet, 256 );
     DZ_ASSERT_EQ( tmpLen, count );
 
-    seekRet = DzSeekFile( fd, 32, DZ_SEEK_CUR );
+    seekRet = DzSeek( fd, 32, DZ_SEEK_CUR );
     count = WriteFileFull( fd, tmpBuff, tmpLen );
     DZ_ASSERT_EQ( seekRet, 300 );
     DZ_ASSERT_EQ( tmpLen, count );
 
-    seekRet = DzSeekFile( fd, -32, DZ_SEEK_END );
+    seekRet = DzSeek( fd, -32, DZ_SEEK_END );
     count = WriteFileFull( fd, tmpBuff, tmpLen );
     DZ_ASSERT_EQ( seekRet, 4194272 );
     DZ_ASSERT_EQ( tmpLen, count );
 
-    seekRet = DzSeekFile( fd, 0, DZ_SEEK_SET );
+    seekRet = DzSeek( fd, 0, DZ_SEEK_SET );
     count = ReadFileFull( fd, buff, buffLen );
     DZ_ASSERT_EQ( seekRet, 0 );
     DZ_ASSERT_EQ( buffLen, count );
@@ -163,7 +163,7 @@ void WriteFileEntry( char* buff, size_t buffLen )
     int ret = memcmp( md5Ret, md5, 16 );
     DZ_ASSERT_EQ( 0, ret );
 
-    DzCloseFile( fd );
+    DzClose( fd );
 }
 
 CotEntry TestWriteFile( intptr_t context )

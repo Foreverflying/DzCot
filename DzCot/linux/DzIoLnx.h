@@ -1,7 +1,7 @@
 /**
  *  @file       DzIoLnx.h
  *  @brief      
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
@@ -34,6 +34,7 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     if( fd >= 0 ){
         dzFd = CreateDzFd( host );
         dzFd->fd = fd;
+        dzFd->isSock = TRUE;
         evt.data.ptr = dzFd;
         evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
         flag = fcntl( fd, F_GETFL, 0 );
@@ -44,28 +45,6 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
         __Dbg( SetLastErr )( host, errno );
         return -1;
     }
-}
-
-inline int CloseSocket( DzHost* host, int hFd )
-{
-    DzFd* dzFd;
-    int ret;
-
-    dzFd = (DzFd*)( host->handleBase + hFd );
-    ret = close( dzFd->fd );
-    if( ret == 0 ){
-        dzFd->err = ECONNABORTED;
-        if( IsEasyEvtWaiting( &dzFd->inEvt ) ){
-            NotifyEasyEvt( host, &dzFd->inEvt );
-            CleanEasyEvt( &dzFd->inEvt );
-        }
-        if( IsEasyEvtWaiting( &dzFd->outEvt ) ){
-            NotifyEasyEvt( host, &dzFd->outEvt );
-            CleanEasyEvt( &dzFd->outEvt );
-        }
-        CloseDzFd( host, dzFd );
-    }
-    return ret;
 }
 
 inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
@@ -172,6 +151,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
     }
     dzFd = CreateDzFd( host );
     dzFd->fd = ret;
+    dzFd->isSock = TRUE;
     evt.data.ptr = dzFd;
     evt.events = EPOLLIN | EPOLLOUT | EPOLLET;
     flag = fcntl( ret, F_GETFL, 0 );
@@ -447,29 +427,6 @@ inline int Open( DzHost* host, const char* fileName, int flags )
     }
 }
 
-inline int Close( DzHost* host, int hFd )
-{
-    DzFd* dzFd;
-    int ret;
-
-    dzFd = (DzFd*)( host->handleBase + hFd );
-    ret = close( dzFd->fd );
-    if( ret == 0 ){
-        dzFd->isSock = TRUE;
-        dzFd->err = ECONNABORTED;
-        if( IsEasyEvtWaiting( &dzFd->inEvt ) ){
-            NotifyEasyEvt( host, &dzFd->inEvt );
-            CleanEasyEvt( &dzFd->inEvt );
-        }
-        if( IsEasyEvtWaiting( &dzFd->outEvt ) ){
-            NotifyEasyEvt( host, &dzFd->outEvt );
-            CleanEasyEvt( &dzFd->outEvt );
-        }
-        CloseDzFd( host, dzFd );
-    }
-    return ret;
-}
-
 inline size_t Read( DzHost* host, int hFd, void* buf, size_t count )
 {
     DzFd* dzFd;
@@ -549,6 +506,40 @@ inline size_t FileSize( DzHost* host, int hFd )
         return -1;
     }
     return (size_t)st.st_size;
+}
+
+inline intptr_t GetFdData( DzHost* host, int hFd )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    return dzFd->fdData;
+}
+
+inline void SetFdData( DzHost* host, int hFd, intptr_t data )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    dzFd->fdData = data;
+}
+
+inline int Close( DzHost* host, int hFd )
+{
+    DzFd* dzFd;
+    int ret;
+
+    dzFd = (DzFd*)( host->handleBase + hFd );
+    ret = close( dzFd->fd );
+    if( ret == 0 ){
+        dzFd->err = ECONNABORTED;
+        if( IsEasyEvtWaiting( &dzFd->inEvt ) ){
+            NotifyEasyEvt( host, &dzFd->inEvt );
+            CleanEasyEvt( &dzFd->inEvt );
+        }
+        if( IsEasyEvtWaiting( &dzFd->outEvt ) ){
+            NotifyEasyEvt( host, &dzFd->outEvt );
+            CleanEasyEvt( &dzFd->outEvt );
+        }
+        CloseDzFd( host, dzFd );
+    }
+    return ret;
 }
 
 inline void BlockAndDispatchIo( DzHost* host, int timeout )
