@@ -20,7 +20,7 @@ struct _DzFd
     intptr_t        fdData;
     int             ref;
     int             err;
-    BOOL            isSock;
+    BOOL            notSock;
     int             unused;
     DzEasyEvt       inEvt;
     DzEasyEvt       outEvt;
