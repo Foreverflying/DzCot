@@ -37,8 +37,14 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     }
     CreateIoCompletionPort( (HANDLE)s, host->os.iocp, (ULONG_PTR)NULL, 0 );
     dzFd = CreateDzFd( host );
-    dzFd->fd = (HANDLE)s;
+    dzFd->s = s;
     return (int)( (intptr_t)dzFd - host->handleBase );
+}
+
+inline intptr_t RawSocket( DzHost* host, int hFd )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    return dzFd->s;
 }
 
 inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
@@ -233,7 +239,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
         memcpy( addr, rAddr, *addrLen );
     }
     dzFd = CreateDzFd( host );
-    dzFd->fd = (HANDLE)s;
+    dzFd->s = s;
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 

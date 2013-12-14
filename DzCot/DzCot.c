@@ -439,6 +439,14 @@ DzHandle DzCreateTimer( int milSec, BOOL repeat )
     return CreateTimer( host, milSec, repeat );
 }
 
+BOOL DzIsNotified( DzHandle obj )
+{
+    assert( GetHost() );
+    assert( obj->type <= TYPE_MAX_USER_CAN_WAIT );
+
+    return IsNotified( obj );
+}
+
 DzHandle DzCloneSynObj( DzHandle obj )
 {
     assert( GetHost() );
@@ -513,6 +521,16 @@ int DzSocket( int domain, int type, int protocol )
     assert( host );
 
     return Socket( host, domain, type, protocol );
+}
+
+intptr_t DzRawSocket( int fd )
+{
+    DzHost* host = GetHost();
+    assert( host );
+    assert( fd >= 0 );
+    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+
+    return RawSocket( host, fd );
 }
 
 int DzGetSockOpt( int fd, int level, int name, void* option, int* len )

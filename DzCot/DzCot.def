@@ -31,12 +31,14 @@ EXPORTS
     DzCreateSem
     DzReleaseSem
     DzCreateTimer
+    DzIsNotified
     DzCloneSynObj
     DzDelSynObj
     DzCreateCallbackTimer
     DzDelCallbackTimer
     DzSleep
     DzSocket
+    DzRawSocket
     DzGetSockOpt
     DzSetSockOpt
     DzGetSockName

@@ -24,5 +24,5 @@
 
 // TODO: reference additional headers your program requires here
 #include "DzTrace.h"
-#include "../DzCot/Inc_DzCot.h"
+#include "../include/DzCot.h"
 #include <gtest/gtest.h>

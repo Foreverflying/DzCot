@@ -121,12 +121,6 @@
     <ClInclude Include="DzList.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Inc_DzSocketReplace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Inc_DzFastNewDel.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DzDebug.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -157,9 +151,6 @@
     <ClInclude Include="linux\DzStructsLnx.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Inc_DzFastNewDelEx.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="DzBase.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -178,10 +169,5 @@
     <None Include="DzCot.def">
       <Filter>源文件</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuildStep Include="Inc_DzCot.h">
-      <Filter>头文件</Filter>
-    </CustomBuildStep>
   </ItemGroup>
 </Project>

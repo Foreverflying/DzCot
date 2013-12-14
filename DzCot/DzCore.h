@@ -187,8 +187,8 @@ inline int EvtStartCotInstant(
     host->cotCount++;
     host->scheduleCd++;
     SetCotEntry( dzCot, EventNotifyCotEntry, context );
+    dzCot->entry = entry;
     dzCot->evt = CloneSynObj( evt );
-    dzCot->evt->ref++;
     PushCotToTop( host, host->currCot );
     SwitchToCot( host, dzCot );
     return DS_OK;

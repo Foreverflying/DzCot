@@ -47,6 +47,12 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     }
 }
 
+inline intptr_t RawSocket( DzHost* host, int hFd )
+{
+    DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
+    return dzFd->fd;
+}
+
 inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );

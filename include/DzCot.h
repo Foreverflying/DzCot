@@ -1,13 +1,13 @@
 /**
- *  @file       Inc_DzCot.h
+ *  @file       DzCot.h
  *  @brief      The interface header of DzCot.
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __Inc_DzCot_h__
-#define __Inc_DzCot_h__
+#ifndef __DzCot_h__
+#define __DzCot_h__
 
 #if defined( _WIN32 )
 #include <Ws2tcpip.h>
@@ -916,6 +916,15 @@ int DzReleaseSem( DzHandle sem, int count );
  */
 DzHandle DzCreateTimer( int milSec, BOOL repeat );
 
+/** DzIsNotified
+ *  check whether a synchronize object is notified.
+ *  @param obj
+ *      The handle of the synchronize object.
+ *  @return
+ *      TRUE if notified or else FALSE.
+ */
+BOOL DzIsNotified( DzHandle obj );
+
 /** DzCloneSynObj
  *  clones a handle of a synchronize object.
  *  @param obj
@@ -1038,6 +1047,15 @@ void DzSleep( int milSec );
  *      never pass it to a remote cot host.
  */
 int DzSocket( int domain, int type, int protocol );
+
+/** DzRawSocket
+ *  gets the system socket from a file descriptor.
+ *  @param
+ *      The socket's file descriptor.
+ *  @return
+ *      The system socket.
+ */
+intptr_t DzRawSocket( int fd );
 
 /** DzGetSockOpt
  *  gets options on sockets.
@@ -1533,4 +1551,4 @@ int DzOpenW( const wchar_t* fileName, int flags );
 };
 #endif
 
-#endif // __Inc_DzCot_h__
+#endif // __DzCot_h__

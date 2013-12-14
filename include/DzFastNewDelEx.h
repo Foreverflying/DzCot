@@ -1,5 +1,5 @@
 /**
- *  @file       Inc_DzFastNewDelEx.h
+ *  @file       DzFastNewDelEx.h
  *  @brief      override global new delete operator in multi cot hosts
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2011/10/23
@@ -16,7 +16,7 @@
 
 #include <new>
 #include <exception>
-#include "Inc_DzCot.h"
+#include "DzCot.h"
 
 using namespace std;
 

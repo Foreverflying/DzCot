@@ -1,18 +1,18 @@
 /**
- *  @file       Inc_DzSocketReplace.h
+ *  @file       DzSocketReplace.h
  *  @brief      
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __Inc_DzSocketReplace_h__
-#define __Inc_DzSocketReplace_h__
+#ifndef __DzSocketReplace_h__
+#define __DzSocketReplace_h__
 
-#include "Inc_DzCot.h"
+#include "DzCot.h"
 
 #undef socket
-#undef close
+#undef closesocket
 #undef getsockopt
 #undef setsockopt
 #undef getsockname
@@ -26,9 +26,14 @@
 #undef recv
 #undef sendto
 #undef recvfrom
+#undef getnameinfo
+#undef getaddrinfo
+#undef freeaddrinfo
+#undef inet_pton
+#undef inet_ntop
 
 #define socket          DzSocket
-#define close           DzCloseSocket
+#define closesocket     DzClose
 #define getsockopt      DzGetSockOpt
 #define setsockopt      DzSetSockOpt
 #define getsockname     DzGetSockName
@@ -42,5 +47,10 @@
 #define recv            DzRecv
 #define sendto          DzSendTo
 #define recvfrom        DzRecvFrom
+#define getnameinfo     DzGetNameInfo
+#define getaddrinfo     DzGetAddrInfo
+#define freeaddrinfo    DzFreeAddrInfo
+#define inet_pton       DzInetPton
+#define inet_ntop       DzInetNtop
 
-#endif // __Inc_DzSocketReplace_h__
+#endif // __DzSocketReplace_h__
