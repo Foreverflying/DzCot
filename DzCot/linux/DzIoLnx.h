@@ -53,34 +53,34 @@ inline intptr_t RawSocket( DzHost* host, int hFd )
     return dzFd->fd;
 }
 
-inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
+inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, socklen_t* len )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
-    return getsockopt( dzFd->fd, level, name, (char*)option, (socklen_t*)len );
+    return getsockopt( dzFd->fd, level, name, (char*)option, len );
 }
 
-inline int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, int len )
+inline int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, socklen_t len )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
-    return setsockopt( dzFd->fd, level, name, (const char*)option, (socklen_t)len );
+    return setsockopt( dzFd->fd, level, name, (const char*)option, len );
 }
 
-inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
-    return getsockname( dzFd->fd, addr, (socklen_t*)addrLen );
+    return getsockname( dzFd->fd, addr, addrLen );
 }
 
-inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
-    return getpeername( dzFd->fd, addr, (socklen_t*)addrLen );
+    return getpeername( dzFd->fd, addr, addrLen );
 }
 
-inline int Bind( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
+inline int Bind( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
-    return bind( dzFd->fd, addr, (socklen_t)addrLen );
+    return bind( dzFd->fd, addr, addrLen );
 }
 
 inline int Listen( DzHost* host, int hFd, int backlog )
@@ -95,14 +95,14 @@ inline int Shutdown( DzHost* host, int hFd, int how )
     return shutdown( dzFd->fd, how );
 }
 
-inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
+inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzFd* dzFd;
     int err;
     socklen_t errLen;
 
     dzFd = (DzFd*)( host->handleBase + hFd );
-    if( connect( dzFd->fd, addr, (socklen_t)addrLen ) != 0 ){
+    if( connect( dzFd->fd, addr, addrLen ) != 0 ){
         if( errno == EINPROGRESS ){
             CloneDzFd( dzFd );
             WaitEasyEvt( host, &dzFd->outEvt );
@@ -126,7 +126,7 @@ inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addr
     return 0;
 }
 
-inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd;
     int ret;
@@ -134,7 +134,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
     struct epoll_event evt;
 
     dzFd = (DzFd*)( host->handleBase + hFd );
-    ret = accept( dzFd->fd, addr, (socklen_t*)addrLen );
+    ret = accept( dzFd->fd, addr, addrLen );
     if( ret < 0 ){
         if( errno == EAGAIN ){
             CloneDzFd( dzFd );
@@ -145,7 +145,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
                 return -1;
             }
             CloseDzFd( host, dzFd );
-            ret = accept( dzFd->fd, addr, (socklen_t*)addrLen );
+            ret = accept( dzFd->fd, addr, addrLen );
             if( ret < 0 ){
                 __Dbg( SetLastErr )( host, errno );
                 return -1;
@@ -226,7 +226,7 @@ inline int RecvMsg( DzHost* host, int hFd, struct msghdr* msg, int flags )
     return ret;
 }
 
-inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flags )
 {
     struct msghdr msg;
 
@@ -239,7 +239,7 @@ inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
     return SendMsg( host, hFd, &msg, flags );
 }
 
-inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flags )
 {
     struct msghdr msg;
 
@@ -252,20 +252,20 @@ inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
     return RecvMsg( host, hFd, &msg, flags );
 }
 
-inline int Send( DzHost* host, int hFd, const void* buf, u_int len, int flags )
+inline int Send( DzHost* host, int hFd, const void* buf, size_t len, int flags )
 {
     DzBuf tmpBuf;
 
-    tmpBuf.len = (unsigned long)len;
+    tmpBuf.len = len;
     tmpBuf.buf = (void*)buf;
     return SendEx( host, hFd, &tmpBuf, 1, flags );
 }
 
-inline int Recv( DzHost* host, int hFd, void* buf, u_int len, int flags )
+inline int Recv( DzHost* host, int hFd, void* buf, size_t len, int flags )
 {
     DzBuf tmpBuf;
 
-    tmpBuf.len = (unsigned long)len;
+    tmpBuf.len = len;
     tmpBuf.buf = buf;
     return RecvEx( host, hFd, &tmpBuf, 1, flags );
 }
@@ -274,16 +274,16 @@ inline int SendToEx(
     DzHost*                 host,
     int                     hFd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     )
 {
     struct msghdr msg;
 
     msg.msg_name = (void*)to;
-    msg.msg_namelen = (socklen_t)tolen;
+    msg.msg_namelen = tolen;
     msg.msg_iov = (struct iovec*)bufs;
     msg.msg_iovlen = bufCount;
     msg.msg_control = NULL;
@@ -295,24 +295,24 @@ inline int RecvFromEx(
     DzHost*                 host,
     int                     hFd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     )
 {
     int ret;
     struct msghdr msg;
 
     msg.msg_name = from;
-    msg.msg_namelen = (socklen_t)( fromlen ? *fromlen : 0 );
+    msg.msg_namelen = fromlen ? *fromlen : 0;
     msg.msg_iov = (struct iovec*)bufs;
     msg.msg_iovlen = bufCount;
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
     ret = RecvMsg( host, hFd, &msg, flags );
     if( fromlen ){
-        *fromlen = (int)msg.msg_namelen;
+        *fromlen = msg.msg_namelen;
     }
     return ret;
 }
@@ -321,15 +321,15 @@ inline int SendTo(
     DzHost*                 host,
     int                     hFd,
     const void*             buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     )
 {
     DzBuf tmpBuf;
 
-    tmpBuf.len = (unsigned long)len;
+    tmpBuf.len = len;
     tmpBuf.buf = (void*)buf;
     return SendToEx( host, hFd, &tmpBuf, 1, flags, to, tolen );
 }
@@ -338,15 +338,15 @@ inline int RecvFrom(
     DzHost*                 host,
     int                     hFd,
     void*                   buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     )
 {
     DzBuf tmpBuf;
 
-    tmpBuf.len = (unsigned long)len;
+    tmpBuf.len = len;
     tmpBuf.buf = buf;
     return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
@@ -354,7 +354,7 @@ inline int RecvFrom(
 inline int DGetNameInfo(
     DzHost*                 dzHost,
     const struct sockaddr*  sa,
-    int                     salen,
+    socklen_t               salen,
     char*                   host,
     size_t                  hostlen,
     char*                   serv,
@@ -407,7 +407,7 @@ inline int DInetPton( int af, const char* src, void* dst )
     return inet_pton( af, src, dst );
 }
 
-inline const char* DInetNtop( int af, const void* src, char* dst, int size )
+inline const char* DInetNtop( int af, const void* src, char* dst, socklen_t size )
 {
     return inet_ntop( af, src, dst, size );
 }

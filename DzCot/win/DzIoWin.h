@@ -47,31 +47,31 @@ inline intptr_t RawSocket( DzHost* host, int hFd )
     return dzFd->s;
 }
 
-inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, int* len )
+inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, socklen_t* len )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockopt( dzFd->s, level, name, (char*)option, len );
 }
 
-inline int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, int len )
+inline int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, socklen_t len )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return setsockopt( dzFd->s, level, name, (const char*)option, len );
 }
 
-inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockname( dzFd->s, addr, addrLen );
 }
 
-inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getpeername( dzFd->s, addr, addrLen );
 }
 
-inline int Bind( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
+inline int Bind( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return bind( dzFd->s, addr, addrLen );
@@ -89,7 +89,7 @@ inline int Shutdown( DzHost* host, int hFd, int how )
     return shutdown( dzFd->s, how );
 }
 
-inline int TryConnectDatagram( SOCKET fd, const struct sockaddr* addr, int addrLen )
+inline int TryConnectDatagram( SOCKET fd, const struct sockaddr* addr, socklen_t addrLen )
 {
     int sockType;
     int sockTypeLen = sizeof( sockType );
@@ -103,7 +103,7 @@ inline int TryConnectDatagram( SOCKET fd, const struct sockaddr* addr, int addrL
     return -1;
 }
 
-inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addrLen )
+inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -168,7 +168,7 @@ inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, int addr
     return 0;
 }
 
-inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
+inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd;
     SOCKET s;
@@ -243,7 +243,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, int* addrLen )
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flags )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -257,7 +257,7 @@ inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
 
     dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
-    if( WSASend( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, flags, &helper.overlapped, NULL ) ){
+    if( WSASend( dzFd->s, (WSABUF*)bufs, (DWORD)bufCount, &bytes, flags, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __Dbg( SetLastErr )( host, err );
@@ -298,7 +298,7 @@ inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
     return bytes;
 }
 
-inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags )
+inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flags )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -313,7 +313,7 @@ inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
     dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     tmpFlag = (DWORD)flags;
-    if( WSARecv( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, &helper.overlapped, NULL ) ){
+    if( WSARecv( dzFd->s, (WSABUF*)bufs, (DWORD)bufCount, &bytes, &tmpFlag, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __Dbg( SetLastErr )( host, err );
@@ -354,7 +354,7 @@ inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, u_int bufCount, int flags
     return bytes;
 }
 
-inline int Send( DzHost* host, int hFd, const void* buf, u_int len, int flags )
+inline int Send( DzHost* host, int hFd, const void* buf, size_t len, int flags )
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
@@ -363,7 +363,7 @@ inline int Send( DzHost* host, int hFd, const void* buf, u_int len, int flags )
     return SendEx( host, hFd, &tmpBuf, 1, flags );
 }
 
-inline int Recv( DzHost* host, int hFd, void* buf, u_int len, int flags )
+inline int Recv( DzHost* host, int hFd, void* buf, size_t len, int flags )
 {
     DzBuf tmpBuf;
     tmpBuf.len = (unsigned long)len;
@@ -376,10 +376,10 @@ inline int SendToEx(
     DzHost*                 host,
     int                     hFd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     )
 {
     DzFd* dzFd;
@@ -394,7 +394,7 @@ inline int SendToEx(
 
     dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
-    if( WSASendTo( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, flags, to, tolen, &helper.overlapped, NULL ) ){
+    if( WSASendTo( dzFd->s, (WSABUF*)bufs, (DWORD)bufCount, &bytes, flags, to, tolen, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __Dbg( SetLastErr )( host, err );
@@ -439,10 +439,10 @@ inline int RecvFromEx(
     DzHost*                 host,
     int                     hFd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     )
 {
     DzFd* dzFd;
@@ -458,7 +458,7 @@ inline int RecvFromEx(
     dzFd = (DzFd*)( host->handleBase + hFd );
     ZeroMemory( &helper.overlapped, sizeof( helper.overlapped ) );
     tmpFlag = (DWORD)flags;
-    if( WSARecvFrom( dzFd->s, (WSABUF*)bufs, bufCount, &bytes, &tmpFlag, from, fromlen, &helper.overlapped, NULL ) ){
+    if( WSARecvFrom( dzFd->s, (WSABUF*)bufs, (DWORD)bufCount, &bytes, &tmpFlag, from, fromlen, &helper.overlapped, NULL ) ){
         err = WSAGetLastError();
         if( err != ERROR_IO_PENDING ){
             __Dbg( SetLastErr )( host, err );
@@ -503,10 +503,10 @@ inline int SendTo(
     DzHost*                 host,
     int                     hFd,
     const void*             buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     )
 {
     DzBuf tmpBuf;
@@ -520,10 +520,10 @@ inline int RecvFrom(
     DzHost*                 host,
     int                     hFd,
     void*                   buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     )
 {
     DzBuf tmpBuf;
@@ -536,7 +536,7 @@ inline int RecvFrom(
 inline int DGetNameInfo(
     DzHost*                 dzHost,
     const struct sockaddr*  sa,
-    int                     salen,
+    socklen_t               salen,
     char*                   host,
     size_t                  hostlen,
     char*                   serv,
@@ -589,9 +589,9 @@ inline int DInetPton( int af, const char* src, void* dst )
     return inet_pton( af, src, dst );
 }
 
-inline const char* DInetNtop( int af, const void* src, char* dst, int size )
+inline const char* DInetNtop( int af, const void* src, char* dst, socklen_t size )
 {
-    return inet_ntop( af, (PVOID)src, dst, size );
+    return inet_ntop( af, (PVOID)src, dst, (size_t)size );
 }
 
 inline DWORD GetFileFlag( int flags, DWORD* accessFlag )

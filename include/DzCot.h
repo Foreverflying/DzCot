@@ -1078,7 +1078,7 @@ intptr_t DzRawSocket( int fd );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzGetSockOpt( int fd, int level, int name, void* option, int* len );
+int DzGetSockOpt( int fd, int level, int name, void* option, socklen_t* len );
 
 /** DzSetSockOpt
  *  sets options on sockets.
@@ -1105,7 +1105,7 @@ int DzGetSockOpt( int fd, int level, int name, void* option, int* len );
  *  @remarks
  *      The socket option SO_LINGER can not be assigned.
  */
-int DzSetSockOpt( int fd, int level, int name, const void* option, int len );
+int DzSetSockOpt( int fd, int level, int name, const void* option, socklen_t len );
 
 /** DzGetSockName
  *  retrieves the local name for a socket.
@@ -1119,7 +1119,7 @@ int DzSetSockOpt( int fd, int level, int name, const void* option, int len );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen );
+int DzGetSockName( int fd, struct sockaddr* addr, socklen_t* addrLen );
 
 /** DzGetPeerName
  *  retrieves the address of the peer to which a socket is connected.
@@ -1133,7 +1133,7 @@ int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen );
+int DzGetPeerName( int fd, struct sockaddr* addr, socklen_t* addrLen );
 
 /** DzBind
  *  associates a local address with a socket.
@@ -1147,7 +1147,7 @@ int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzBind( int fd, const struct sockaddr* addr, int addrLen );
+int DzBind( int fd, const struct sockaddr* addr, socklen_t addrLen );
 
 /** DzListen
  *  places a socket in a state in which it is listening for an
@@ -1204,7 +1204,7 @@ int DzShutdown( int fd, int how );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzConnect( int fd, const struct sockaddr* addr, int addrLen );
+int DzConnect( int fd, const struct sockaddr* addr, socklen_t addrLen );
 
 /** DzAccept
  *  permits an incoming connection attempt on a socket.
@@ -1230,7 +1230,7 @@ int DzConnect( int fd, const struct sockaddr* addr, int addrLen );
  *      Also, it can be used only in the cot host which creates it,
  *      never pass it to a remote cot host.
  */
-int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
+int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen );
 
 /** DzSendEx
  *  sends data in vectored i/o mode on a socket.
@@ -1261,7 +1261,7 @@ int DzAccept( int fd, struct sockaddr* addr, int* addrLen );
  *      But you can read and write simultaneously (.e.g read and write in
  *      two active cots), for socket is a full duplex device.
  */
-int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags );
+int DzSendEx( int fd, DzBuf* bufs, size_t bufCount, int flags );
 
 /** DzRecvEx
  *  receives data in vectored i/o mode on a socket.
@@ -1292,45 +1292,45 @@ int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags );
  *      But you can read and write simultaneously (.e.g read and write in
  *      two active cots), for socket is a full duplex device.
  */
-int DzRecvEx( int fd, DzBuf* bufs, u_int bufCount, int flags );
+int DzRecvEx( int fd, DzBuf* bufs, size_t bufCount, int flags );
 
-int DzSend( int fd, const void* buf, u_int len, int flags );
-int DzRecv( int fd, void* buf, u_int len, int flags );
+int DzSend( int fd, const void* buf, size_t len, int flags );
+int DzRecv( int fd, void* buf, size_t len, int flags );
 int DzSendToEx(
     int                     fd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     );
 int DzRecvFromEx(
     int                     fd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     );
 int DzSendTo(
     int                     fd,
     const void*             buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     );
 int DzRecvFrom(
     int                     fd,
     void*                   buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     );
 int DzGetNameInfo(
     const struct sockaddr*  sa,
-    int                     salen,
+    socklen_t               salen,
     char*                   host,
     size_t                  hostlen,
     char*                   serv,
@@ -1345,7 +1345,7 @@ int DzGetAddrInfo(
     );
 void DzFreeAddrInfo( struct addrinfo *res );
 int DzInetPton( int af, const char* src, void* dst );
-const char* DzInetNtop( int af, const void* src, char* dst, int size );
+const char* DzInetNtop( int af, const void* src, char* dst, socklen_t size );
 
 /** DzOpen
  *  creates or opens a file.

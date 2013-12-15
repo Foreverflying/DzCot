@@ -533,7 +533,7 @@ intptr_t DzRawSocket( int fd )
     return RawSocket( host, fd );
 }
 
-int DzGetSockOpt( int fd, int level, int name, void* option, int* len )
+int DzGetSockOpt( int fd, int level, int name, void* option, socklen_t* len )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -543,7 +543,7 @@ int DzGetSockOpt( int fd, int level, int name, void* option, int* len )
     return GetSockOpt( host, fd, level, name, option, len );
 }
 
-int DzSetSockOpt( int fd, int level, int name, const void* option, int len )
+int DzSetSockOpt( int fd, int level, int name, const void* option, socklen_t len )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -554,7 +554,7 @@ int DzSetSockOpt( int fd, int level, int name, const void* option, int len )
     return SetSockOpt( host, fd, level, name, option, len );
 }
 
-int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen )
+int DzGetSockName( int fd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -564,7 +564,7 @@ int DzGetSockName( int fd, struct sockaddr* addr, int* addrLen )
     return GetSockName( host, fd, addr, addrLen );
 }
 
-int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen )
+int DzGetPeerName( int fd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -574,7 +574,7 @@ int DzGetPeerName( int fd, struct sockaddr* addr, int* addrLen )
     return GetPeerName( host, fd, addr, addrLen );
 }
 
-int DzBind( int fd, const struct sockaddr* addr, int addrLen )
+int DzBind( int fd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -604,7 +604,7 @@ int DzShutdown( int fd, int how )
     return Shutdown( host, fd, how );
 }
 
-int DzConnect( int fd, const struct sockaddr* addr, int addrLen )
+int DzConnect( int fd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -614,7 +614,7 @@ int DzConnect( int fd, const struct sockaddr* addr, int addrLen )
     return Connect( host, fd, addr, addrLen );
 }
 
-int DzAccept( int fd, struct sockaddr* addr, int* addrLen )
+int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -624,7 +624,7 @@ int DzAccept( int fd, struct sockaddr* addr, int* addrLen )
     return Accept( host, fd, addr, addrLen );
 }
 
-int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags )
+int DzSendEx( int fd, DzBuf* bufs, size_t bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -635,7 +635,7 @@ int DzSendEx( int fd, DzBuf* bufs, u_int bufCount, int flags )
     return SendEx( host, fd, bufs, bufCount, flags );
 }
 
-int DzRecvEx( int fd, DzBuf* bufs, u_int bufCount, int flags )
+int DzRecvEx( int fd, DzBuf* bufs, size_t bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -646,7 +646,7 @@ int DzRecvEx( int fd, DzBuf* bufs, u_int bufCount, int flags )
     return RecvEx( host, fd, bufs, bufCount, flags );
 }
 
-int DzSend( int fd, const void* buf, u_int len, int flags )
+int DzSend( int fd, const void* buf, size_t len, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -656,7 +656,7 @@ int DzSend( int fd, const void* buf, u_int len, int flags )
     return Send( host, fd, buf, len, flags );
 }
 
-int DzRecv( int fd, void* buf, u_int len, int flags )
+int DzRecv( int fd, void* buf, size_t len, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -669,10 +669,10 @@ int DzRecv( int fd, void* buf, u_int len, int flags )
 int DzSendToEx(
     int                     fd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     )
 {
     DzHost* host = GetHost();
@@ -687,10 +687,10 @@ int DzSendToEx(
 int DzRecvFromEx(
     int                     fd,
     DzBuf*                  bufs,
-    u_int                   bufCount,
+    size_t                  bufCount,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     )
 {
     DzHost* host = GetHost();
@@ -705,10 +705,10 @@ int DzRecvFromEx(
 int DzSendTo(
     int                     fd,
     const void*             buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     const struct sockaddr*  to,
-    int                     tolen
+    socklen_t               tolen
     )
 {
     DzHost* host = GetHost();
@@ -722,10 +722,10 @@ int DzSendTo(
 int DzRecvFrom(
     int                     fd,
     void*                   buf,
-    u_int                   len,
+    size_t                  len,
     int                     flags,
     struct sockaddr*        from,
-    int*                    fromlen
+    socklen_t*              fromlen
     )
 {
     DzHost* host = GetHost();
@@ -738,7 +738,7 @@ int DzRecvFrom(
 
 int DzGetNameInfo(
     const struct sockaddr*  sa,
-    int                     salen,
+    socklen_t               salen,
     char*                   host,
     size_t                  hostlen,
     char*                   serv,
@@ -775,7 +775,7 @@ int DzInetPton( int af, const char* src, void* dst )
     return DInetPton( af, src, dst );
 }
 
-const char* DzInetNtop( int af, const void* src, char* dst, int size )
+const char* DzInetNtop( int af, const void* src, char* dst, socklen_t size )
 {
     return DInetNtop( af, src, dst, size );
 }
