@@ -356,7 +356,7 @@ int PqWSAIoctl(
     )
 {
     return WSAIoctl(
-        DzRawSocket( s ),
+        (SOCKET)DzRawSocket( s ),
         dwIoControlCode,
         lpvInBuffer,
         cbInBuffer,
@@ -374,7 +374,7 @@ int PqWSAIoctl(
 
 int Pq_fcntl( int fd, int cmd, int arg )
 {
-    return fcntl( DzRawSocket( fd ), cmd, arg );
+    return fcntl( (int)DzRawSocket( fd ), cmd, arg );
 }
 
 #endif
