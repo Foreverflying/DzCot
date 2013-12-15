@@ -57,15 +57,13 @@ extern int PqClose( int fd );
 #define pg_set_block( conn )        true
 
 #undef pthread_mutex_init
-#define pthread_mutex_init pq_pthread_mutex_init
+#define pthread_mutex_init          pq_pthread_mutex_init
 
 #undef pthread_mutex_lock
-#define pthread_mutex_lock pq_pthread_mutex_lock
+#define pthread_mutex_lock          pq_pthread_mutex_lock
 
 #undef pthread_mutex_unlock
-#define pthread_mutex_unlock pq_pthread_mutex_unlock
-
-#define CRITICAL_SECTION void
+#define pthread_mutex_unlock        pq_pthread_mutex_unlock
 
 #ifdef WIN32
 
@@ -81,8 +79,19 @@ int PqWSAIoctl(
     __in   LPWSAOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine
     );
 
-#define WSAIoctl( s, code, inBuf, inSize, outBuf, outSize, retSize, ol, cr )\
-    PqWSAIoctl( s, code, inBuf, inSize, outBuf, outSize, retSize, ol, cr )
+#define WSAIoctl            PqWSAIoctl
+#define CRITICAL_SECTION    void
+
+typedef void* MtxAttr;
+
+#elif defined __linux__
+
+int Pq_fcntl( int fd, int cmd, int arg );
+
+#define fcntl               Pq_fcntl
+#define pthread_mutex_t     DzHandle
+
+typedef const pthread_mutexattr_t* MtxAttr;
 
 #endif
 

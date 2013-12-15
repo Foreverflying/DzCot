@@ -70,7 +70,7 @@ void __stdcall GetAddrInfoEntryW( intptr_t context )
 
 int DzGetNameInfoW(
     const struct sockaddr*  sa,
-    int                     salen,
+    socklen_t               salen,
     wchar_t*                host,
     size_t                  hostlen,
     wchar_t*                serv,
@@ -107,7 +107,7 @@ int DzInetPtonW( int af, const wchar_t* src, void* dst )
     return DInetPtonW( af, src, dst );
 }
 
-const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, int size )
+const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, socklen_t size )
 {
     return DInetNtopW( af, (PVOID)src, dst, size );
 }

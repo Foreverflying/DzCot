@@ -14,7 +14,6 @@
 #undef pqSocketCheck
 #undef pqReadData
 #undef pqSendSome
-#undef WSAIoctl
 
 typedef union _Helper Helper;
 
@@ -314,7 +313,7 @@ int pqSendSome( PGconn* conn, int len )
     return result;
 }
 
-int pq_pthread_mutex_init( DzHandle* mp, void* attr )
+int pq_pthread_mutex_init( DzHandle* mp, MtxAttr attr )
 {
     *mp = NULL;
     return 0;
@@ -342,6 +341,8 @@ int pq_pthread_mutex_unlock( DzHandle* mp )
 
 #ifdef WIN32
 
+#undef WSAIoctl
+
 int PqWSAIoctl(
     __in   SOCKET s,
     __in   DWORD dwIoControlCode,
@@ -365,6 +366,15 @@ int PqWSAIoctl(
         lpOverlapped,
         lpCompletionRoutine
         );
+}
+
+#elif defined __linux__
+
+#undef fcntl
+
+int Pq_fcntl( int fd, int cmd, int arg )
+{
+    return fcntl( DzRawSocket( fd ), cmd, arg );
 }
 
 #endif

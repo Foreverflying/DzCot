@@ -165,10 +165,12 @@ typedef struct _DzBuf
     size_t          len;
 }DzBuf;
 
-typedef enum{
-    FALSE,
-    TRUE
-}BOOL;
+typedef int BOOL;
+
+#undef  TRUE
+#undef  FALSE
+#define TRUE    1
+#define FALSE   0
 
 #endif
 
@@ -1522,7 +1524,7 @@ int DzGetAddrInfoW(
     );
 void DzFreeAddrInfoW( struct addrinfoW *res );
 int DzInetPtonW( int af, const wchar_t* src, void* dst );
-const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, int size );
+const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, socklen_t size );
 int DzOpenW( const wchar_t* fileName, int flags );
 
 #endif

@@ -848,7 +848,7 @@ inline size_t FileSize( DzHost* host, int hFd )
 inline int DGetNameInfoW(
     DzHost*                 dzHost,
     const struct sockaddr*  sa,
-    int                     salen,
+    socklen_t               salen,
     wchar_t*                host,
     size_t                  hostlen,
     wchar_t*                serv,
@@ -901,7 +901,7 @@ inline int DInetPtonW( int af, const wchar_t* src, void* dst )
     return InetPtonW( af, src, dst );
 }
 
-inline const wchar_t* DInetNtopW( int af, const void* src, wchar_t* dst, int size )
+inline const wchar_t* DInetNtopW( int af, const void* src, wchar_t* dst, socklen_t size )
 {
     return InetNtopW( af, (PVOID)src, dst, size );
 }
