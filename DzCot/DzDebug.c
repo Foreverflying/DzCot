@@ -156,7 +156,9 @@ void __DbgAllocHeap( DzHost* host, void* p, size_t size )
 
 void __DbgFreeHeap( DzHost* host, void* p )
 {
-    __DbgPtr( host )->heapLeak--;
+    if( p ){
+        __DbgPtr( host )->heapLeak--;
+    }
 }
 
 int __DbgGetHeapLeak( DzHost* host )
