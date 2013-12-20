@@ -393,6 +393,10 @@
     <ClCompile Include="win\DzIoWin.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\DzCot.h" />
+    <ClInclude Include="..\include\DzFastNewDel.h" />
+    <ClInclude Include="..\include\DzFastNewDelEx.h" />
+    <ClInclude Include="..\include\DzSocketReplace.h" />
     <ClInclude Include="DzBase.h" />
     <ClInclude Include="DzBaseOs.h" />
     <ClInclude Include="DzCore.h" />

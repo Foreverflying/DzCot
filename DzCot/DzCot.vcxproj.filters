@@ -163,6 +163,18 @@
     <ClInclude Include="thirdparty\dlmalloc.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\DzCot.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\DzFastNewDel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\DzFastNewDelEx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\DzSocketReplace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

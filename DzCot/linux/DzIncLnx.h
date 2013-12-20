@@ -47,10 +47,12 @@ typedef struct _DzBuf
     size_t          len;
 }DzBuf;
 
-typedef enum{
-    FALSE,
-    TRUE
-}BOOL;
+typedef int BOOL;
+
+#undef  TRUE
+#undef  FALSE
+#define TRUE    1
+#define FALSE   0
 
 typedef long long int64;
 
