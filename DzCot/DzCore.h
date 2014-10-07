@@ -279,7 +279,7 @@ inline int RunWorker( DzHost* host, DzEntry entry, intptr_t context )
     DzSysParam param;
     DzWorker* worker;
 
-    lItr = AtomPopSList( &host->mgr->workerPool );
+    lItr = AtomPopStack( &host->mgr->workerPool );
     if( lItr ){
         AtomIncInt( &host->mgr->workerNowDepth );
         worker = MEMBER_BASE( lItr, DzWorker, lItr );
@@ -300,6 +300,11 @@ inline int RunWorker( DzHost* host, DzEntry entry, intptr_t context )
     Schedule( host );
     host->cotCount--;
     return DS_OK;
+}
+
+inline int RunFastWorker( DzHost* host, DzEntry entry, intptr_t context )
+{
+
 }
 
 inline int RunHosts(

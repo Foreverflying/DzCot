@@ -303,7 +303,7 @@ void __stdcall WorkerMain( intptr_t context )
                 eventInit = TRUE;
                 InitSysAutoEvt( &worker.sysEvt );
             }
-            AtomPushSList( &hostMgr->workerPool, &worker.lItr );
+            AtomPushStack( &hostMgr->workerPool, &worker.lItr );
             WaitSysAutoEvt( &worker.sysEvt );
         }
     }

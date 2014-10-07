@@ -178,6 +178,12 @@
     <ClInclude Include="..\include\DzSocketReplace.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="win\DzFileWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="linux\DzFileLnx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

@@ -23,7 +23,7 @@
 #define DZ_MAX_STACK_SIZE           ( 1024 * 1024 * 16 )
 #define DZ_MIN_PAGE_STACK_SIZE      ( 16384 )
 #define DZ_PERMENENT_STACK_BOUNDARY ( 1024 )
-#define DZ_MAX_COT_POOL_DEPTH       ( 1024 * 1024 * 1024 )
+#define DZ_MAX_COT_POOL_DEPTH       ( 1024 * 1024 * 64 )
 #define DZ_MAX_WORKER_POOL_DEPTH    ( 1024 )
 #define MEMERY_POOL_GROW_SIZE       ( 16 * 1024 * 1024 )
 #define HANDLE_POOL_SIZE            ( 64 * 1024 * 1024 )
@@ -38,7 +38,7 @@
 #define RMT_CALL_FIFO_SIZE          ( 64 )
 #define MIN_TIME_INTERVAL           ( 5 )
 #define SCHEDULE_COUNTDOWN          ( 256 )
-#define LAZY_TIMER_INTERVAL         ( 8192 )
+#define LAZY_TIMER_INTERVAL         ( 4096 )
 
 //predefines
 typedef void (__stdcall *DzEntry)( intptr_t context );

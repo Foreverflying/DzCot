@@ -437,6 +437,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseLib|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="linux\DzFileLnx.h" />
     <ClInclude Include="linux\DzIncLnx.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugLib|Win32'">true</ExcludedFromBuild>
@@ -484,6 +485,7 @@
     <ClInclude Include="DzDebug.h" />
     <CustomBuildStep Include="Inc_DzCot.h" />
     <ClInclude Include="DzIncOs.h" />
+    <ClInclude Include="win\DzFileWin.h" />
     <ClInclude Include="win\DzIncWin.h" />
     <ClInclude Include="DzIoOs.h" />
     <ClInclude Include="win\DzIoWin.h" />
