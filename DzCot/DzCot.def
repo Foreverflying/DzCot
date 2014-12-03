@@ -73,8 +73,6 @@ EXPORTS
     DzFreeParamNode
     DzAllocPermanentChunk
     DzMalloc
-    DzCalloc
-    DzReAlloc
     DzFree
     DzMallocEx
     DzFreeEx

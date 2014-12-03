@@ -1488,8 +1488,6 @@ void DzFreeParamNode( DzParamNode* node );
 
 void* DzAllocPermanentChunk( size_t size );
 void* DzMalloc( size_t size );
-void* DzCalloc( size_t num, size_t size );
-void* DzReAlloc( void* mem, size_t size );
 void DzFree( void* p );
 void* DzMallocEx( size_t size );
 void DzFreeEx( void* mem );

@@ -516,20 +516,6 @@ inline void* Malloc( DzHost* host, size_t size )
     return ret;
 }
 
-inline void* Calloc( DzHost* host, size_t num, size_t size )
-{
-    void* ret;
-
-    ret = mspace_calloc( host->mSpace, num, size );
-    __Dbg( AllocHeap )( host, ret, size * num );
-    return ret;
-}
-
-inline void* ReAlloc( DzHost* host, void* mem, size_t size )
-{
-    return mspace_realloc( host->mSpace, mem, size );
-}
-
 inline void Free( DzHost* host, void* mem )
 {
     __Dbg( FreeHeap )( host, mem );
@@ -540,7 +526,7 @@ inline void* MallocEx( DzHost* host, size_t size )
 {
     DzMemExTag* ret;
 
-    ret = (DzMemExTag*)Malloc( host, size + sizeof( int64 ) );
+    ret = (DzMemExTag*)Malloc( host, size + sizeof( DzMemExTag ) );
     ret->hostId = host->hostId;
     return ret + 1;
 }

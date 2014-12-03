@@ -317,8 +317,7 @@ struct _DzWorker
 
 struct _DzMemExTag
 {
-    int             hostId;
-    int             reserve;
+    intptr_t        hostId;
 };
 
 #endif // __DzStructs_h__
