@@ -144,26 +144,26 @@ typedef struct _DzParamNode
 /** handle for synchronize objects */
 typedef void* DzHandle;
 
-/** DzBuf used by vectored i/o
+/** DzIov used by vectored i/o
  *  the data field order is different between Windows and Linux
  */
 #ifdef _WIN32
 
 typedef intptr_t ssize_t;
 
-typedef struct _DzBuf
+typedef struct _DzIov
 {
     unsigned long   len;
     void*           buf;
-}DzBuf;
+}DzIov;
 
 #elif defined __linux__
 
-typedef struct _DzBuf
+typedef struct _DzIov
 {
     void*           buf;
     size_t          len;
-}DzBuf;
+}DzIov;
 
 typedef int BOOL;
 
@@ -1234,26 +1234,26 @@ int DzConnect( int fd, const struct sockaddr* addr, socklen_t addrLen );
  */
 int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen );
 
-/** DzSendEx
+/** DzIovSend
  *  sends data in vectored i/o mode on a socket.
  *  @param fd
  *      The socket's file descriptor.
  *  @param bufs
- *      A pointer to an array of DzBuf structures. Each DzBuf structure
+ *      A pointer to an array of DzIov structures. Each DzIov structure
  *      contains a pointer to a buffer and the length, in bytes,
  *      of the buffer.
  *  @param bufCount
- *      The number of DzBuf structures in the bufs array,
+ *      The number of DzIov structures in the bufs array,
  *      0 < bufCount <= DZ_MAX_IOV.
  *  @param flags
- *      The flags used to modify the behavior of the DzSendEx function call.
+ *      The flags used to modify the behavior of the DzIovSend function call.
  *      For more information, see Linux man page for send.
  *  @return
  *      On success, the number of bytes sent is returned.
  *      It is not an error if this number is smaller than the total buffer
  *      size (when sending on a stream socket), On error, -1 is returned.
  *
- *  DzSendEx is mainly used for sending data on a connected stream socket,
+ *  DzIovSend is mainly used for sending data on a connected stream socket,
  *  but it can also send data on a datagram socket.
  *  For more information see Linux man page for send.
  *
@@ -1263,28 +1263,28 @@ int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen );
  *      But you can read and write simultaneously (.e.g read and write in
  *      two active cots), for socket is a full duplex device.
  */
-int DzSendEx( int fd, DzBuf* bufs, size_t bufCount, int flags );
+int DzIovSend( int fd, DzIov* bufs, size_t bufCount, int flags );
 
-/** DzRecvEx
+/** DzIovRecv
  *  receives data in vectored i/o mode on a socket.
  *  @param fd
  *      The socket's file descriptor.
  *  @param [in,out] bufs
- *      A pointer to an array of DzBuf structures. Each DzBuf structure
+ *      A pointer to an array of DzIov structures. Each DzIov structure
  *      contains a pointer to a buffer and the length, in bytes,
  *      of the buffer.
  *  @param bufCount
- *      The number of DzBuf structures in the bufs array,
+ *      The number of DzIov structures in the bufs array,
  *      0 < bufCount <= DZ_MAX_IOV.
  *  @param flags
- *      The flags used to modify the behavior of the DzRecvEx function call.
+ *      The flags used to modify the behavior of the DzIovRecv function call.
  *      For more information, see Linux man page for recv.
  *  @return
  *      On success, the number of bytes sent is returned.
  *      If remote host closes the connection, 0 is returned.
  *      On error, -1 is returned.
  *
- *  DzRecvEx is mainly used for receiving data on a connected stream socket,
+ *  DzIovRecv is mainly used for receiving data on a connected stream socket,
  *  but it can also receive data on a datagram socket.
  *  For more information see Linux man page for recv.
  *
@@ -1294,21 +1294,21 @@ int DzSendEx( int fd, DzBuf* bufs, size_t bufCount, int flags );
  *      But you can read and write simultaneously (.e.g read and write in
  *      two active cots), for socket is a full duplex device.
  */
-int DzRecvEx( int fd, DzBuf* bufs, size_t bufCount, int flags );
+int DzIovRecv( int fd, DzIov* bufs, size_t bufCount, int flags );
 
 int DzSend( int fd, const void* buf, size_t len, int flags );
 int DzRecv( int fd, void* buf, size_t len, int flags );
-int DzSendToEx(
+int DzIovSendTo(
     int                     fd,
-    DzBuf*                  bufs,
+    DzIov*                  bufs,
     size_t                  bufCount,
     int                     flags,
     const struct sockaddr*  to,
     socklen_t               tolen
     );
-int DzRecvFromEx(
+int DzIovRecvFrom(
     int                     fd,
-    DzBuf*                  bufs,
+    DzIov*                  bufs,
     size_t                  bufCount,
     int                     flags,
     struct sockaddr*        from,

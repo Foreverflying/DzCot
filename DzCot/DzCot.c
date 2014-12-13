@@ -624,7 +624,7 @@ int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen )
     return Accept( host, fd, addr, addrLen );
 }
 
-int DzSendEx( int fd, DzBuf* bufs, size_t bufCount, int flags )
+int DzIovSend( int fd, DzIov* bufs, size_t bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -632,10 +632,10 @@ int DzSendEx( int fd, DzBuf* bufs, size_t bufCount, int flags )
     assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
     assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
-    return SendEx( host, fd, bufs, bufCount, flags );
+    return IovSend( host, fd, bufs, bufCount, flags );
 }
 
-int DzRecvEx( int fd, DzBuf* bufs, size_t bufCount, int flags )
+int DzIovRecv( int fd, DzIov* bufs, size_t bufCount, int flags )
 {
     DzHost* host = GetHost();
     assert( host );
@@ -643,7 +643,7 @@ int DzRecvEx( int fd, DzBuf* bufs, size_t bufCount, int flags )
     assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
     assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
-    return RecvEx( host, fd, bufs, bufCount, flags );
+    return IovRecv( host, fd, bufs, bufCount, flags );
 }
 
 int DzSend( int fd, const void* buf, size_t len, int flags )
@@ -666,9 +666,9 @@ int DzRecv( int fd, void* buf, size_t len, int flags )
     return Recv( host, fd, buf, len, flags );
 }
 
-int DzSendToEx(
+int DzIovSendTo(
     int                     fd,
-    DzBuf*                  bufs,
+    DzIov*                  bufs,
     size_t                  bufCount,
     int                     flags,
     const struct sockaddr*  to,
@@ -681,12 +681,12 @@ int DzSendToEx(
     assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
     assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
-    return SendToEx( host, fd, bufs, bufCount, flags, to, tolen );
+    return IovSendTo( host, fd, bufs, bufCount, flags, to, tolen );
 }
 
-int DzRecvFromEx(
+int DzIovRecvFrom(
     int                     fd,
-    DzBuf*                  bufs,
+    DzIov*                  bufs,
     size_t                  bufCount,
     int                     flags,
     struct sockaddr*        from,
@@ -699,7 +699,7 @@ int DzRecvFromEx(
     assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
     assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
 
-    return RecvFromEx( host, fd, bufs, bufCount, flags, from, fromlen );
+    return IovRecvFrom( host, fd, bufs, bufCount, flags, from, fromlen );
 }
 
 int DzSendTo(
@@ -894,22 +894,6 @@ void* DzMalloc( size_t size )
     assert( host );
 
     return Malloc( host, size );
-}
-
-void* DzCalloc( size_t num, size_t size )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return Calloc( host, num, size );
-}
-
-void* DzReAlloc( void* mem, size_t size )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return ReAlloc( host, mem, size );
 }
 
 void DzFree( void* mem )

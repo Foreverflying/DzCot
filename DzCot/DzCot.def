@@ -48,12 +48,12 @@ EXPORTS
     DzShutdown
     DzConnect
     DzAccept
-    DzSendEx
-    DzRecvEx
+    DzIovSend
+    DzIovRecv
     DzSend
     DzRecv
-    DzSendToEx
-    DzRecvFromEx
+    DzIovSendTo
+    DzIovRecvFrom
     DzSendTo
     DzRecvFrom
     DzGetNameInfo

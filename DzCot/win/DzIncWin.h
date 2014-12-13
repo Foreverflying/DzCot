@@ -42,11 +42,11 @@ typedef int ssize_t;
 typedef long long ssize_t;
 #endif
 
-typedef struct _DzBuf
+typedef struct _DzIov
 {
     unsigned long   len;
     void*           buf;
-}DzBuf;
+}DzIov;
 
 typedef long long int64;
 

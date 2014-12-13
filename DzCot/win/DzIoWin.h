@@ -243,7 +243,7 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addr
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flags )
+inline int IovSend( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -298,7 +298,7 @@ inline int SendEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flag
     return bytes;
 }
 
-inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flags )
+inline int IovRecv( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -356,26 +356,26 @@ inline int RecvEx( DzHost* host, int hFd, DzBuf* bufs, size_t bufCount, int flag
 
 inline int Send( DzHost* host, int hFd, const void* buf, size_t len, int flags )
 {
-    DzBuf tmpBuf;
+    DzIov tmpBuf;
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = (void*)buf;
 
-    return SendEx( host, hFd, &tmpBuf, 1, flags );
+    return IovSend( host, hFd, &tmpBuf, 1, flags );
 }
 
 inline int Recv( DzHost* host, int hFd, void* buf, size_t len, int flags )
 {
-    DzBuf tmpBuf;
+    DzIov tmpBuf;
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = buf;
 
-    return RecvEx( host, hFd, &tmpBuf, 1, flags );
+    return IovRecv( host, hFd, &tmpBuf, 1, flags );
 }
 
-inline int SendToEx(
+inline int IovSendTo(
     DzHost*                 host,
     int                     hFd,
-    DzBuf*                  bufs,
+    DzIov*                  bufs,
     size_t                  bufCount,
     int                     flags,
     const struct sockaddr*  to,
@@ -435,10 +435,10 @@ inline int SendToEx(
     return bytes;
 }
 
-inline int RecvFromEx(
+inline int IovRecvFrom(
     DzHost*                 host,
     int                     hFd,
-    DzBuf*                  bufs,
+    DzIov*                  bufs,
     size_t                  bufCount,
     int                     flags,
     struct sockaddr*        from,
@@ -509,11 +509,11 @@ inline int SendTo(
     socklen_t               tolen
     )
 {
-    DzBuf tmpBuf;
+    DzIov tmpBuf;
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = (void*)buf;
 
-    return SendToEx( host, hFd, &tmpBuf, 1, flags, to, tolen );
+    return IovSendTo( host, hFd, &tmpBuf, 1, flags, to, tolen );
 }
 
 inline int RecvFrom(
@@ -526,11 +526,11 @@ inline int RecvFrom(
     socklen_t*              fromlen
     )
 {
-    DzBuf tmpBuf;
+    DzIov tmpBuf;
     tmpBuf.len = (unsigned long)len;
     tmpBuf.buf = buf;
 
-    return RecvFromEx( host, hFd, &tmpBuf, 1, flags, from, fromlen );
+    return IovRecvFrom( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
 inline int DGetNameInfo(

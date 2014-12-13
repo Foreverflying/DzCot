@@ -41,11 +41,11 @@
 #define __fastcall
 #endif
 
-typedef struct _DzBuf
+typedef struct _DzIov
 {
     void*           buf;
     size_t          len;
-}DzBuf;
+}DzIov;
 
 typedef int BOOL;
 
