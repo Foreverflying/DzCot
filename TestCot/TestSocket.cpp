@@ -97,7 +97,7 @@ void InitBuffArray( int seed, int count, int minBuffSize, int randRange )
 {
     gMaxBuffLen = minBuffSize + randRange;
     gRand = new DRandom( seed );
-    gBufArr = (char**)DzCalloc( count, sizeof(char*) );
+    gBufArr = (char**)DzMalloc( count * sizeof(char*) );
 
     for( int i = 0; i < count; i++ ){
         int len = minBuffSize + gRand->rand( 0, randRange );
@@ -254,7 +254,7 @@ int RecvFromFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 int RecvExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
     char* startPos = (char*)buff;
-    DzBuf buffs[ DZ_TEST_IOV_COUNT ];
+    DzIov buffs[ DZ_TEST_IOV_COUNT ];
     int buffLen = len / DZ_TEST_IOV_COUNT;
     for( int i = 0; i < DZ_TEST_IOV_COUNT; i++ ){
         buffs[i].buf = startPos;
@@ -262,13 +262,13 @@ int RecvExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
         startPos += buffLen;
     }
     buffs[ DZ_TEST_IOV_COUNT - 1 ].len += len % DZ_TEST_IOV_COUNT;
-    return DzRecvEx( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
+    return DzIovRecv( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
 }
 
 int RecvFromExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
 {
     char* startPos = (char*)buff;
-    DzBuf buffs[ DZ_TEST_IOV_COUNT ];
+    DzIov buffs[ DZ_TEST_IOV_COUNT ];
     int buffLen = len / DZ_TEST_IOV_COUNT;
     for( int i = 0; i < DZ_TEST_IOV_COUNT; i++ ){
         buffs[i].buf = startPos;
@@ -276,7 +276,7 @@ int RecvFromExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
         startPos += buffLen;
     }
     buffs[ DZ_TEST_IOV_COUNT - 1 ].len += len % DZ_TEST_IOV_COUNT;
-    return DzRecvFromEx( fd, buffs, DZ_TEST_IOV_COUNT, 0, from, fromLen );
+    return DzIovRecvFrom( fd, buffs, DZ_TEST_IOV_COUNT, 0, from, fromLen );
 }
 
 int WriteFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
@@ -297,7 +297,7 @@ int SendToFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen
 int SendExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
     char* startPos = (char*)buff;
-    DzBuf buffs[ DZ_TEST_IOV_COUNT ];
+    DzIov buffs[ DZ_TEST_IOV_COUNT ];
     int buffLen = len / DZ_TEST_IOV_COUNT;
     for( int i = 0; i < DZ_TEST_IOV_COUNT; i++ ){
         buffs[i].buf = startPos;
@@ -305,13 +305,13 @@ int SendExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen
         startPos += buffLen;
     }
     buffs[ DZ_TEST_IOV_COUNT - 1 ].len += len % DZ_TEST_IOV_COUNT;
-    return DzSendEx( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
+    return DzIovSend( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
 }
 
 int SendToExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
 {
     char* startPos = (char*)buff;
-    DzBuf buffs[ DZ_TEST_IOV_COUNT ];
+    DzIov buffs[ DZ_TEST_IOV_COUNT ];
     int buffLen = len / DZ_TEST_IOV_COUNT;
     for( int i = 0; i < DZ_TEST_IOV_COUNT; i++ ){
         buffs[i].buf = startPos;
@@ -319,7 +319,7 @@ int SendToExFunc( int fd, const void* buff, int len, const sockaddr* to, int toL
         startPos += buffLen;
     }
     buffs[ DZ_TEST_IOV_COUNT - 1 ].len += len % DZ_TEST_IOV_COUNT;
-    return DzSendToEx( fd, buffs, DZ_TEST_IOV_COUNT, 0, to, toLen );
+    return DzIovSendTo( fd, buffs, DZ_TEST_IOV_COUNT, 0, to, toLen );
 }
 
 typedef int ( *FuncRead )( int fd, void* buff, int len, sockaddr* from, int* fromLen );
