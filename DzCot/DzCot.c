@@ -888,6 +888,16 @@ void* DzAllocPermanentChunk( size_t size )
     return AllocChunk( host, size );
 }
 
+void* DzPageAlloc( size_t size )
+{
+    return PageAlloc( size );
+}
+
+void DzPageFree( void* p, size_t size )
+{
+    PageFree( p, size );
+}
+
 void* DzMalloc( size_t size )
 {
     DzHost* host = GetHost();
@@ -896,12 +906,12 @@ void* DzMalloc( size_t size )
     return Malloc( host, size );
 }
 
-void DzFree( void* mem )
+void DzFree( void* p )
 {
     DzHost* host = GetHost();
     assert( host );
 
-    Free( host, mem );
+    Free( host, p );
 }
 
 void* DzMallocEx( size_t size )
@@ -912,12 +922,12 @@ void* DzMallocEx( size_t size )
     return MallocEx( host, size );
 }
 
-void DzFreeEx( void* mem )
+void DzFreeEx( void* p )
 {
     DzHost* host = GetHost();
     assert( host );
 
-    FreeEx( host, mem );
+    FreeEx( host, p );
 }
 
 unsigned long long DzUnixTime()

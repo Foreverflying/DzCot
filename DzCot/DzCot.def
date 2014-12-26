@@ -72,6 +72,8 @@ EXPORTS
     DzAllocParamNode
     DzFreeParamNode
     DzAllocPermanentChunk
+    DzPageAlloc
+    DzPageFree
     DzMalloc
     DzFree
     DzMallocEx

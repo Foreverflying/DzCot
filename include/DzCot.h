@@ -1487,10 +1487,12 @@ DzParamNode* DzAllocParamNode();
 void DzFreeParamNode( DzParamNode* node );
 
 void* DzAllocPermanentChunk( size_t size );
+void* DzPageAlloc( size_t size );
+void DzPageFree( void* p, size_t size );
 void* DzMalloc( size_t size );
 void DzFree( void* p );
 void* DzMallocEx( size_t size );
-void DzFreeEx( void* mem );
+void DzFreeEx( void* p );
 
 unsigned long long DzUnixTime();
 unsigned long long DzMilUnixTime();
