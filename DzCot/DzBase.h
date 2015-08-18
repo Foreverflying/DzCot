@@ -36,7 +36,6 @@ inline void AtomPushStack( DzLItr** top, DzLItr* lItr )
     DzLItr* now;
     DzLItr* origin;
 
-    origin = NULL;
     now = (DzLItr*)AtomReadPtr( (void**)top );
     do{
         lItr->next = now;

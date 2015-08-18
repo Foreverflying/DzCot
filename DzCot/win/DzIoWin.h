@@ -963,14 +963,12 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
 
     GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, (DWORD)timeout );
     AtomOrInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN );
-    if( overlapped != NULL ){
-        do{
-            if( !key ){
-                helper = MEMBER_BASE( overlapped, DzIoHelper, overlapped );
-                NotifyEasyEvt( host, &helper->easyEvt );
-            }
-            GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, 0 );
-        }while( overlapped != NULL );
+    while( overlapped != NULL ){
+        if( !key ){
+            helper = MEMBER_BASE( overlapped, DzIoHelper, overlapped );
+            NotifyEasyEvt( host, &helper->easyEvt );
+        }
+        GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, 0 );
     }
 }
 
@@ -982,14 +980,12 @@ inline void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
     DzIoHelper* helper;
 
     GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, (DWORD)timeout );
-    if( overlapped != NULL ){
-        do{
-            if( !key ){
-                helper = MEMBER_BASE( overlapped, DzIoHelper, overlapped );
-                NotifyEasyEvt( host, &helper->easyEvt );
-            }
-            GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, 0 );
-        }while( overlapped != NULL );
+    while( overlapped != NULL ){
+        if( !key ){
+            helper = MEMBER_BASE( overlapped, DzIoHelper, overlapped );
+            NotifyEasyEvt( host, &helper->easyEvt );
+        }
+        GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, 0 );
     }
 }
 
