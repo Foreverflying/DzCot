@@ -107,7 +107,8 @@ BOOL AllocDzCotPool( DzHost* host )
     return TRUE;
 }
 
-inline void* AllocHandleChunk( DzHost* host, size_t size )
+static inline
+void* AllocHandleChunk( DzHost* host, size_t size )
 {
     char* p = host->handlePoolPos;
 

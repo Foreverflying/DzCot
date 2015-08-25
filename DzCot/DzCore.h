@@ -17,10 +17,6 @@
 #include "DzCoreOs.h"
 #include "thirdparty/dlmalloc.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 void __stdcall DelayFreeCotHelper( intptr_t context );
 void __stdcall EventNotifyCotEntry( intptr_t context );
 void CotScheduleCenter( DzHost* host );
@@ -34,7 +30,21 @@ int RunHost(
     DzEntry     cleanEntry
     );
 
-inline DzCot* AllocDzCot( DzHost* host, int sType )
+int RunHosts(
+    int         hostCount,
+    int         smallStackSize,
+    int         middleStackSize,
+    int         largeStackSize,
+    int         lowestPri,
+    int         dftPri,
+    int         dftSType,
+    DzEntry     firstEntry,
+    intptr_t    context,
+    DzEntry     cleanEntry
+    );
+
+static inline
+DzCot* AllocDzCot( DzHost* host, int sType )
 {
     DzCot* dzCot;
 
@@ -58,7 +68,8 @@ inline DzCot* AllocDzCot( DzHost* host, int sType )
     return dzCot;
 }
 
-inline void FreeDzCot( DzHost* host, DzCot* dzCot )
+static inline
+void FreeDzCot( DzHost* host, DzCot* dzCot )
 {
     DzCot* tmp;
 
@@ -87,7 +98,8 @@ inline void FreeDzCot( DzHost* host, DzCot* dzCot )
 
 // StartCot:
 // create a new cot
-inline int StartCot(
+static inline
+int StartCot(
     DzHost*     host,
     DzEntry     entry,
     intptr_t    context,
@@ -114,7 +126,8 @@ inline int StartCot(
 // StartCotInstant:
 // create a new cot and run it at once
 // current cot is paused and will continue at next schedule
-inline int StartCotInstant(
+static inline
+int StartCotInstant(
     DzHost*     host,
     DzEntry     entry,
     intptr_t    context,
@@ -139,7 +152,8 @@ inline int StartCotInstant(
 
 // EvtStartCot
 // equal to StartCot, notify an manual event SynObj when cot finished
-inline int EvtStartCot(
+static inline
+int EvtStartCot(
     DzHost*     host,
     DzSynObj*   evt,
     DzEntry     entry,
@@ -168,7 +182,8 @@ inline int EvtStartCot(
 
 // EvtStartCotInstant:
 // equal to StartCotInstant, notify an manual event SynObj when cot finished
-inline int EvtStartCotInstant(
+static inline
+int EvtStartCotInstant(
     DzHost*     host,
     DzSynObj*   evt,
     DzEntry     entry,
@@ -194,7 +209,8 @@ inline int EvtStartCotInstant(
     return DS_OK;
 }
 
-inline int StartRemoteCot(
+static inline
+int StartRemoteCot(
     DzHost*     host,
     int         rmtId,
     DzEntry     entry,
@@ -218,7 +234,8 @@ inline int StartRemoteCot(
     return DS_OK;
 }
 
-inline int EvtStartRemoteCot(
+static inline
+int EvtStartRemoteCot(
     DzHost*     host,
     DzSynObj*   evt,
     int         rmtId,
@@ -245,7 +262,8 @@ inline int EvtStartRemoteCot(
     return DS_OK;
 }
 
-inline int RunRemoteCot(
+static inline
+int RunRemoteCot(
     DzHost*     host,
     int         rmtId,
     DzEntry     entry,
@@ -273,7 +291,8 @@ inline int RunRemoteCot(
     return DS_OK;
 }
 
-inline int RunWorker( DzHost* host, DzEntry entry, intptr_t context )
+static inline
+int RunWorker( DzHost* host, DzEntry entry, intptr_t context )
 {
     DzLItr* lItr;
     DzSysParam param;
@@ -302,136 +321,32 @@ inline int RunWorker( DzHost* host, DzEntry entry, intptr_t context )
     return DS_OK;
 }
 
-inline int RunFastWorker( DzHost* host, DzEntry entry, intptr_t context )
-{
-
-}
-
-inline int RunHosts(
-    int         hostCount,
-    int         smallStackSize,
-    int         middleStackSize,
-    int         largeStackSize,
-    int         lowestPri,
-    int         dftPri,
-    int         dftSType,
-    DzEntry     firstEntry,
-    intptr_t    context,
-    DzEntry     cleanEntry
-    )
-{
-    int i;
-    int ret;
-    DzSysParam param;
-    DzHostsMgr* hostMgr;
-    DzWorker* worker;
-    uintptr_t tmp;
-
-    if( !AllocTlsIndex() ){
-        return DS_NO_MEMORY;
-    }
-    tmp = sizeof( DzHostsMgr ) + CPU_CACHE_ALIGN;
-    tmp += sizeof( DzRmtCotFifo ) * hostCount * hostCount + CPU_CACHE_ALIGN;
-    tmp = (intptr_t)alloca( tmp );
-    tmp = ( tmp + CPU_CACHE_ALIGN_MASK ) & ~CPU_CACHE_ALIGN_MASK;
-    hostMgr = (DzHostsMgr*)tmp;
-    tmp += sizeof( DzHostsMgr );
-    tmp = ( tmp + CPU_CACHE_ALIGN_MASK ) & ~CPU_CACHE_ALIGN_MASK;
-
-    for( i = 0; i < DZ_MAX_HOST; i++ ){
-        hostMgr->hostArr[i] = NULL;
-        hostMgr->rmtCheckSign[i] = 0;
-        for( ret = 0; ret < DZ_MAX_HOST; ret++ ){
-            hostMgr->rmtReadPos[i][ret] = 0;
-            hostMgr->rmtWritePos[i][ret] = 0;
-        }
-    }
-    hostMgr->liveSign = 0;
-    hostMgr->hostCount = hostCount;
-    hostMgr->workerNowDepth = 0;
-    hostMgr->workerSetDepth = 0;
-    hostMgr->workerPool = NULL;
-    hostMgr->rmtFifoRes = (DzRmtCotFifo*)tmp;
-    hostMgr->rmtFifoCotArrRes = NULL;
-    hostMgr->lowestPri = lowestPri;
-    hostMgr->dftPri = dftPri;
-    hostMgr->dftSType = dftSType;
-
-    if( smallStackSize < DZ_MIN_PAGE_STACK_SIZE ){
-        smallStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
-        smallStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
-    }else{
-        smallStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
-        smallStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
-    }
-
-    if( middleStackSize < DZ_MIN_PAGE_STACK_SIZE ){
-        middleStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
-        middleStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
-    }else{
-        middleStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
-        middleStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
-    }
-
-    if( largeStackSize < DZ_MIN_PAGE_STACK_SIZE ){
-        largeStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
-        largeStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
-    }else{
-        largeStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
-        largeStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
-    }
-
-    hostMgr->smallStackSize = smallStackSize;
-    hostMgr->middleStackSize = middleStackSize;
-    hostMgr->largeStackSize = largeStackSize;
-
-    for( i = 0; i < hostCount; i++ ){
-        InitSysAutoEvt( hostMgr->sysAutoEvt + i );
-        NotifySysAutoEvt( hostMgr->sysAutoEvt + i );
-    }
-
-    param.result = DS_OK;
-    if( hostCount > 0 ){
-        param.cs.entry = firstEntry;
-        param.cs.context = context;
-        firstEntry = MainHostFirstEntry;
-        context = (intptr_t)&param;
-    }
-    ret = RunHost( hostMgr, 0, firstEntry, context, cleanEntry );
-    while( hostMgr->workerPool ){
-        worker = MEMBER_BASE( hostMgr->workerPool, DzWorker, lItr );
-        hostMgr->workerPool = hostMgr->workerPool->next;
-        worker->dzCot = NULL;
-        NotifySysAutoEvt( &worker->sysEvt );
-    }
-    for( i = 0; i < hostCount; i++ ){
-        FreeSysAutoEvt( hostMgr->sysAutoEvt + i );
-    }
-    FreeTlsIndex();
-    return ret == DS_OK ? param.result : ret;
-}
-
-inline intptr_t GetCotData( DzHost* host )
+static inline
+intptr_t GetCotData( DzHost* host )
 {
     return host->currCot->cotData;
 }
 
-inline void SetCotData( DzHost* host, intptr_t data )
+static inline
+void SetCotData( DzHost* host, intptr_t data )
 {
     host->currCot->cotData = data;
 }
 
-inline int GetCotCount( DzHost* host )
+static inline
+int GetCotCount( DzHost* host )
 {
     return host->cotCount;
 }
 
-inline int GetHostId( DzHost* host )
+static inline
+int GetHostId( DzHost* host )
 {
     return host->hostId;
 }
 
-inline int SetCurrCotPriority( DzHost* host, int priority )
+static inline
+int SetCurrCotPriority( DzHost* host, int priority )
 {
     int ret;
 
@@ -445,7 +360,8 @@ inline int SetCurrCotPriority( DzHost* host, int priority )
     return ret;
 }
 
-inline int SetCotPoolDepth( DzHost* host, int sType, int depth )
+static inline
+int SetCotPoolDepth( DzHost* host, int sType, int depth )
 {
     int deta;
     int ret;
@@ -459,7 +375,8 @@ inline int SetCotPoolDepth( DzHost* host, int sType, int depth )
     return ret;
 }
 
-inline int SetWorkerPoolDepth( DzHost* host, int depth )
+static inline
+int SetWorkerPoolDepth( DzHost* host, int depth )
 {
     int setDepth;
     int nowSet;
@@ -473,7 +390,8 @@ inline int SetWorkerPoolDepth( DzHost* host, int depth )
     return setDepth;
 }
 
-inline int SetHostParam(
+static inline
+int SetHostParam(
     DzHost*     host,
     int         lowestPri,
     int         dftPri,
@@ -498,7 +416,8 @@ inline int SetHostParam(
     return ret;
 }
 
-inline int SetHostIoReaction( DzHost* host, int rate )
+static inline
+int SetHostIoReaction( DzHost* host, int rate )
 {
     int ret = host->ioReactionRate;
     if( rate > 0 ){
@@ -507,7 +426,8 @@ inline int SetHostIoReaction( DzHost* host, int rate )
     return ret;
 }
 
-inline void* Malloc( DzHost* host, size_t size )
+static inline
+void* Malloc( DzHost* host, size_t size )
 {
     void* ret;
 
@@ -516,13 +436,15 @@ inline void* Malloc( DzHost* host, size_t size )
     return ret;
 }
 
-inline void Free( DzHost* host, void* mem )
+static inline
+void Free( DzHost* host, void* mem )
 {
     __Dbg( FreeHeap )( host, mem );
     mspace_free( host->mSpace, mem );
 }
 
-inline void* MallocEx( DzHost* host, size_t size )
+static inline
+void* MallocEx( DzHost* host, size_t size )
 {
     DzMemExTag* ret;
 
@@ -531,7 +453,8 @@ inline void* MallocEx( DzHost* host, size_t size )
     return ret + 1;
 }
 
-inline void FreeEx( DzHost* host, void* mem )
+static inline
+void FreeEx( DzHost* host, void* mem )
 {
     DzLNode* node;
     DzMemExTag* base;
@@ -549,7 +472,8 @@ inline void FreeEx( DzHost* host, void* mem )
     }
 }
 
-inline int DispatchMinTimers( DzHost* host )
+static inline
+int DispatchMinTimers( DzHost* host )
 {
     DzTimerNode* timerNode;
     int64 currTime;
@@ -583,7 +507,8 @@ inline int DispatchMinTimers( DzHost* host )
     return -1;
 }
 
-inline void DealRmtFifo( DzHost* host, DzRmtCotFifo* fifo )
+static inline
+void DealRmtFifo( DzHost* host, DzRmtCotFifo* fifo )
 {
     int readPos;
     int writePos;
@@ -621,7 +546,8 @@ inline void DealRmtFifo( DzHost* host, DzRmtCotFifo* fifo )
     }
 }
 
-inline int DispatchRmtCots( DzHost* host, int timeout )
+static inline
+int DispatchRmtCots( DzHost* host, int timeout )
 {
     int idx;
     u_int sign;
@@ -645,9 +571,5 @@ inline int DispatchRmtCots( DzHost* host, int timeout )
     }
     return 0;
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzCore_h__

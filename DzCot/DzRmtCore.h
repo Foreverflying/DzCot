@@ -14,17 +14,14 @@
 #include "DzBase.h"
 #include "DzSynObj.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 DzCot* CreateWaitFifoCot( DzHost* host );
 void __stdcall MainHostFirstEntry( intptr_t context );
 void __stdcall RemoteCotEntry( intptr_t context );
 void __stdcall DealLazyResEntry( intptr_t context );
 void __stdcall WorkerMain( intptr_t context );
 
-inline void NotifyRmtFifo(
+static inline
+void NotifyRmtFifo(
     DzHostsMgr*     hostMgr,
     DzHost*         rmtHost,
     int             hostMask,
@@ -47,7 +44,8 @@ inline void NotifyRmtFifo(
     }
 }
 
-inline BOOL SendRmtCot(
+static inline
+BOOL SendRmtCot(
     DzHost*         host,
     int             rmtId,
     BOOL            emergency,
@@ -88,7 +86,8 @@ inline BOOL SendRmtCot(
     }
 }
 
-inline void StartLazyTimer( DzHost* host )
+static inline
+void StartLazyTimer( DzHost* host )
 {
     host->lazyTimer = CreateCallbackTimer(
         host, LAZY_TIMER_INTERVAL, 1,
@@ -97,15 +96,12 @@ inline void StartLazyTimer( DzHost* host )
     host->cotCount--;
 }
 
-inline void StopLazyTimer( DzHost* host )
+static inline
+void StopLazyTimer( DzHost* host )
 {
     host->cotCount++;
     CloseCallbackTimer( host, host->lazyTimer );
     host->lazyTimer = NULL;
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzRmtCore_h__

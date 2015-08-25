@@ -9,22 +9,16 @@
 #ifndef __DzFileLnx_h__
 #define __DzFileLnx_h__
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
-inline int Open( )
+static inline
+int Open( )
 {
 
 }
 
-inline int Close()
+static inline
+int Close()
 {
 
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzFileLnx_h__

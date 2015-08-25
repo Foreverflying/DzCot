@@ -2,7 +2,8 @@
 #include "CotTryUtil.h"
 
 #ifdef __linux__
-inline void Sleep( int milsec ){}
+static inline
+void Sleep( int milsec ){}
 #endif
 
 CotEntry SimplePrint( intptr_t context )

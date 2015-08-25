@@ -29,10 +29,6 @@
 #include <netdb.h>
 #include <assert.h>
 
-#ifndef __cplusplus
-#define inline static __inline
-#endif
-
 #if defined( __i386 )
 #define __stdcall   __attribute__((stdcall))
 #define __fastcall  __attribute__((fastcall))

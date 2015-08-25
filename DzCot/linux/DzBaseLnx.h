@@ -11,34 +11,35 @@
 
 #include "../DzStructs.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 void* SysThreadMain( void* context );
 void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 
-inline void* PageAlloc( size_t size )
+static inline
+void* PageAlloc( size_t size )
 {
     return mmap( NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
 }
 
-inline void* PageReserv( size_t size )
+static inline
+void* PageReserv( size_t size )
 {
     return PageAlloc( size );
 }
 
-inline void* PageCommit( void* p, size_t size )
+static inline
+void* PageCommit( void* p, size_t size )
 {
     return p;
 }
 
-inline void PageFree( void* p, size_t size )
+static inline
+void PageFree( void* p, size_t size )
 {
     munmap( p, size );
 }
 
-inline void StartSystemThread( DzSysParam* param, int stackSize )
+static inline
+void StartSystemThread( DzSysParam* param, int stackSize )
 {
     pthread_t tid;
     pthread_attr_t attr;
@@ -51,94 +52,112 @@ inline void StartSystemThread( DzSysParam* param, int stackSize )
     pthread_attr_destroy( &attr );
 }
 
-inline void AwakeRemoteHost( DzHost* dstHost )
+static inline
+void AwakeRemoteHost( DzHost* dstHost )
 {
     int n;
 
     n = write( dstHost->os.pipe[1], &n, sizeof( n ) );
 }
 
-inline void InitSysAutoEvt( DzSysAutoEvt* sysEvt )
+static inline
+void InitSysAutoEvt( DzSysAutoEvt* sysEvt )
 {
     sem_init( &sysEvt->sem, 0, 0 );
 }
 
-inline void FreeSysAutoEvt( DzSysAutoEvt* sysEvt )
+static inline
+void FreeSysAutoEvt( DzSysAutoEvt* sysEvt )
 {
     sem_destroy( &sysEvt->sem );
 }
 
-inline void WaitSysAutoEvt( DzSysAutoEvt* sysEvt )
+static inline
+void WaitSysAutoEvt( DzSysAutoEvt* sysEvt )
 {
     sem_wait( &sysEvt->sem );
 }
 
-inline void NotifySysAutoEvt( DzSysAutoEvt* sysEvt )
+static inline
+void NotifySysAutoEvt( DzSysAutoEvt* sysEvt )
 {
     sem_post( &sysEvt->sem );
 }
 
-inline int AtomReadInt( int volatile* val )
+static inline
+int AtomReadInt( int volatile* val )
 {
     return *val;
 }
 
-inline void AtomSetInt( int volatile* val, int set )
+static inline
+void AtomSetInt( int volatile* val, int set )
 {
     *val = set;
 }
 
-inline void* AtomReadPtr( void* volatile* val )
+static inline
+void* AtomReadPtr( void* volatile* val )
 {
     return *val;
 }
 
-inline void AtomSetPtr( void* volatile* val, void* set )
+static inline
+void AtomSetPtr( void* volatile* val, void* set )
 {
     *val = set;
 }
 
-inline int AtomIncInt( int volatile* val )
+static inline
+int AtomIncInt( int volatile* val )
 {
     return __sync_fetch_and_add( val, 1 );
 }
 
-inline int AtomDecInt( int volatile* val )
+static inline
+int AtomDecInt( int volatile* val )
 {
     return __sync_fetch_and_sub( val, 1 );
 }
 
-inline int AtomAddInt( int volatile* val, int add )
+static inline
+int AtomAddInt( int volatile* val, int add )
 {
     return __sync_fetch_and_add( val, add );
 }
 
-inline int AtomSubInt( int volatile* val, int sub )
+static inline
+int AtomSubInt( int volatile* val, int sub )
 {
     return __sync_fetch_and_sub( val, sub );
 }
 
-inline int AtomOrInt( int volatile* val, int mask )
+static inline
+int AtomOrInt( int volatile* val, int mask )
 {
     return __sync_fetch_and_or( val, mask );
 }
 
-inline int AtomAndInt( int volatile* val, int mask )
+static inline
+int AtomAndInt( int volatile* val, int mask )
 {
     return __sync_fetch_and_and( val, mask );
 }
 
-inline int AtomCasInt( int volatile* val, int cmp, int set )
+static inline
+int AtomCasInt( int volatile* val, int cmp, int set )
 {
     return __sync_val_compare_and_swap( val, cmp, set );
 }
 
-inline void* AtomCasPtr( void* volatile* val, void* cmp, void* set )
+static inline
+void* AtomCasPtr( void* volatile* val, void* cmp, void* set )
 {
     return __sync_val_compare_and_swap( val, cmp, set );
 }
 
-inline BOOL AllocTlsIndex()
+static inline
+BOOL AllocTlsIndex()
 {
     int i;
     int ret;
@@ -175,23 +194,22 @@ inline BOOL AllocTlsIndex()
     }
 }
 
-inline void FreeTlsIndex()
+static inline
+void FreeTlsIndex()
 {
     pthread_key_delete( DZ_TLS_IDX );
 }
 
-inline DzHost* GetHost()
+static inline
+DzHost* GetHost()
 {
     return (DzHost*)pthread_getspecific( DZ_TLS_IDX );
 }
 
-inline void SetHost( DzHost* host )
+static inline
+void SetHost( DzHost* host )
 {
     pthread_setspecific( DZ_TLS_IDX, host );
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzBaseLnx_h__

@@ -12,13 +12,10 @@
 #include "DzStructs.h"
 #include "DzBase.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 void __stdcall CallbackTimerEntry( intptr_t context );
 
-inline int64 MilUnixTime( DzHost* host )
+static inline
+int64 MilUnixTime( DzHost* host )
 {
     struct timeb t;
 
@@ -29,7 +26,8 @@ inline int64 MilUnixTime( DzHost* host )
     return host->latestMilUnixTime;
 }
 
-inline int64 UnixTime()
+static inline
+int64 UnixTime()
 {
     struct timeb t;
 
@@ -37,33 +35,39 @@ inline int64 UnixTime()
     return (int64)t.time;
 }
 
-inline BOOL LessThanNode( DzTimerNode* left, DzTimerNode* right )
+static inline
+BOOL LessThanNode( DzTimerNode* left, DzTimerNode* right )
 {
     return left->timestamp < right->timestamp;
 }
 
-inline void SetTimerNode( DzTimerNode** timeHeap, int index, DzTimerNode* timerNode )
+static inline
+void SetTimerNode( DzTimerNode** timeHeap, int index, DzTimerNode* timerNode )
 {
     timeHeap[ index ] = timerNode;
     timerNode->index = index;
 }
 
-inline int LeftNodeIdx( int index )
+static inline
+int LeftNodeIdx( int index )
 {
     return index * 2 + 1;
 }
 
-inline int RightNodeIdx( int index )
+static inline
+int RightNodeIdx( int index )
 {
     return index * 2 + 2;
 }
 
-inline int ParentNodeIdx( int index )
+static inline
+int ParentNodeIdx( int index )
 {
     return ( index - 1 ) / 2;
 }
 
-inline void ShiftDownNode( DzHost* host, int index, DzTimerNode* timerNode )
+static inline
+void ShiftDownNode( DzHost* host, int index, DzTimerNode* timerNode )
 {
     DzTimerNode* node;
     DzTimerNode* right;
@@ -88,7 +92,8 @@ inline void ShiftDownNode( DzHost* host, int index, DzTimerNode* timerNode )
     SetTimerNode( host->timerHeap, index, timerNode );
 }
 
-inline void AddTimer( DzHost* host, DzTimerNode* timerNode )
+static inline
+void AddTimer( DzHost* host, DzTimerNode* timerNode )
 {
     int curr;
 
@@ -104,12 +109,14 @@ inline void AddTimer( DzHost* host, DzTimerNode* timerNode )
     SetTimerNode( host->timerHeap, curr, timerNode );
 }
 
-inline BOOL IsTimeNodeInHeap( DzTimerNode* timeNode )
+static inline
+BOOL IsTimeNodeInHeap( DzTimerNode* timeNode )
 {
     return timeNode->index >= 0;
 }
 
-inline void RemoveTimer( DzHost* host, DzTimerNode* timerNode )
+static inline
+void RemoveTimer( DzHost* host, DzTimerNode* timerNode )
 {
     int curr;
 
@@ -131,7 +138,8 @@ inline void RemoveTimer( DzHost* host, DzTimerNode* timerNode )
     }
 }
 
-inline void RemoveMinTimer( DzHost* host )
+static inline
+void RemoveMinTimer( DzHost* host )
 {
     DzTimerNode* timerNode;
 
@@ -143,18 +151,16 @@ inline void RemoveMinTimer( DzHost* host )
     }
 }
 
-inline void AdjustMinTimer( DzHost* host, DzTimerNode* timerNode )
+static inline
+void AdjustMinTimer( DzHost* host, DzTimerNode* timerNode )
 {
     ShiftDownNode( host, 0, timerNode );
 }
 
-inline DzTimerNode* GetMinTimerNode( DzHost* host )
+static inline
+DzTimerNode* GetMinTimerNode( DzHost* host )
 {
     return host->timerHeap[0];
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzTimer_h__

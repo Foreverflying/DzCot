@@ -13,11 +13,8 @@
 #include "DzStructs.h"
 #include "DzBaseOs.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
-inline DzLItr* AtomPopStack( DzLItr** top )
+static inline
+DzLItr* AtomPopStack( DzLItr** top )
 {
     DzLItr* now;
     DzLItr* origin;
@@ -31,7 +28,8 @@ inline DzLItr* AtomPopStack( DzLItr** top )
     return now;
 }
 
-inline void AtomPushStack( DzLItr** top, DzLItr* lItr )
+static inline
+void AtomPushStack( DzLItr** top, DzLItr* lItr )
 {
     DzLItr* now;
     DzLItr* origin;
@@ -43,9 +41,5 @@ inline void AtomPushStack( DzLItr** top, DzLItr* lItr )
         now = (DzLItr*)AtomCasPtr( (void**)top, origin, lItr );
     }while( now != origin );
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzBase_h__

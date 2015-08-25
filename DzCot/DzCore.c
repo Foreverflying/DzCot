@@ -65,6 +65,7 @@ void __stdcall CallbackTimerEntry( intptr_t context )
 // CotScheduleCenter:
 // the Cot Schedule Center uses the host's origin thread's stack
 // manager all kernel objects that may cause real block
+static
 void CotScheduleCenter( DzHost* host )
 {
     int n;
@@ -108,10 +109,11 @@ void CotScheduleCenter( DzHost* host )
                 }
             }
         }
-        break;
+        return;
     }
 }
 
+static
 void CotScheduleCenterNoRmtCheck( DzHost* host )
 {
     int n;
@@ -124,7 +126,7 @@ void CotScheduleCenterNoRmtCheck( DzHost* host )
                 Schedule( host );
                 continue;
             }else if( !host->cotCount ){
-                break;
+                return;
             }
         }else{
             n = 0;
@@ -280,3 +282,106 @@ int RunHost(
     return ret;
 }
 
+int RunHosts(
+    int         hostCount,
+    int         smallStackSize,
+    int         middleStackSize,
+    int         largeStackSize,
+    int         lowestPri,
+    int         dftPri,
+    int         dftSType,
+    DzEntry     firstEntry,
+    intptr_t    context,
+    DzEntry     cleanEntry
+    )
+{
+    int i;
+    int ret;
+    DzSysParam param;
+    DzHostsMgr* hostMgr;
+    DzWorker* worker;
+    uintptr_t tmp;
+
+    if( !AllocTlsIndex() ){
+        return DS_NO_MEMORY;
+    }
+    tmp = sizeof( DzHostsMgr ) + CPU_CACHE_ALIGN;
+    tmp += sizeof( DzRmtCotFifo ) * hostCount * hostCount + CPU_CACHE_ALIGN;
+    tmp = (intptr_t)alloca( tmp );
+    tmp = ( tmp + CPU_CACHE_ALIGN_MASK ) & ~CPU_CACHE_ALIGN_MASK;
+    hostMgr = (DzHostsMgr*)tmp;
+    tmp += sizeof( DzHostsMgr );
+    tmp = ( tmp + CPU_CACHE_ALIGN_MASK ) & ~CPU_CACHE_ALIGN_MASK;
+
+    for( i = 0; i < DZ_MAX_HOST; i++ ){
+        hostMgr->hostArr[i] = NULL;
+        hostMgr->rmtCheckSign[i] = 0;
+        for( ret = 0; ret < DZ_MAX_HOST; ret++ ){
+            hostMgr->rmtReadPos[i][ret] = 0;
+            hostMgr->rmtWritePos[i][ret] = 0;
+        }
+    }
+    hostMgr->liveSign = 0;
+    hostMgr->hostCount = hostCount;
+    hostMgr->workerNowDepth = 0;
+    hostMgr->workerSetDepth = 0;
+    hostMgr->workerPool = NULL;
+    hostMgr->rmtFifoRes = (DzRmtCotFifo*)tmp;
+    hostMgr->rmtFifoCotArrRes = NULL;
+    hostMgr->lowestPri = lowestPri;
+    hostMgr->dftPri = dftPri;
+    hostMgr->dftSType = dftSType;
+
+    if( smallStackSize < DZ_MIN_PAGE_STACK_SIZE ){
+        smallStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
+        smallStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
+    }else{
+        smallStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
+        smallStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
+    }
+
+    if( middleStackSize < DZ_MIN_PAGE_STACK_SIZE ){
+        middleStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
+        middleStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
+    }else{
+        middleStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
+        middleStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
+    }
+
+    if( largeStackSize < DZ_MIN_PAGE_STACK_SIZE ){
+        largeStackSize += DZ_PERMENENT_STACK_BOUNDARY - 1;
+        largeStackSize &= ~( DZ_PERMENENT_STACK_BOUNDARY - 1 );
+    }else{
+        largeStackSize += DZ_PAGE_STACK_BOUNDARY - 1;
+        largeStackSize &= ~( DZ_PAGE_STACK_BOUNDARY - 1 );
+    }
+
+    hostMgr->smallStackSize = smallStackSize;
+    hostMgr->middleStackSize = middleStackSize;
+    hostMgr->largeStackSize = largeStackSize;
+
+    for( i = 0; i < hostCount; i++ ){
+        InitSysAutoEvt( hostMgr->sysAutoEvt + i );
+        NotifySysAutoEvt( hostMgr->sysAutoEvt + i );
+    }
+
+    param.result = DS_OK;
+    if( hostCount > 0 ){
+        param.cs.entry = firstEntry;
+        param.cs.context = context;
+        firstEntry = MainHostFirstEntry;
+        context = (intptr_t)&param;
+    }
+    ret = RunHost( hostMgr, 0, firstEntry, context, cleanEntry );
+    while( hostMgr->workerPool ){
+        worker = MEMBER_BASE( hostMgr->workerPool, DzWorker, lItr );
+        hostMgr->workerPool = hostMgr->workerPool->next;
+        worker->dzCot = NULL;
+        NotifySysAutoEvt( &worker->sysEvt );
+    }
+    for( i = 0; i < hostCount; i++ ){
+        FreeSysAutoEvt( hostMgr->sysAutoEvt + i );
+    }
+    FreeTlsIndex();
+    return ret == DS_OK ? param.result : ret;
+}

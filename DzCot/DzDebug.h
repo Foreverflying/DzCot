@@ -12,17 +12,14 @@
 #include "DzInc.h"
 #include "DzDeclareStructs.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 #ifdef __DBG_DEBUG_CHECK_MODE
 #define __Dbg( func )       __Dbg##func
 #else
 #define __Dbg( func )       __EmptyCall
 #endif
 
-inline int __EmptyCall( DzHost* host, ... )
+static inline
+int __EmptyCall( DzHost* host, ... )
 {
     return 0;
 }
@@ -52,10 +49,5 @@ int __DbgGetHeapLeak( DzHost* host );
 void __DbgAllocParamNode( DzHost* host, DzParamNode* node );
 void __DbgFreeParamNode( DzHost* host, DzParamNode* node );
 int __DbgGetParamNodeLeak( DzHost* host );
-
-#ifdef __cplusplus
-};
-#endif
-
 
 #endif // __DzDebug_h__

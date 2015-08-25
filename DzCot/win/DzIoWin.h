@@ -16,16 +16,13 @@
 #include "../DzSynObj.h"
 #include "../DzDebug.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 void __stdcall GetNameInfoEntry( intptr_t context );
 void __stdcall GetNameInfoEntryW( intptr_t context );
 void __stdcall GetAddrInfoEntry( intptr_t context );
 void __stdcall GetAddrInfoEntryW( intptr_t context );
 
-inline int Socket( DzHost* host, int domain, int type, int protocol )
+static inline
+int Socket( DzHost* host, int domain, int type, int protocol )
 {
     SOCKET s;
     DzFd* dzFd;
@@ -41,55 +38,64 @@ inline int Socket( DzHost* host, int domain, int type, int protocol )
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline intptr_t RawSocket( DzHost* host, int hFd )
+static inline
+intptr_t RawSocket( DzHost* host, int hFd )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return dzFd->s;
 }
 
-inline int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, socklen_t* len )
+static inline
+int GetSockOpt( DzHost* host, int hFd, int level, int name, void* option, socklen_t* len )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockopt( dzFd->s, level, name, (char*)option, len );
 }
 
-inline int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, socklen_t len )
+static inline
+int SetSockOpt( DzHost* host, int hFd, int level, int name, const void* option, socklen_t len )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return setsockopt( dzFd->s, level, name, (const char*)option, len );
 }
 
-inline int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
+static inline
+int GetSockName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getsockname( dzFd->s, addr, addrLen );
 }
 
-inline int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
+static inline
+int GetPeerName( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return getpeername( dzFd->s, addr, addrLen );
 }
 
-inline int Bind( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
+static inline
+int Bind( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return bind( dzFd->s, addr, addrLen );
 }
 
-inline int Listen( DzHost* host, int hFd, int backlog )
+static inline
+int Listen( DzHost* host, int hFd, int backlog )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return listen( dzFd->s, backlog );
 }
 
-inline int Shutdown( DzHost* host, int hFd, int how )
+static inline
+int Shutdown( DzHost* host, int hFd, int how )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return shutdown( dzFd->s, how );
 }
 
-inline int TryConnectDatagram( SOCKET fd, const struct sockaddr* addr, socklen_t addrLen )
+static inline
+int TryConnectDatagram( SOCKET fd, const struct sockaddr* addr, socklen_t addrLen )
 {
     int sockType;
     int sockTypeLen = sizeof( sockType );
@@ -103,7 +109,8 @@ inline int TryConnectDatagram( SOCKET fd, const struct sockaddr* addr, socklen_t
     return -1;
 }
 
-inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
+static inline
+int Connect( DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -168,7 +175,8 @@ inline int Connect( DzHost* host, int hFd, const struct sockaddr* addr, socklen_
     return 0;
 }
 
-inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
+static inline
+int Accept( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen )
 {
     DzFd* dzFd;
     SOCKET s;
@@ -243,7 +251,8 @@ inline int Accept( DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addr
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int IovSend( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags )
+static inline
+int IovSend( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -298,7 +307,8 @@ inline int IovSend( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int fla
     return bytes;
 }
 
-inline int IovRecv( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags )
+static inline
+int IovRecv( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -354,7 +364,8 @@ inline int IovRecv( DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int fla
     return bytes;
 }
 
-inline int Send( DzHost* host, int hFd, const void* buf, size_t len, int flags )
+static inline
+int Send( DzHost* host, int hFd, const void* buf, size_t len, int flags )
 {
     DzIov tmpBuf;
     tmpBuf.len = (unsigned long)len;
@@ -363,7 +374,8 @@ inline int Send( DzHost* host, int hFd, const void* buf, size_t len, int flags )
     return IovSend( host, hFd, &tmpBuf, 1, flags );
 }
 
-inline int Recv( DzHost* host, int hFd, void* buf, size_t len, int flags )
+static inline
+int Recv( DzHost* host, int hFd, void* buf, size_t len, int flags )
 {
     DzIov tmpBuf;
     tmpBuf.len = (unsigned long)len;
@@ -372,7 +384,8 @@ inline int Recv( DzHost* host, int hFd, void* buf, size_t len, int flags )
     return IovRecv( host, hFd, &tmpBuf, 1, flags );
 }
 
-inline int IovSendTo(
+static inline
+int IovSendTo(
     DzHost*                 host,
     int                     hFd,
     DzIov*                  bufs,
@@ -435,7 +448,8 @@ inline int IovSendTo(
     return bytes;
 }
 
-inline int IovRecvFrom(
+static inline
+int IovRecvFrom(
     DzHost*                 host,
     int                     hFd,
     DzIov*                  bufs,
@@ -499,7 +513,8 @@ inline int IovRecvFrom(
     return bytes;
 }
 
-inline int SendTo(
+static inline
+int SendTo(
     DzHost*                 host,
     int                     hFd,
     const void*             buf,
@@ -516,7 +531,8 @@ inline int SendTo(
     return IovSendTo( host, hFd, &tmpBuf, 1, flags, to, tolen );
 }
 
-inline int RecvFrom(
+static inline
+int RecvFrom(
     DzHost*                 host,
     int                     hFd,
     void*                   buf,
@@ -533,7 +549,8 @@ inline int RecvFrom(
     return IovRecvFrom( host, hFd, &tmpBuf, 1, flags, from, fromlen );
 }
 
-inline int DGetNameInfo(
+static inline
+int DGetNameInfo(
     DzHost*                 dzHost,
     const struct sockaddr*  sa,
     socklen_t               salen,
@@ -559,7 +576,8 @@ inline int DGetNameInfo(
     return ret;
 }
 
-inline int DGetAddrInfo(
+static inline
+int DGetAddrInfo(
     DzHost*                 host,
     const char*             node,
     const char*             service,
@@ -579,22 +597,26 @@ inline int DGetAddrInfo(
     return ret;
 }
 
-inline void DFreeAddrInfo( struct addrinfo *res )
+static inline
+void DFreeAddrInfo( struct addrinfo *res )
 {
     freeaddrinfo( res );
 }
 
-inline int DInetPton( int af, const char* src, void* dst )
+static inline
+int DInetPton( int af, const char* src, void* dst )
 {
     return inet_pton( af, src, dst );
 }
 
-inline const char* DInetNtop( int af, const void* src, char* dst, socklen_t size )
+static inline
+const char* DInetNtop( int af, const void* src, char* dst, socklen_t size )
 {
     return inet_ntop( af, (PVOID)src, dst, (size_t)size );
 }
 
-inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
+static inline
+DWORD GetFileFlag( int flags, DWORD* accessFlag )
 {
     DWORD access = 0;
     DWORD createFlag = 0;
@@ -628,7 +650,8 @@ inline DWORD GetFileFlag( int flags, DWORD* accessFlag )
     return createFlag;
 }
 
-inline int GetFd( DzHost* host, HANDLE file, int flags )
+static inline
+int GetFd( DzHost* host, HANDLE file, int flags )
 {
     DzFd* dzFd;
 
@@ -646,7 +669,8 @@ inline int GetFd( DzHost* host, HANDLE file, int flags )
     return (int)( (intptr_t)dzFd - host->handleBase );
 }
 
-inline int Open( DzHost* host, const char* fileName, int flags )
+static inline
+int Open( DzHost* host, const char* fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -665,7 +689,8 @@ inline int Open( DzHost* host, const char* fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
+static inline
+ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -739,7 +764,8 @@ inline ssize_t Read( DzHost* host, int hFd, void* buf, size_t count )
     return bytes;
 }
 
-inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
+static inline
+ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
 {
     DzFd* dzFd;
     DWORD bytes;
@@ -813,7 +839,8 @@ inline ssize_t Write( DzHost* host, int hFd, const void* buf, size_t count )
     return bytes;
 }
 
-inline size_t Seek( DzHost* host, int hFd, ssize_t offset, int whence )
+static inline
+size_t Seek( DzHost* host, int hFd, ssize_t offset, int whence )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     size_t ret;
@@ -829,7 +856,8 @@ inline size_t Seek( DzHost* host, int hFd, ssize_t offset, int whence )
     return ret;
 }
 
-inline size_t FileSize( DzHost* host, int hFd )
+static inline
+size_t FileSize( DzHost* host, int hFd )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     size_t ret;
@@ -845,7 +873,8 @@ inline size_t FileSize( DzHost* host, int hFd )
     return ret;
 }
 
-inline int DGetNameInfoW(
+static inline
+int DGetNameInfoW(
     DzHost*                 dzHost,
     const struct sockaddr*  sa,
     socklen_t               salen,
@@ -871,7 +900,8 @@ inline int DGetNameInfoW(
     return ret;
 }
 
-inline int DGetAddrInfoW(
+static inline
+int DGetAddrInfoW(
     DzHost*                 host,
     const wchar_t*          node,
     const wchar_t*          service,
@@ -891,22 +921,26 @@ inline int DGetAddrInfoW(
     return ret;
 }
 
-inline void DFreeAddrInfoW( struct addrinfoW *res )
+static inline
+void DFreeAddrInfoW( struct addrinfoW *res )
 {
     FreeAddrInfoW( res );
 }
 
-inline int DInetPtonW( int af, const wchar_t* src, void* dst )
+static inline
+int DInetPtonW( int af, const wchar_t* src, void* dst )
 {
     return InetPtonW( af, src, dst );
 }
 
-inline const wchar_t* DInetNtopW( int af, const void* src, wchar_t* dst, socklen_t size )
+static inline
+const wchar_t* DInetNtopW( int af, const void* src, wchar_t* dst, socklen_t size )
 {
     return InetNtopW( af, (PVOID)src, dst, size );
 }
 
-inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
+static inline
+int OpenW( DzHost* host, const wchar_t* fileName, int flags )
 {
     DWORD access = 0;
     DWORD createFlag;
@@ -925,19 +959,22 @@ inline int OpenW( DzHost* host, const wchar_t* fileName, int flags )
     return GetFd( host, file, flags );
 }
 
-inline intptr_t GetFdData( DzHost* host, int hFd )
+static inline
+intptr_t GetFdData( DzHost* host, int hFd )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     return dzFd->fdData;
 }
 
-inline void SetFdData( DzHost* host, int hFd, intptr_t data )
+static inline
+void SetFdData( DzHost* host, int hFd, intptr_t data )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     dzFd->fdData = data;
 }
 
-inline int Close( DzHost* host, int hFd )
+static inline
+int Close( DzHost* host, int hFd )
 {
     DzFd* dzFd = (DzFd*)( host->handleBase + hFd );
     BOOL ret;
@@ -954,7 +991,8 @@ inline int Close( DzHost* host, int hFd )
     return ret;
 }
 
-inline void BlockAndDispatchIo( DzHost* host, int timeout )
+static inline
+void BlockAndDispatchIo( DzHost* host, int timeout )
 {
     ULONG_PTR key;
     DWORD n;
@@ -972,7 +1010,8 @@ inline void BlockAndDispatchIo( DzHost* host, int timeout )
     }
 }
 
-inline void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
+static inline
+void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
 {
     ULONG_PTR key;
     DWORD n;
@@ -988,9 +1027,5 @@ inline void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
         GetQueuedCompletionStatus( host->os.iocp, &n, &key, &overlapped, 0 );
     }
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzIoWin_h__

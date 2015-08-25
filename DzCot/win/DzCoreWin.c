@@ -111,7 +111,8 @@ void __stdcall DzCotEntry(
     }
 }
 
-inline void GetWinSockFunc( SOCKET tmpSock, GUID* guid, void* funcAddr )
+static inline
+void GetWinSockFunc( SOCKET tmpSock, GUID* guid, void* funcAddr )
 {
     DWORD bytes;
     WSAIoctl(

@@ -25,7 +25,8 @@ void __stdcall PauseCotHelpEntry( intptr_t context )
     }
 }
 
-inline void MoveCurCotToRmt( DzHost* host, int rmtId, int feedType )
+static inline
+void MoveCurCotToRmt( DzHost* host, int rmtId, int feedType )
 {
     DzCot* helpCot;
 

@@ -11,8 +11,27 @@ struct TestExpData
     int     y;
 };
 
-void GenerateCppExp( int type )
+class TestClass
 {
+public:
+    TestClass( int& val )
+        : _val( val )
+    {
+        ++_val;
+    }
+
+    ~TestClass()
+    {
+        _val += 2;
+    }
+
+private:
+    int&    _val;
+};
+
+void GenerateCppExp( int type, int& val )
+{
+    TestClass a( val );
     if( type == 1 ){
         throw int( 8 );
     }else if( type == 2 ){
@@ -27,11 +46,12 @@ void GenerateCppExp( int type )
     }
 }
 
-void HandleCppExpFunc( int delay, TestExpData* data, int type )
+void HandleCppExpFunc( int delay, TestExpData* data, int type, int& val )
 {
     try{
+        TestClass b( val );
         DzSleep( delay );
-        GenerateCppExp( type );
+        GenerateCppExp( type, val );
     }catch( TestExpData& e ){
         data->a = e.a;
         data->b = e.b;
@@ -48,37 +68,41 @@ CotEntry CppExpRoutine( intptr_t context )
 {
     gCount++;
     int delay = (int)context;
+    int n = 1;
 
     TestExpData data;
     data.a = 0;
     data.b = 0;
     data.x = 0;
     data.y = 0;
-    HandleCppExpFunc( delay, &data, 1 );
+    HandleCppExpFunc( delay, &data, 1, n );
     DZ_EXPECT_EQ( 8, data.a );
     DZ_EXPECT_EQ( 0, data.b );
     DZ_EXPECT_EQ( 0, data.x );
     DZ_EXPECT_EQ( 0, data.y );
+    DZ_EXPECT_EQ( 7, n );
 
     data.a = 0;
     data.b = 0;
     data.x = 0;
     data.y = 0;
-    HandleCppExpFunc( delay, &data, 2 );
+    HandleCppExpFunc( delay, &data, 2, n );
     DZ_EXPECT_EQ( 0, data.a );
     DZ_EXPECT_EQ( 5, data.b );
     DZ_EXPECT_EQ( 0, data.x );
     DZ_EXPECT_EQ( 0, data.y );
+    DZ_EXPECT_EQ( 13, n );
 
     data.a = 0;
     data.b = 0;
     data.x = 0;
     data.y = 0;
-    HandleCppExpFunc( delay, &data, 3 );
+    HandleCppExpFunc( delay, &data, 3, n );
     DZ_EXPECT_EQ( 1, data.a );
     DZ_EXPECT_EQ( 2, data.b );
     DZ_EXPECT_EQ( 3, data.x );
     DZ_EXPECT_EQ( 4, data.y );
+    DZ_EXPECT_EQ( 19, n );
 }
 
 CotEntry TestCppException( intptr_t context )

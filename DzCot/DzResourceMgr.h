@@ -14,10 +14,6 @@
 #include "DzStructsIoOs.h"
 #include "DzBase.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 BOOL MemeryPoolGrow( DzHost* host );
 void ReleaseMemoryPool( DzHost* host );
 BOOL AllocListNodePool( DzHost* host );
@@ -25,7 +21,8 @@ BOOL AllocSynObjPool( DzHost* host );
 BOOL AllocDzCotPool( DzHost* host );
 BOOL AllocDzFdPool( DzHost* host );
 
-inline void* AllocChunk( DzHost* host, size_t size )
+static inline
+void* AllocChunk( DzHost* host, size_t size )
 {
     char* p = host->memPoolPos;
 
@@ -40,7 +37,8 @@ inline void* AllocChunk( DzHost* host, size_t size )
     return PageCommit( p, size );
 }
 
-inline DzLNode* AllocLNode( DzHost* host )
+static inline
+DzLNode* AllocLNode( DzHost* host )
 {
     DzLNode* node;
 
@@ -54,20 +52,18 @@ inline DzLNode* AllocLNode( DzHost* host )
     return node;
 }
 
-inline void FreeLNode( DzHost* host, DzLNode* node )
+static inline
+void FreeLNode( DzHost* host, DzLNode* node )
 {
     node->lItr.next = host->lNodePool;
     host->lNodePool = &node->lItr;
 }
 
-inline void FreeChainLNode( DzHost* host, DzLItr* head, DzLItr* tail )
+static inline
+void FreeChainLNode( DzHost* host, DzLItr* head, DzLItr* tail )
 {
     tail->next = host->lNodePool;
     host->lNodePool = head;
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzResourceMgr_h__

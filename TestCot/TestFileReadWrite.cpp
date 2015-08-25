@@ -183,10 +183,10 @@ CotEntry TestWriteFile( intptr_t context )
 
 TEST( TestFileReadWrite, ReadFile )
 {
-    TestCot( TestReadFile );
+    //TestCot( TestReadFile );
 }
 
 TEST( TestFileReadWrite, WriteFile )
 {
-    TestCot( TestWriteFile );
+    //TestCot( TestWriteFile );
 }

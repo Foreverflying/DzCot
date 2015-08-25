@@ -31,10 +31,6 @@
 #include <malloc.h>
 #include <assert.h>
 
-#ifndef __cplusplus
-#define inline static __inline
-#endif
-
 //predefine
 #if defined( _X86_ )
 typedef int ssize_t;
@@ -50,6 +46,9 @@ typedef struct _DzIov
 
 typedef long long int64;
 
+#ifndef __cplusplus
+#define inline __inline
+#endif
 
 //global constants on windows
 #define THREAD_STACK_MIN            ( 64 * 1024 )
@@ -73,6 +72,5 @@ typedef long long int64;
 #elif defined( _AMD64_ )
 #define CHECK_RESERV_SIZE           ( PAGE_SIZE * 2 )
 #endif
-
 
 #endif // __DzIncWin_h__

@@ -13,33 +13,33 @@
 #include "../DzResourceMgr.h"
 #include "../DzSynObj.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 void __stdcall CallDzCotEntry( void );
 BOOL InitOsStruct( DzHost* host );
 void CleanOsStruct( DzHost* host );
 DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType );
+
 void __stdcall DzCotEntry(
     DzHost*             host,
     DzEntry volatile*   entryPtr,
     intptr_t volatile*  contextPtr
     );
 
-inline void InitDzCot( DzHost* host, DzCot* dzCot )
+static inline
+void InitDzCot( DzHost* host, DzCot* dzCot )
 {
     __Dbg( InitDzCot )( host, dzCot );
 }
 
-inline void InitDzFd( DzFd* dzFd )
+static inline
+void InitDzFd( DzFd* dzFd )
 {
     CleanEasyEvt( &dzFd->inEvt );
     CleanEasyEvt( &dzFd->outEvt );
     dzFd->ref = 0;
 }
 
-inline DzFd* CreateDzFd( DzHost* host )
+static inline
+DzFd* CreateDzFd( DzHost* host )
 {
     DzFd* dzFd;
 
@@ -56,12 +56,14 @@ inline DzFd* CreateDzFd( DzHost* host )
     return dzFd;
 }
 
-inline void CloneDzFd( DzFd* dzFd )
+static inline
+void CloneDzFd( DzFd* dzFd )
 {
     dzFd->ref++;
 }
 
-inline void CloseDzFd( DzHost* host, DzFd* dzFd )
+static inline
+void CloseDzFd( DzHost* host, DzFd* dzFd )
 {
     dzFd->ref--;
     if( dzFd->ref == 0 ){
@@ -103,13 +105,15 @@ struct DzStackBottom
 
 #endif
 
-inline void SetCotEntry( DzCot* dzCot, DzEntry entry, intptr_t context )
+static inline
+void SetCotEntry( DzCot* dzCot, DzEntry entry, intptr_t context )
 {
     ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
     ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->context = context;
 }
 
-inline char* AllocStack( int size )
+static inline
+char* AllocStack( int size )
 {
     char* base;
 
@@ -128,12 +132,14 @@ inline char* AllocStack( int size )
     return base + size;
 }
 
-inline void FreeStack( char* stack, int size )
+static inline
+void FreeStack( char* stack, int size )
 {
     munmap( stack - size, size );
 }
 
-inline void InitCotStack( DzHost* host, DzCot* dzCot )
+static inline
+void InitCotStack( DzHost* host, DzCot* dzCot )
 {
     struct DzStackBottom* bottom;
 
@@ -143,13 +149,10 @@ inline void InitCotStack( DzHost* host, DzCot* dzCot )
     dzCot->sp = bottom;
 }
 
-inline void FreeCotStack( DzHost* host, DzCot* dzCot )
+static inline
+void FreeCotStack( DzHost* host, DzCot* dzCot )
 {
     FreeStack( dzCot->stack, host->cotStackSize[ dzCot->sType ] );
 }
-
-#ifdef __cplusplus
-};
-#endif
 
 #endif // __DzCoreLnx_h__
