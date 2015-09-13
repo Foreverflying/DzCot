@@ -1,15 +1,16 @@
 /**
- *  @file       DzStructsIoWin.h
- *  @brief      
+ *  @file       DzStructsIoOs.h
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzStructsIoWin_h__
-#define __DzStructsIoWin_h__
+#ifndef __DzStructsIoOs_h__
+#define __DzStructsIoOs_h__
 
 #include "../DzStructs.h"
+#include DZ_ARCH_FILE( DzStructsArch.h )
 
 struct _DzFd
 {
@@ -35,4 +36,4 @@ struct _DzIoHelper
 
 typedef struct _DzIoHelper DzIoHelper;
 
-#endif // __DzStructsIoWin_h__
+#endif // __DzStructsIoOs_h__

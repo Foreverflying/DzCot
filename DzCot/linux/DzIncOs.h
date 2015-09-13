@@ -1,13 +1,13 @@
 /**
- *  @file       DzIncLnx.h
- *  @brief      
+ *  @file       DzIncOs.h
+ *  @brief      for linux
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzIncLnx_h__
-#define __DzIncLnx_h__
+#ifndef __DzIncOs_h__
+#define __DzIncOs_h__
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -66,4 +66,4 @@ typedef long long int64;
 //for debug check
 #define CHECK_RESERV_SIZE           ( 0 )
 
-#endif // __DzIncLnx_h__
+#endif // __DzIncOs_h__

@@ -1,13 +1,13 @@
 /**
- *  @file       DzStructsIoLnx.h
- *  @brief      
+ *  @file       DzStructsIoOs.h
+ *  @brief      for linux
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzStructsIoLnx_h__
-#define __DzStructsIoLnx_h__
+#ifndef __DzStructsIoOs_h__
+#define __DzStructsIoOs_h__
 
 #include "../DzStructs.h"
 
@@ -26,4 +26,4 @@ struct _DzFd
     DzEasyEvt       outEvt;
 };
 
-#endif // __DzStructsIoLnx_h__
+#endif // __DzStructsIoOs_h__

@@ -9,12 +9,8 @@
 #include "DzInc.h"
 #include "DzSynObj.h"
 #include "DzCore.h"
-#include "DzIoOs.h"
+#include DZ_OS_FILE( DzIoOs.h )
 #include "DzRmtCore.h"
-
-#ifdef __cplusplus
-extern "C"{
-#endif
 
 int DzRunHosts(
     int         hostCount,
@@ -999,7 +995,3 @@ int __DzDbgParamNodeLeak()
 
     return __Dbg( GetParamNodeLeak )( host );
 }
-
-#ifdef __cplusplus
-};
-#endif

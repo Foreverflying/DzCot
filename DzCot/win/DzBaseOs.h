@@ -1,13 +1,13 @@
 /**
- *  @file       DzBaseWin.h
- *  @brief      
+ *  @file       DzBaseOs.h
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/11/22
  *
  */
 
-#ifndef __DzBaseWin_h__
-#define __DzBaseWin_h__
+#ifndef __DzBaseOs_h__
+#define __DzBaseOs_h__
 
 #include "../DzStructs.h"
 
@@ -150,50 +150,7 @@ void* AtomCasPtr( void* volatile* val, void* cmp, void* set )
         );
 }
 
-#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
-
-static inline
-BOOL AllocTlsIndex()
-{
-    return TRUE;
-}
-
-static inline
-void FreeTlsIndex()
-{
-}
-
-#if defined( _X86_ )
-
-static inline
-DzHost* GetHost()
-{
-    return (DzHost*)__readfsdword( 20 );
-}
-
-static inline
-void SetHost( DzHost* host )
-{
-    __writefsdword( 20, (DWORD)host );
-}
-
-#elif defined( _M_AMD64 )
-
-static inline
-DzHost* GetHost()
-{
-    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
-}
-
-static inline
-void SetHost( DzHost* host )
-{
-    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
-}
-
-#endif
-
-#else
+#ifndef STORE_HOST_IN_ARBITRARY_USER_POINTER
 
 static inline
 BOOL AllocTlsIndex()
@@ -242,34 +199,6 @@ void SetHost( DzHost* host )
 
 #endif  //STORE_HOST_IN_ARBITRARY_USER_POINTER
 
-#if defined( _X86_ )
+#include DZ_ARCH_FILE( DzBaseArch.h )
 
-static inline
-void* GetExceptPtr()
-{
-    return (void*)__readfsdword( 0 );
-}
-
-static inline
-char* GetStackPtr()
-{
-    return (char*)__readfsdword( 4 );
-}
-
-#elif defined( _M_AMD64 )
-
-static inline
-void* GetExceptPtr()
-{
-    return NULL;
-}
-
-static inline
-char* GetStackPtr()
-{
-    return (char*)( __readgsqword( 0x30 ) + 8 );
-}
-
-#endif
-
-#endif // __DzBaseWin_h__
+#endif // __DzBaseOs_h__

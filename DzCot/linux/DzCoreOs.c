@@ -1,6 +1,6 @@
 /**
- *  @file       DzCoreLnx.c
- *  @brief      
+ *  @file       DzCoreOs.c
+ *  @brief      for linux
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *

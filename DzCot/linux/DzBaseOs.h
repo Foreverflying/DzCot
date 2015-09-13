@@ -1,13 +1,13 @@
 /**
- *  @file       DzBaseLnx.h
- *  @brief      
+ *  @file       DzBaseOs.h
+ *  @brief      for linux
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/11/22
  *
  */
 
-#ifndef __DzBaseLnx_h__
-#define __DzBaseLnx_h__
+#ifndef __DzBaseOs_h__
+#define __DzBaseOs_h__
 
 #include "../DzStructs.h"
 
@@ -212,4 +212,4 @@ void SetHost( DzHost* host )
     pthread_setspecific( DZ_TLS_IDX, host );
 }
 
-#endif // __DzBaseLnx_h__
+#endif // __DzBaseOs_h__

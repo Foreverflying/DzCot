@@ -1,18 +1,19 @@
 /**
- *  @file       DzStructsLnx.h
- *  @brief      
+ *  @file       DzStructsOs.h
+ *  @brief      for linux
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzStructsLnx_h__
-#define __DzStructsLnx_h__
+#ifndef __DzStructsOs_h__
+#define __DzStructsOs_h__
 
 #include "../DzInc.h"
 #include "../DzDeclareStructs.h"
 #include "../DzStructsDebug.h"
 #include "../DzStructsList.h"
+#include DZ_ARCH_FILE( DzStructArch.h )
 
 struct _DzOsStruct
 {
@@ -56,4 +57,4 @@ struct _DzSysAutoEvt
     sem_t               sem;
 };
 
-#endif // __DzStructsLnx_h__
+#endif // __DzStructsOs_h__

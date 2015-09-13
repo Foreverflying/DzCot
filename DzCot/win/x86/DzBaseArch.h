@@ -1,0 +1,53 @@
+/**
+ *  @file       DzBaseArch.h
+ *  @brief      for windows x86
+ *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @date       2015/09/13
+ *
+ */
+
+#ifndef __DzBaseArch_h__
+#define __DzBaseArch_h__
+
+#include "../../DzStructs.h"
+
+#ifdef STORE_HOST_IN_ARBITRARY_USER_POINTER
+
+static inline
+DzHost* GetHost()
+{
+    return (DzHost*)__readfsdword( 20 );
+}
+
+static inline
+void SetHost( DzHost* host )
+{
+    __writefsdword( 20, (DWORD)host );
+}
+
+static inline
+BOOL AllocTlsIndex()
+{
+    return TRUE;
+}
+
+static inline
+void FreeTlsIndex()
+{
+}
+
+#endif  //STORE_HOST_IN_ARBITRARY_USER_POINTER
+
+static inline
+void* GetExceptPtr()
+{
+    return (void*)__readfsdword( 0 );
+}
+
+static inline
+char* GetStackPtr()
+{
+    return (char*)__readfsdword( 4 );
+}
+
+#endif // __DzBaseArch_h__

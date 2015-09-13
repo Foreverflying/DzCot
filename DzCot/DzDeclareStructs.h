@@ -68,6 +68,11 @@ typedef struct _DzOsStruct      DzOsStruct;
 typedef struct _DzCot           DzCot;
 typedef struct _DzSysAutoEvt    DzSysAutoEvt;
 
+//define in DzStructArch.h
+struct _DzStackBottom;
+
+typedef struct _DzStackBottom   DzStackBottom;
+
 //define in DzStructsIoOs.h
 struct _DzFd;
 

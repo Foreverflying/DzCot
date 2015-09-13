@@ -1,6 +1,6 @@
 /**
- *  @file       DzIoWin.c
- *  @brief      
+ *  @file       DzIoOs.c
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
@@ -8,11 +8,7 @@
 
 #include "../DzInc.h"
 #include "../DzCore.h"
-#include "../DzIoOs.h"
-
-#ifdef __cplusplus
-extern "C"{
-#endif
+#include "DzIoOs.h"
 
 void __stdcall GetNameInfoEntry( intptr_t context )
 {
@@ -119,7 +115,3 @@ int DzOpenW( const wchar_t* fileName, int flags )
 
     return OpenW( host, fileName, flags );
 }
-
-#ifdef __cplusplus
-};
-#endif

@@ -1,13 +1,13 @@
 /**
- *  @file       DzCoreLnx.h
- *  @brief      
+ *  @file       DzCoreOs.h
+ *  @brief      for linux
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzCoreLnx_h__
-#define __DzCoreLnx_h__
+#ifndef __DzCoreOs_h__
+#define __DzCoreOs_h__
 
 #include "../DzBase.h"
 #include "../DzResourceMgr.h"
@@ -155,4 +155,4 @@ void FreeCotStack( DzHost* host, DzCot* dzCot )
     FreeStack( dzCot->stack, host->cotStackSize[ dzCot->sType ] );
 }
 
-#endif // __DzCoreLnx_h__
+#endif // __DzCoreOs_h__

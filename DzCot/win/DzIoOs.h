@@ -1,16 +1,15 @@
 /**
- *  @file       DzIoWin.h
- *  @brief      
+ *  @file       DzIoOs.h
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzIoWin_h__
-#define __DzIoWin_h__
+#ifndef __DzIoOs_h__
+#define __DzIoOs_h__
 
 #include "../DzStructs.h"
-#include "../DzStructsOs.h"
 #include "../DzBase.h"
 #include "../DzResourceMgr.h"
 #include "../DzSynObj.h"
@@ -1028,4 +1027,4 @@ void BlockAndDispatchIoNoRmtCheck( DzHost* host, int timeout )
     }
 }
 
-#endif // __DzIoWin_h__
+#endif // __DzIoOs_h__

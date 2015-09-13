@@ -1,6 +1,6 @@
 /**
- *  @file       DzCoreWin.c
- *  @brief      
+ *  @file       DzCoreOs.c
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *

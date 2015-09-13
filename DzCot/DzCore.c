@@ -8,7 +8,7 @@
 
 #include "DzInc.h"
 #include "DzCore.h"
-#include "DzIoOs.h"
+#include DZ_OS_FILE( DzIoOs.h )
 
 void ReleaseAllPoolStack( DzHost* host )
 {

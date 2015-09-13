@@ -1,13 +1,13 @@
 /**
- *  @file       DzCoreWin.h
- *  @brief      
+ *  @file       DzCoreOs.h
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzCoreWin_h__
-#define __DzCoreWin_h__
+#ifndef __DzCoreOs_h__
+#define __DzCoreOs_h__
 
 #include "../DzBase.h"
 #include "../DzResourceMgr.h"
@@ -73,51 +73,11 @@ void CloseDzFd( DzHost* host, DzFd* dzFd )
     }
 }
 
-#if defined( _X86_ )
-
-struct DzStackBottom
-{
-    void*       stackLimit;
-    void*       stackPtr;
-    void*       exceptPtr;
-    void*       _unusedEdi;
-    void*       _unusedEsi;
-    void*       _unusedEbx;
-    void*       _unusedEbp;
-    void*       ipEntry;
-    DzHost*     host;
-    DzEntry     entry;
-    intptr_t    context;
-};
-
-#elif defined( _M_AMD64 )
-
-struct DzStackBottom
-{
-    void*       stackLimit;
-    void*       stackPtr;
-    void*       _unusedR15;
-    void*       _unusedR14;
-    void*       _unusedR13;
-    void*       _unusedR12;
-    void*       _unusedRdi;
-    void*       _unusedRsi;
-    void*       _unusedRbx;
-    void*       _unusedRbp;
-    void*       ipEntry;
-    DzHost*     host;
-    DzEntry     entry;
-    intptr_t    context;
-    void*       _unusedPadding;
-};
-
-#endif
-
 static inline
 void SetCotEntry( DzCot* dzCot, DzEntry entry, intptr_t context )
 {
-    ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
-    ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->context = context;
+    ( ( (DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
+    ( ( (DzStackBottom*)dzCot->stack ) - 1 )->context = context;
 }
 
 static inline
@@ -168,14 +128,13 @@ char* CommitStack( char* stack, int size )
 static inline
 void InitCotStack( DzHost* host, DzCot* dzCot )
 {
-    struct DzStackBottom* bottom;
+    DzStackBottom* bottom;
 
-    bottom = ( (struct DzStackBottom*)dzCot->stack ) - 1;
+    bottom = ( (DzStackBottom*)dzCot->stack ) - 1;
     bottom->host = host;
     bottom->ipEntry = CallDzCotEntry;
-#ifdef _X86_
-    bottom->exceptPtr = host->os.originExceptPtr;
-#endif
+
+    InitExceptPtr( bottom, host->os.originExceptPtr );
     bottom->stackPtr = dzCot->stack;
     bottom->stackLimit = dzCot->stackLimit;
 
@@ -188,4 +147,4 @@ void FreeCotStack( DzHost* host, DzCot* dzCot )
     FreeStack( dzCot->stack, host->cotStackSize[ dzCot->sType ] );
 }
 
-#endif // __DzCoreWin_h__
+#endif // __DzCoreOs_h__

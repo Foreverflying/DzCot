@@ -1,18 +1,19 @@
 /**
- *  @file       DzStructsWin.h
- *  @brief      
+ *  @file       DzStructsOs.h
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzStructsWin_h__
-#define __DzStructsWin_h__
+#ifndef __DzStructsOs_h__
+#define __DzStructsOs_h__
 
 #include "../DzInc.h"
 #include "../DzDeclareStructs.h"
 #include "../DzStructsDebug.h"
 #include "../DzStructsList.h"
+#include DZ_ARCH_FILE( DzStructsArch.h )
 
 struct _DzOsStruct
 {
@@ -57,4 +58,4 @@ struct _DzSysAutoEvt
     HANDLE              event;
 };
 
-#endif // __DzStructsWin_h__
+#endif // __DzStructsOs_h__

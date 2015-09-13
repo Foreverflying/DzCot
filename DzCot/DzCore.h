@@ -14,7 +14,7 @@
 #include "DzResourceMgr.h"
 #include "DzSchedule.h"
 #include "DzRmtCore.h"
-#include "DzCoreOs.h"
+#include DZ_OS_FILE( DzCoreOs.h )
 #include "thirdparty/dlmalloc.h"
 
 void __stdcall DelayFreeCotHelper( intptr_t context );

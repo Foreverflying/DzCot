@@ -1,13 +1,13 @@
 /**
- *  @file       DzIncWin.h
- *  @brief      
+ *  @file       DzIncOs.h
+ *  @brief      for windows
  *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2010/02/11
  *
  */
 
-#ifndef __DzIncWin_h__
-#define __DzIncWin_h__
+#ifndef __DzIncOs_h__
+#define __DzIncOs_h__
 
 #ifndef WINVER
 #define WINVER 0x0600
@@ -31,13 +31,13 @@
 #include <malloc.h>
 #include <assert.h>
 
-//predefine
 #if defined( _X86_ )
-typedef int ssize_t;
+#define DZ_ARCH_FILE( file )            MAKE_STR( x86/ ## file )
 #elif defined( _AMD64_ )
-typedef long long ssize_t;
+#define DZ_ARCH_FILE( file )            MAKE_STR( x64/ ## file )
 #endif
 
+//predefine
 typedef struct _DzIov
 {
     unsigned long   len;
@@ -46,9 +46,7 @@ typedef struct _DzIov
 
 typedef long long int64;
 
-#ifndef __cplusplus
 #define inline __inline
-#endif
 
 //global constants on windows
 #define THREAD_STACK_MIN            ( 64 * 1024 )
@@ -66,11 +64,6 @@ typedef long long int64;
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
 //#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
-//for debug check
-#if defined( _X86_ )
-#define CHECK_RESERV_SIZE           ( PAGE_SIZE )
-#elif defined( _AMD64_ )
-#define CHECK_RESERV_SIZE           ( PAGE_SIZE * 2 )
-#endif
+#include DZ_ARCH_FILE( DzIncArch.h )
 
-#endif // __DzIncWin_h__
+#endif // __DzIncOs_h__
