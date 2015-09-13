@@ -12,8 +12,6 @@
  *      A pointer returned by new must be freed in the same cot host.
  */
 
-#ifdef __cplusplus
-
 #include <new>
 #include <exception>
 #include "DzCot.h"
@@ -71,5 +69,3 @@ void operator delete[]( void* p, const nothrow_t& ) throw()
 {
     DzFree( p );
 }
-
-#endif
