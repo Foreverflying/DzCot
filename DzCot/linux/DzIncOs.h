@@ -30,11 +30,9 @@
 #include <assert.h>
 
 #if defined( __i386 )
-#define __stdcall   __attribute__((stdcall))
-#define __fastcall  __attribute__((fastcall))
-#else
-#define __stdcall
-#define __fastcall
+#define DZ_ARCH_FILE( file )            MAKE_STR( x86/ ## file )
+#elif defined( __x86_64 )
+#define DZ_ARCH_FILE( file )            MAKE_STR( x64/ ## file )
 #endif
 
 typedef struct _DzIov
@@ -63,7 +61,6 @@ typedef long long int64;
 
 //switchers
 
-//for debug check
-#define CHECK_RESERV_SIZE           ( 0 )
+#include DZ_ARCH_FILE( DzIncArch.h )
 
 #endif // __DzIncOs_h__

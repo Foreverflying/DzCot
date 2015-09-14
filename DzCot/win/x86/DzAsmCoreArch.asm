@@ -1,5 +1,5 @@
 ;********************************************************************
-;   @file       DzAsmCoreWin32.asm
+;   @file       DzAsmCoreArch.asm
 ;   @brief      funciton used for switch cot in 32 bit windows
 ;   @author     Foreverflying <foreverflying@live.cn>
 ;   @date       2010/02/11

@@ -18,16 +18,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="win\DzAsmCoreWin32.asm">
+    <MASM Include="linux\DzAsmCoreLnx64.asm">
       <Filter>源文件</Filter>
     </MASM>
-    <MASM Include="win\DzAsmCoreWin64.asm">
+    <MASM Include="win\x86\DzAsmCoreArch.asm">
+      <Filter>源文件</Filter>
+    </MASM>
+    <MASM Include="win\x64\DzAsmCoreArch.asm">
       <Filter>源文件</Filter>
     </MASM>
     <MASM Include="linux\DzAsmCoreLnx32.asm">
-      <Filter>源文件</Filter>
-    </MASM>
-    <MASM Include="linux\DzAsmCoreLnx64.asm">
       <Filter>源文件</Filter>
     </MASM>
   </ItemGroup>
@@ -176,6 +176,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="win\x64\DzStructsArch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="linux\x86\DzIncArch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="linux\x86\DzStructsArch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="linux\x64\DzIncArch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="linux\x64\DzStructsArch.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

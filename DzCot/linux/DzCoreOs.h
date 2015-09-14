@@ -73,43 +73,11 @@ void CloseDzFd( DzHost* host, DzFd* dzFd )
     }
 }
 
-#if defined( __i386 )
-
-struct DzStackBottom
-{
-    void*       _unusedEdi;
-    void*       _unusedEsi;
-    void*       _unusedEbx;
-    void*       _unusedEbp;
-    void*       ipEntry;
-    DzHost*     host;
-    DzEntry     entry;
-    intptr_t    context;
-};
-
-#elif defined( __amd64 )
-
-struct DzStackBottom
-{
-    void*       _unusedR15;
-    void*       _unusedR14;
-    void*       _unusedR13;
-    void*       _unusedR12;
-    void*       _unusedRbx;
-    void*       _unusedRbp;
-    void*       ipEntry;
-    DzHost*     host;
-    DzEntry     entry;
-    intptr_t    context;
-};
-
-#endif
-
 static inline
 void SetCotEntry( DzCot* dzCot, DzEntry entry, intptr_t context )
 {
-    ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
-    ( ( (struct DzStackBottom*)dzCot->stack ) - 1 )->context = context;
+    ( ( (DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
+    ( ( (DzStackBottom*)dzCot->stack ) - 1 )->context = context;
 }
 
 static inline
@@ -143,7 +111,7 @@ void InitCotStack( DzHost* host, DzCot* dzCot )
 {
     struct DzStackBottom* bottom;
 
-    bottom = ( (struct DzStackBottom*)dzCot->stack ) - 1;
+    bottom = ( (DzStackBottom*)dzCot->stack ) - 1;
     bottom->host = host;
     bottom->ipEntry = CallDzCotEntry;
     dzCot->sp = bottom;
