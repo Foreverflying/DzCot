@@ -32,9 +32,9 @@
 #include <assert.h>
 
 #if defined( _X86_ )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x86/ ## file )
+#define DZ_ARCH_FILE( file )            MAKE_STR( x86/file )
 #elif defined( _AMD64_ )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x64/ ## file )
+#define DZ_ARCH_FILE( file )            MAKE_STR( x64/file )
 #endif
 
 //predefine

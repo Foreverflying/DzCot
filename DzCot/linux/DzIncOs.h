@@ -30,9 +30,9 @@
 #include <assert.h>
 
 #if defined( __i386 )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x86/ ## file )
+#define DZ_ARCH_FILE( file )            MAKE_STR( x86/file )
 #elif defined( __x86_64 )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x64/ ## file )
+#define DZ_ARCH_FILE( file )            MAKE_STR( x64/file )
 #endif
 
 typedef struct _DzIov
