@@ -19,8 +19,6 @@
 
 void __stdcall DelayFreeCotHelper( intptr_t context );
 void __stdcall EventNotifyCotEntry( intptr_t context );
-void CotScheduleCenter( DzHost* host );
-void CotScheduleCenterNoRmtCheck( DzHost* host );
 void ReleaseAllPoolStack( DzHost* host );
 int RunHost(
     DzHostsMgr* hostMgr,

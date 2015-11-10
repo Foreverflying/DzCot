@@ -109,7 +109,7 @@ void FreeStack( char* stack, int size )
 static inline
 void InitCotStack( DzHost* host, DzCot* dzCot )
 {
-    struct DzStackBottom* bottom;
+    DzStackBottom* bottom;
 
     bottom = ( (DzStackBottom*)dzCot->stack ) - 1;
     bottom->host = host;

@@ -17,45 +17,56 @@ else
     endif
 endif
 
-CFLAGS = -D__linux__
-TEMP_DIR = ../buildtmp/$(OS_STR)/$(ARCH_STR)
-SRC_DIRS = . ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
+CFLAGS = -D__linux_
+LIBS = -lpthread
+TMP_DIR = ../buildtmp/$(OS_STR)/$(ARCH_STR)
+OUT_DIR = ../output/$(OS_STR)/$(ARCH_STR)
+SRC_DIRS = . ./thirdparty ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
 
 SRCS = $(notdir $(wildcard $(addsuffix /*.c,$(SRC_DIRS))))
-#SRCS = $(nodir $(SRCS))
-
+ASMS = $(notdir $(wildcard $(addsuffix /*.asm,$(SRC_DIRS))))
 DEPS = $(SRCS:.c=.d)
-
-DzCot_obj = $(SRCS:.c=.o)
+OBJS = $(SRCS:.c=.o) $(ASMS:.asm=.o)
+LIB_NAME = libDzCot.a
+TARGET = $(OUT_DIR)/$(LIB_NAME)
 
 vpath %.c $(SRC_DIRS)
-vpath %.d $(TEMP_DIR)
+vpath %.asm $(SRC_DIRS)
+vpath %.d $(TMP_DIR)
+vpath %.o $(TMP_DIR)
+
+
+all: $(TMP_DIR) $(OUT_DIR) $(TARGET)
 
 test:
 	@echo $(DEPS)
 	@echo $(SRCS)
 	@echo $(DzCot_obj)
 
+clean:
+	@rm -f $(TMP_DIR)/*.d $(TMP_DIR)/*.o
+
+.PHONY: all clean
+
 %.d: %.c
-	@set -ex; \
-	$(CC) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TEMP_DIR)/$@; \
-	[ -s $(TEMP_DIR)/$@ ] || rm -f $(TEMP_DIR)/$@
+	@set -e; \
+	$(CC) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
+	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
 sinclude $(DEPS)
-	
-all: DzCot TestCot TryCot
 
-DzCot:
-	@cd DzCot;
-	make all;
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
-TestCot:
-	@cd TestCot
-	make all;
+%.o: %.asm
+	$(AS) $(ASFLAGS) -o $(TMP_DIR)/$@ $^
 
-TryCot:
-	@cd TryCot
-	make all;
+$(TARGET): $(OBJS)
+	$(AR) rcs $@ $^
+#	$(CC) $(LIBS) -o $@ $^
 
-clean:
-	@rm -f $(SOURCE:.c=.d)
+$(TMP_DIR):
+	mkdir -p $(TMP_DIR)
+
+$(OUT_DIR):
+	mkdir -p $(OUT_DIR)
