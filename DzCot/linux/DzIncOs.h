@@ -57,7 +57,7 @@ typedef long long int64;
 #define DZ_MIN_STACK_SIZE           ( 1024 )
 
 //linux specific constants
-#define EPOLL_EVT_LIST_SIZE         1024
+#define EPOLL_EVT_LIST_SIZE         ( 1024 )
 
 //switchers
 

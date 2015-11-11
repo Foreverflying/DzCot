@@ -14,12 +14,11 @@
 
 struct _DzStackBottom
 {
-    void*       _unusedEdi;
-    void*       _unusedEsi;
+    void*       dzCotEntry;     //use EDI register
+    void*       host;           //use ESI register
     void*       _unusedEbx;
     void*       _unusedEbp;
     void*       ipEntry;
-    DzHost*     host;
     DzEntry     entry;
     intptr_t    context;
 };

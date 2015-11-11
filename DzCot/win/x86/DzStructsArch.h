@@ -17,12 +17,11 @@ struct _DzStackBottom
     void*       stackLimit;
     void*       stackPtr;
     void*       exceptPtr;
-    void*       _unusedEdi;
-    void*       _unusedEsi;
+    void*       dzCotEntry;     //use edi register
+    DzHost*     host;           //use esi register
     void*       _unusedEbx;
     void*       _unusedEbp;
     void*       ipEntry;
-    DzHost*     host;
     DzEntry     entry;
     intptr_t    context;
 };

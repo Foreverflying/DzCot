@@ -236,17 +236,17 @@ void WaitAllCotEnd( int expectMaxCotCount )
 #endif
 }
 
-int RecvFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
+int RecvFunc( int fd, void* buff, int len, sockaddr* from, socklen_t* fromLen )
 {
     return DzRecv( fd, buff, len, 0 );
 }
 
-int RecvFromFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
+int RecvFromFunc( int fd, void* buff, int len, sockaddr* from, socklen_t* fromLen )
 {
     return DzRecvFrom( fd, buff, len, 0, from, fromLen );
 }
 
-int RecvExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
+int RecvExFunc( int fd, void* buff, int len, sockaddr* from, socklen_t* fromLen )
 {
     char* startPos = (char*)buff;
     DzIov buffs[ DZ_TEST_IOV_COUNT ];
@@ -260,7 +260,7 @@ int RecvExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
     return DzIovRecv( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
 }
 
-int RecvFromExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
+int RecvFromExFunc( int fd, void* buff, int len, sockaddr* from, socklen_t* fromLen )
 {
     char* startPos = (char*)buff;
     DzIov buffs[ DZ_TEST_IOV_COUNT ];
@@ -274,17 +274,17 @@ int RecvFromExFunc( int fd, void* buff, int len, sockaddr* from, int* fromLen )
     return DzIovRecvFrom( fd, buffs, DZ_TEST_IOV_COUNT, 0, from, fromLen );
 }
 
-int SendFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
+int SendFunc( int fd, const void* buff, int len, const sockaddr* to, socklen_t toLen )
 {
     return DzSend( fd, buff, len, 0 );
 }
 
-int SendToFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
+int SendToFunc( int fd, const void* buff, int len, const sockaddr* to, socklen_t toLen )
 {
     return DzSendTo( fd, buff, len, 0, to, toLen );
 }
 
-int SendExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
+int SendExFunc( int fd, const void* buff, int len, const sockaddr* to, socklen_t toLen )
 {
     char* startPos = (char*)buff;
     DzIov buffs[ DZ_TEST_IOV_COUNT ];
@@ -298,7 +298,7 @@ int SendExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen
     return DzIovSend( fd, buffs, DZ_TEST_IOV_COUNT, 0 );
 }
 
-int SendToExFunc( int fd, const void* buff, int len, const sockaddr* to, int toLen )
+int SendToExFunc( int fd, const void* buff, int len, const sockaddr* to, socklen_t toLen )
 {
     char* startPos = (char*)buff;
     DzIov buffs[ DZ_TEST_IOV_COUNT ];
@@ -312,8 +312,8 @@ int SendToExFunc( int fd, const void* buff, int len, const sockaddr* to, int toL
     return DzIovSendTo( fd, buffs, DZ_TEST_IOV_COUNT, 0, to, toLen );
 }
 
-typedef int ( *FuncRead )( int fd, void* buff, int len, sockaddr* from, int* fromLen );
-typedef int ( *FuncWrite )( int fd, const void* buff, int len, const sockaddr* to, int toLen );
+typedef int( *FuncRead )( int fd, void* buff, int len, sockaddr* from, socklen_t* fromLen );
+typedef int( *FuncWrite )( int fd, const void* buff, int len, const sockaddr* to, socklen_t toLen );
 
 static int gNextReadFuncIdx = 0;
 static int gNextWriteFuncIdx = 0;
@@ -519,7 +519,7 @@ void TcpSvrMain( DzEntry svrEntry, int count )
         int connCount = count;
         sockaddr acptAddr;
         while( connCount ){
-            int acptAddrLen = sizeof( sockaddr );
+            socklen_t acptAddrLen = sizeof( sockaddr );
             int fd = DzAccept( lisFd, &acptAddr, &acptAddrLen );
             if( fd == -1 ){
                 throw (int)__LINE__;
@@ -536,7 +536,7 @@ void TcpSvrMain( DzEntry svrEntry, int count )
     CotStop();
 }
 
-int UdpReadOneStream( FuncRead readFunc, int fd, sockaddr* from = NULL, int* fromLen = NULL )
+int UdpReadOneStream( FuncRead readFunc, int fd, sockaddr* from = NULL, socklen_t* fromLen = NULL )
 {
     int buffLen = gMaxBuffLen;
     char* buff = (char*)DzMalloc( buffLen );
@@ -552,7 +552,7 @@ int UdpReadOneStream( FuncRead readFunc, int fd, sockaddr* from = NULL, int* fro
     return ret;
 }
 
-void UdpWriteOneStream( FuncWrite writeFunc, int fd, int idx, const sockaddr* to = NULL, int toLen = 0 )
+void UdpWriteOneStream( FuncWrite writeFunc, int fd, int idx, const sockaddr* to = NULL, socklen_t toLen = 0 )
 {
     TestStream* ts = (TestStream*)gBufArr[ idx ];
     int tmp = writeFunc( fd, gBufArr[ idx ], ts->len, to, toLen );
@@ -1061,7 +1061,7 @@ CotEntry UdpCltSendRecvNoConnRoutine( intptr_t context )
         UdpWriteOneStream( GetWriteFunc(), fd, idx, gAddr, gAddrLen );
 
         sockaddr_in addr1;
-        int addr1Len = sizeof( addr1 );
+        socklen_t addr1Len = sizeof( addr1 );
         int ret = UdpReadOneStream( GetReadFunc(), fd, (sockaddr*)&addr1, &addr1Len );
         DZ_EXPECT_EQ( idx + 1, ret );
         DZ_EXPECT_EQ( hton16( gPort - 1 - idx ), addr1.sin_port );
@@ -1160,7 +1160,7 @@ CotEntry TcpSvrAcceptCloseMain( intptr_t context )
 
         DzHandle timer = DzCreateCallbackTimer( 200, FALSE, HelpCloseSocket, (intptr_t)&lisFd );
         sockaddr acptAddr;
-        int acptAddrLen = sizeof( sockaddr );
+        socklen_t acptAddrLen = sizeof( sockaddr );
         int fd = DzAccept( lisFd, &acptAddr, &acptAddrLen );
         DZ_EXPECT_EQ( -1, fd );
         lisFd = -1;

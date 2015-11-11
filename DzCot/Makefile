@@ -6,49 +6,55 @@ else
     error( 'this Makefile only support linux' )
 endif
 
-ARCH = $(shell uname -m)
-ifeq ($(ARCH), x86_64)
-    ARCH_STR = x64
-else
-    ifeq ($(ARCH), i686)
-        ARCH_STR = x32
-    else
-        $error( 'this makefile only support x86_64 or i686' )
-    endif
+ifndef ARCH
+	ARCH = $(shell uname -m)
 endif
 
-CFLAGS = -D__linux_
+ifeq ($(ARCH), x86_64)
+	ARCH_STR = x64
+else
+	ifeq ($(ARCH), i686)
+		ARCH_STR = x32
+	else
+		$error( 'this makefile only support x86_64 or i686' )
+	endif
+endif
+
+ifdef DEBUG
+	CFLAGS += -g3 -D_DEBUG
+else
+	CFLAGS += -O2
+endif
+
+PROJECT = libDzCot
 LIBS = -lpthread
-TMP_DIR = ../buildtmp/$(OS_STR)/$(ARCH_STR)
-OUT_DIR = ../output/$(OS_STR)/$(ARCH_STR)
+CFLAGS += -fPIC
+TMP_DIR = ../buildtmp/$(ARCH)/$(PROJECT)
+OUT_DIR = ../output/$(ARCH)
 SRC_DIRS = . ./thirdparty ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
 
 SRCS = $(notdir $(wildcard $(addsuffix /*.c,$(SRC_DIRS))))
-ASMS = $(notdir $(wildcard $(addsuffix /*.asm,$(SRC_DIRS))))
+ASMS = $(notdir $(wildcard $(addsuffix /*.s,$(SRC_DIRS))))
 DEPS = $(SRCS:.c=.d)
-OBJS = $(SRCS:.c=.o) $(ASMS:.asm=.o)
-LIB_NAME = libDzCot.a
-TARGET = $(OUT_DIR)/$(LIB_NAME)
+OBJS = $(SRCS:.c=.o) $(ASMS:.s=.o)
+SHARE_LIB = $(OUT_DIR)/$(PROJECT).so
+STATIC_LIB = $(OUT_DIR)/$(PROJECT).a
 
 vpath %.c $(SRC_DIRS)
-vpath %.asm $(SRC_DIRS)
+vpath %.s $(SRC_DIRS)
 vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
 
 
-all: $(TMP_DIR) $(OUT_DIR) $(TARGET)
-
-test:
-	@echo $(DEPS)
-	@echo $(SRCS)
-	@echo $(DzCot_obj)
+all: $(OUT_DIR) $(OBJS)
+	$(MAKE) $(SHARE_LIB) $(STATIC_LIB)
 
 clean:
-	@rm -f $(TMP_DIR)/*.d $(TMP_DIR)/*.o
+	rm -f $(SHARE_LIB) $(STATIC_LIB); cd $(TMP_DIR); rm -f $(DEPS) $(OBJS)
 
 .PHONY: all clean
 
-%.d: %.c
+%.d: %.c $(TMP_DIR)
 	@set -e; \
 	$(CC) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
@@ -58,15 +64,17 @@ sinclude $(DEPS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
-%.o: %.asm
-	$(AS) $(ASFLAGS) -o $(TMP_DIR)/$@ $^
+%.o: %.s
+	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
-$(TARGET): $(OBJS)
+$(SHARE_LIB): $(OBJS)
+	$(CC) $(LIBS) -shared -o $@ $^
+
+$(STATIC_LIB): $(OBJS)
 	$(AR) rcs $@ $^
-#	$(CC) $(LIBS) -o $@ $^
 
 $(TMP_DIR):
-	mkdir -p $(TMP_DIR)
+	@mkdir -p $(TMP_DIR)
 
 $(OUT_DIR):
-	mkdir -p $(OUT_DIR)
+	@mkdir -p $(OUT_DIR)

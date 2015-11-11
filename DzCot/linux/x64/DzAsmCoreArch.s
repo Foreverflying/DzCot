@@ -5,10 +5,8 @@
 #   @date       2010/02/11
 #********************************************************************
 
-#PUBLIC CallDzCotEntry PROC     ; CallDzCotEntry
-#PUBLIC DzSwitch PROC           ; DzSwitch
-
-.extern DzCotEntry
+#PUBLIC CallDzCotEntry PROC     # CallDzCotEntry
+#PUBLIC DzSwitch PROC           # DzSwitch
 
 .text
 
@@ -17,10 +15,10 @@
 
 # void __stdcall CallDzCotEntry( void )
 CallDzCotEntry:
-    leaq    16(%rsp), %rdx
-    leaq    8(%rsp), %rsi
-    movq    (%rsp), %rdi
-    call    DzCotEntry
+    leaq    8(%rsp), %rdx
+    leaq    (%rsp), %rsi
+    movq    %r12, %rdi          # r12 is pointer of host
+    call    *%r13               # r13 is pointer of function DzCotEntry
 
 # void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 # host$ = rdi
@@ -33,10 +31,10 @@ DzSwitch:
     pushq   %r14
     pushq   %r15
 
-    movq    (%rdi), %rax    #rax = host->currCot
-    movq    %rsp, 8(%rax)   #host->currCot->sp = rsp
-    movq    %rsi, (%rdi)    #host->currCot = dzCot
-    movq    8(%rsi), %rsp   #rsp = dzCot.sp
+    movq    (%rdi), %rax        # rax = host->currCot
+    movq    %rsp, 8(%rax)       # host->currCot->sp = rsp
+    movq    %rsi, (%rdi)        # host->currCot = dzCot
+    movq    8(%rsi), %rsp       # rsp = dzCot.sp
 
     popq    %r15
     popq    %r14

@@ -112,6 +112,7 @@ void InitCotStack( DzHost* host, DzCot* dzCot )
     DzStackBottom* bottom;
 
     bottom = ( (DzStackBottom*)dzCot->stack ) - 1;
+    bottom->dzCotEntry = DzCotEntry;
     bottom->host = host;
     bottom->ipEntry = CallDzCotEntry;
     dzCot->sp = bottom;

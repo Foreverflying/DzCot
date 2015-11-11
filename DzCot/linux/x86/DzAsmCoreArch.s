@@ -5,10 +5,8 @@
 #   @date       2010/02/11
 #********************************************************************
 
-#PUBLIC CallDzCotEntry PROC     ; CallDzCotEntry
-#PUBLIC DzSwitch PROC           ; DzSwitch
-
-.extern DzCotEntry
+#PUBLIC CallDzCotEntry PROC     # CallDzCotEntry
+#PUBLIC DzSwitch PROC           # DzSwitch
 
 .text
 
@@ -17,13 +15,12 @@
 
 # void __stdcall CallDzCotEntry( void )
 CallDzCotEntry:
-    leal    8(%esp), %edx
-    leal    4(%esp), %ecx
-    movl    (%esp), %eax
+    leal    4(%esp), %edx
+    leal    (%esp), %ecx
     pushl   %edx
     pushl   %ecx
-    pushl   %eax
-    call    DzCotEntry
+    pushl   %esi                # esi is pointer of host
+    call    *%edi               # edi is pointer of function DzCotEntry
 
 # void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
 # host$ = ecx
@@ -34,10 +31,10 @@ DzSwitch:
     pushl   %esi
     pushl   %edi
 
-    movl    (%ecx), %esi    #esi = host->currCot
-    movl    %esp, 4(%esi)   #host->currCot->sp = esp
-    movl    %edx, (%ecx)    #host->currCot = dzCot
-    movl    4(%edx), %esp   #esp = dzCot.sp
+    movl    (%ecx), %esi        # esi = host->currCot
+    movl    %esp, 4(%esi)       # host->currCot->sp = esp
+    movl    %edx, (%ecx)        # host->currCot = dzCot
+    movl    4(%edx), %esp       # esp = dzCot.sp
 
     popl    %edi
     popl    %esi

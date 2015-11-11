@@ -20,15 +20,13 @@ struct _DzStackBottom
     void*       _unusedR14;
     void*       _unusedR13;
     void*       _unusedR12;
-    void*       _unusedRdi;
-    void*       _unusedRsi;
+    void*       dzCotEntry;     //use RDI register
+    DzHost*     host;           //use RSI register
     void*       _unusedRbx;
     void*       _unusedRbp;
     void*       ipEntry;
-    DzHost*     host;
     DzEntry     entry;
     intptr_t    context;
-    void*       _unusedPadding;
 };
 
 static inline

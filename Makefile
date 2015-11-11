@@ -1,11 +1,12 @@
 
-all: DzCot TestCot TryCot
+all:
+	@cd DzCot; make all
+	@cd TestCot; make all
+	@cd TryCot; make all
 
-DzCot:
-	@cd DzCot; make all;
+clean:
+	@cd DzCot; make clean
+	@cd TestCot; make clean
+	@cd TryCot; make clean
 
-TestCot:
-	@cd TestCot; make all;
-
-TryCot:
-	@cd TryCot; make all;
+.PHONY: all clean
