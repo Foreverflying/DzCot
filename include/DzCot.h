@@ -21,14 +21,14 @@
 #endif
 
 /** return type of Create cot and host functions */
-enum
+enum DzState
 {
     DS_OK,
     DS_NO_MEMORY
 };
 
 /** Cot priority levels */
-enum
+enum DzCotPriority
 {
     CP_HIGH,
     CP_NORMAL,
@@ -37,7 +37,7 @@ enum
 };
 
 /** Cot stack types */
-enum
+enum DzStackTypes
 {
     ST_MIN,
     ST_US,
@@ -47,7 +47,7 @@ enum
 };
 
 /** open file flags */
-enum
+enum DzOpenFlag
 {
     DZ_O_RD         =   00000000,
     DZ_O_WR         =   00000001,
@@ -59,7 +59,7 @@ enum
 };
 
 /** seek file flags */
-enum
+enum DzSeekFlag
 {
     DZ_SEEK_SET     =   0,
     DZ_SEEK_CUR     =   1,
@@ -67,7 +67,7 @@ enum
 };
 
 /** shutdown socket flags */
-enum
+enum DzShutFlag
 {
     DZ_SHUT_READ    =   0,
     DZ_SHUT_WRITE   =   1,
@@ -81,7 +81,7 @@ enum
 #define DZ_MAX_HOST     16
 
 /** 64 bytes struct used for passing common parameter data */
-typedef struct _DzParamNode
+typedef struct
 {
     union{
         struct{
@@ -139,7 +139,7 @@ typedef struct _DzParamNode
         };
         void*       p1;
     };
-}DzParamNode;
+} DzParamNode;
 
 /** handle for synchronize objects */
 typedef void* DzHandle;
@@ -151,19 +151,19 @@ typedef void* DzHandle;
 
 typedef intptr_t ssize_t;
 
-typedef struct _DzIov
+typedef struct
 {
     unsigned long   len;
     void*           buf;
-}DzIov;
+} DzIov;
 
 #elif defined __linux__
 
-typedef struct _DzIov
+typedef struct
 {
     void*           buf;
     size_t          len;
-}DzIov;
+} DzIov;
 
 typedef int BOOL;
 
