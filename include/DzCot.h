@@ -204,13 +204,13 @@ extern "C"{
  *      it will slightly improve performance, but you can not use
  *      worker thread, neither DzGetNameInfo nor DzGetAddrInfo.
  *  @param smallStackSize
- *      The cot stack size for cots that sType is SS_US.
+ *      The cot stack size for cots that sType is ST_US.
  *      0 < smallStackSize <= 8192 * 1024 * 1024, in bytes.
  *  @param middleStackSize
- *      The cot stack size for cots that sType is SS_UM.
+ *      The cot stack size for cots that sType is ST_UM.
  *      0 < middleStackSize <= 8192 * 1024 * 1024, in bytes.
  *  @param largeStackSize
- *      The cot stack size for cots that sType is SS_UL.
+ *      The cot stack size for cots that sType is ST_UL.
  *      0 < largeStackSize <= 8192 * 1024 * 1024, in bytes.
  *  @param lowestPri
  *      Lowest cot priority you can use.
