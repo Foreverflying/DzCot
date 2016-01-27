@@ -20,10 +20,10 @@ else
 endif
 
 PROJECT = TryCot
-LIBS = -L$(OUT_DIR) -lDzCot
 TMP_DIR = ../buildtmp/$(ARCH)/$(PROJECT)
 OUT_DIR = ../output/$(ARCH)
 SRC_DIRS = .
+LIBS = -L$(OUT_DIR) -lDzCot
 
 CPP_SRCS = $(wildcard *.cpp)
 C_SRCS = $(wildcard *.c)
