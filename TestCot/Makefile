@@ -20,14 +20,19 @@ else
 endif
 
 PROJECT = TestCot
+SRC_DIRS = .
 TMP_DIR = ../buildtmp/$(ARCH)/$(PROJECT)
 OUT_DIR = ../output/$(ARCH)
-SRC_DIRS = .
-LIBS = -L$(OUT_DIR) -lDzCot -lgtest
+INC_DIR = -I../include
+LIB_DIR = -L$(OUT_DIR)
+LIBS = -lDzCot -lgtest
+CPPFLAGS += --std=c++0x
 
 CPP_SRCS = $(wildcard *.cpp)
 C_SRCS = $(wildcard *.c)
+CPPFLAGS += $(INC_DIR)
 CFLAGS = $(CPPFLAGS)
+LDFLAGS = $(LIB_DIR) $(LIBS)
 DEPS = $(CPP_SRCS:.cpp=.d) $(C_SRCS:.c=.d)
 OBJS = $(CPP_SRCS:.cpp=.o) $(C_SRCS:.c=.o)
 TARGET = $(OUT_DIR)/$(PROJECT)
@@ -38,7 +43,7 @@ vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
 
 
-all: $(OUT_DIR) $(OBJS)
+all: $(TMP_DIR) $(OUT_DIR) $(OBJS)
 	$(MAKE) $(TARGET)
 
 clean:
@@ -46,12 +51,12 @@ clean:
 
 .PHONY: all clean
 
-%.d: %.cpp $(TMP_DIR)
+%.d: %.cpp
 	@set -e; \
 	$(CXX) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
-%.d: %.c $(TMP_DIR)
+%.d: %.c
 	@set -e; \
 	$(CC) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
@@ -66,7 +71,7 @@ sinclude $(DEPS)
 	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 $(TARGET): $(OBJS)
-	$(CXX) $(LIBS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 $(TMP_DIR):
 	@mkdir -p $(TMP_DIR)

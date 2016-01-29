@@ -26,19 +26,23 @@ else
 	CFLAGS += -O2
 endif
 
-PROJECT = libDzCot
-LIBS = -lpthread
-CFLAGS += -fPIC
+PROJECT = DzCot
+SRC_DIRS = . ./thirdparty ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
 TMP_DIR = ../buildtmp/$(ARCH)/$(PROJECT)
 OUT_DIR = ../output/$(ARCH)
-SRC_DIRS = . ./thirdparty ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
+INC_DIR =
+LIB_DIR = -L$(OUT_DIR)
+LIBS = -lpthread
+CFLAGS += -fPIC
 
 SRCS = $(notdir $(wildcard $(addsuffix /*.c,$(SRC_DIRS))))
 ASMS = $(notdir $(wildcard $(addsuffix /*.s,$(SRC_DIRS))))
+CFLAGS += $(INC_DIR)
+LDFLAGS += $(LIB_DIR) $(LIBS)
 DEPS = $(SRCS:.c=.d)
 OBJS = $(SRCS:.c=.o) $(ASMS:.s=.o)
-SHARE_LIB = $(OUT_DIR)/$(PROJECT).so
-STATIC_LIB = $(OUT_DIR)/$(PROJECT).a
+SHARE_LIB = $(OUT_DIR)/lib$(PROJECT).so
+STATIC_LIB = $(OUT_DIR)/lib$(PROJECT).a
 
 vpath %.c $(SRC_DIRS)
 vpath %.s $(SRC_DIRS)
@@ -46,7 +50,7 @@ vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
 
 
-all: $(OUT_DIR) $(OBJS)
+all: $(TMP_DIR) $(OUT_DIR) $(OBJS)
 	$(MAKE) $(SHARE_LIB) $(STATIC_LIB)
 
 clean:
@@ -54,7 +58,7 @@ clean:
 
 .PHONY: all clean
 
-%.d: %.c $(TMP_DIR)
+%.d: %.c
 	@set -e; \
 	$(CC) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
@@ -68,7 +72,7 @@ sinclude $(DEPS)
 	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 $(SHARE_LIB): $(OBJS)
-	$(CC) $(LIBS) -shared -o $@ $^
+	$(CC) $(LDFLAGS) -shared -o $@ $^
 
 $(STATIC_LIB): $(OBJS)
 	$(AR) rcs $@ $^
