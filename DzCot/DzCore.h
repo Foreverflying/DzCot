@@ -379,7 +379,7 @@ int SetWorkerPoolDepth( DzHost* host, int depth )
     int setDepth;
     int nowSet;
 
-    setDepth = AtomReadInt( &host->mgr->workerSetDepth );
+    setDepth = AtomGetInt( &host->mgr->workerSetDepth );
     do{
         nowSet = setDepth;
         setDepth = AtomCasInt( &host->mgr->workerSetDepth, setDepth, depth );
@@ -513,8 +513,8 @@ void DealRmtFifo( DzHost* host, DzRmtCotFifo* fifo )
     DzCot* dzCot;
     DzLItr* nextItr;
 
-    readPos = AtomReadInt( fifo->readPos );
-    writePos = AtomReadInt( fifo->writePos );
+    readPos = AtomGetInt( fifo->readPos );
+    writePos = AtomGetInt( fifo->writePos );
     while( readPos != writePos ){
         dzCot = fifo->rmtCotArr[ readPos ];
         readPos++;

@@ -75,7 +75,7 @@ void NotifySysAutoEvt( DzSysAutoEvt* sysEvt )
 }
 
 static inline
-int AtomReadInt( int volatile* val )
+int AtomGetInt( int volatile* val )
 {
     return *val;
 }
@@ -87,7 +87,7 @@ void AtomSetInt( int volatile* val, int set )
 }
 
 static inline
-void* AtomReadPtr( void* volatile* val )
+void* AtomGetPtr( void* volatile* val )
 {
     return *val;
 }

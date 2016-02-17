@@ -20,7 +20,7 @@ DzLItr* AtomPopStack( DzLItr** top )
     DzLItr* origin;
 
     origin = NULL;
-    now = (DzLItr*)AtomReadPtr( (void**)top );
+    now = (DzLItr*)AtomGetPtr( (void**)top );
     while( now && now != origin ){
         origin = now;
         now = (DzLItr*)AtomCasPtr( (void**)top, origin, origin->next );
@@ -34,7 +34,7 @@ void AtomPushStack( DzLItr** top, DzLItr* lItr )
     DzLItr* now;
     DzLItr* origin;
 
-    now = (DzLItr*)AtomReadPtr( (void**)top );
+    now = (DzLItr*)AtomGetPtr( (void**)top );
     do{
         lItr->next = now;
         origin = now;

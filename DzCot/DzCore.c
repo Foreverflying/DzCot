@@ -97,7 +97,7 @@ void CotScheduleCenter( DzHost* host )
         }
         if( AtomAndInt( &host->mgr->liveSign, ~host->hostMask ) != host->hostMask ){
             BlockAndDispatchIo( host, -1 );
-            if( AtomReadInt( &host->mgr->liveSign ) ){
+            if( AtomGetInt( &host->mgr->liveSign ) ){
                 AtomOrInt( host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN );
                 continue;
             }

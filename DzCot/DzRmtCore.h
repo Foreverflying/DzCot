@@ -60,7 +60,7 @@ BOOL SendRmtCot(
 
     rmtHost = host->mgr->hostArr[ rmtId ];
     fifo = rmtHost->rmtFifoArr + host->hostId;
-    writePos = AtomReadInt( fifo->writePos );
+    writePos = AtomGetInt( fifo->writePos );
     if( emergency ){
         fifo->rmtCotArr[ writePos ] = cot;
         NotifyRmtFifo( host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos );
@@ -69,7 +69,7 @@ BOOL SendRmtCot(
         AddLItrToNonEptTail( fifo->pendRmtCot, &cot->lItr );
         return FALSE;
     }
-    empty = AtomReadInt( fifo->readPos ) - writePos;
+    empty = AtomGetInt( fifo->readPos ) - writePos;
     if( empty <= 0 ){
         empty += RMT_CALL_FIFO_SIZE;
     }
