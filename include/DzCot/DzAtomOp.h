@@ -1,16 +1,16 @@
 /**
- *  @file       DzCrossOs.h
+ *  @file       DzAtomOp.h
  *  @brief      
  *  @author	    Foreverflying <foreverflying@live.cn>
  *  @date       2016/02/17
  *
  */
 
-#ifndef __DzCrossOs_h__
-#define __DzCrossOs_h__
+#ifndef __DzAtomOp_h__
+#define __DzAtomOp_h__
 
 #if defined( _WIN32 )
-#include <WinBase.h>
+#include <Windows.h>
 #ifndef __cplusplus
 #define inline __inline
 #endif
@@ -190,4 +190,4 @@ void DzSpinUnlock( int volatile* lock )
 }
 #endif
 
-#endif // __DzCrossOs_h__
+#endif // __DzAtomOp_h__
