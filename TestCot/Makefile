@@ -14,9 +14,9 @@ else
 endif
 
 ifdef DEBUG
-	CPPFLAGS += -g3 -D_DEBUG
+	CFLAGS += -g3 -D_DEBUG
 else
-	CPPFLAGS += -O2
+	CFLAGS += -O2
 endif
 
 PROJECT = TestCot
@@ -26,12 +26,12 @@ OUT_DIR = ../output/$(ARCH)
 INC_DIR = -I../include
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot -lgtest
-CPPFLAGS += --std=c++0x
+CPPFLAGS += -std=c++0x
 
 CPP_SRCS = $(wildcard *.cpp)
 C_SRCS = $(wildcard *.c)
-CPPFLAGS += $(INC_DIR)
-CFLAGS = $(CPPFLAGS)
+CFLAGS += $(INC_DIR)
+CPPFLAGS += $(CFLAGS)
 LDFLAGS = $(LIB_DIR) $(LIBS)
 DEPS = $(CPP_SRCS:.cpp=.d) $(C_SRCS:.c=.d)
 OBJS = $(CPP_SRCS:.cpp=.o) $(C_SRCS:.c=.o)
@@ -53,12 +53,12 @@ clean:
 
 %.d: %.cpp
 	@set -e; \
-	$(CXX) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
+	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
 %.d: %.c
 	@set -e; \
-	$(CC) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
+	$(CC) $(CFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
 
