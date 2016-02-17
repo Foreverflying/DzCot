@@ -146,7 +146,7 @@ static inline
 void* AtomCasPtr( void* volatile* val, void* cmp, void* set )
 {
     return (void*)InterlockedCompareExchangePointer(
-        ( PVOID volatile*)val, (PVOID)set, (PVOID)cmp
+        (PVOID volatile*)val, (PVOID)set, (PVOID)cmp
         );
 }
 

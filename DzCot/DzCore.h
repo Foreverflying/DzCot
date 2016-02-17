@@ -474,8 +474,8 @@ static inline
 int DispatchMinTimers( DzHost* host )
 {
     DzTimerNode* timerNode;
-    int64 currTime;
-    int64 cmpTime;
+    int64_t currTime;
+    int64_t cmpTime;
     BOOL ret;
 
     while( host->timerCount > 0 ){

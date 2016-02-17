@@ -20,6 +20,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <Ws2tcpip.h>
@@ -43,8 +44,6 @@ typedef struct _DzIov
     unsigned long   len;
     void*           buf;
 }DzIov;
-
-typedef long long int64;
 
 #define inline __inline
 

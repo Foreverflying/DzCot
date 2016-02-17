@@ -15,7 +15,7 @@
 void __stdcall CallbackTimerEntry( intptr_t context );
 
 static inline
-int64 MilUnixTime( DzHost* host )
+int64_t MilUnixTime( DzHost* host )
 {
     struct timeb t;
 
@@ -27,12 +27,12 @@ int64 MilUnixTime( DzHost* host )
 }
 
 static inline
-int64 UnixTime()
+int64_t UnixTime()
 {
     struct timeb t;
 
     ftime( &t );
-    return (int64)t.time;
+    return (int64_t)t.time;
 }
 
 static inline

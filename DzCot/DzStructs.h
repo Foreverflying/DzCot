@@ -32,7 +32,7 @@ struct _DzTimerNode
 {
     int             type;
     int             index;
-    int64           timestamp;
+    int64_t         timestamp;
     int             interval;
     BOOL            repeat;
 };
@@ -49,7 +49,7 @@ struct _DzFastEvt
         struct{
             int         type;
             int         _unused1;
-            int64       _unusedTimestamp;
+            int64_t     _unusedTimestamp;
             BOOL        notified;
             int         status;
         };
@@ -68,7 +68,7 @@ struct _DzSynObj
         struct{
             int         type;
             int         _unused1;
-            int64       _unusedTimestamp;
+            int64_t     _unusedTimestamp;
             int         notifyCount;        //for semaphore and event
             int         _unused2;
         };
@@ -170,7 +170,7 @@ struct _DzHost
             DzTimerNode**   timerHeap;
             int             timerCount;
             int             timerHeapSize;
-            int64           latestMilUnixTime;
+            int64_t         latestMilUnixTime;
 
             //current cot count
             int             cotCount;

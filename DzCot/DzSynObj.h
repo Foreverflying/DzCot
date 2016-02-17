@@ -380,7 +380,7 @@ void DelSynObj( DzHost* host, DzSynObj* obj )
 }
 
 static inline
-void InitTimeOut( DzFastEvt* timeout, int64 timestamp, DzWaitHelper* helper )
+void InitTimeOut( DzFastEvt* timeout, int64_t timestamp, DzWaitHelper* helper )
 {
     timeout->type = TYPE_TIMEOUT;
     timeout->timerNode.repeat = FALSE;

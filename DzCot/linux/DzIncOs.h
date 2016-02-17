@@ -10,6 +10,7 @@
 #define __DzIncOs_h__
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -47,9 +48,6 @@ typedef int BOOL;
 #undef  FALSE
 #define TRUE    1
 #define FALSE   0
-
-typedef long long int64;
-
 
 //global constants on linux
 #define THREAD_STACK_MIN            ( PTHREAD_STACK_MIN )
