@@ -27,12 +27,13 @@ INC_DIR = -I../include
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot
 CPPFLAGS += -std=c++0x
+LDFLAGS += -Wl,-rpath=\$$ORIGIN
 
 CPP_SRCS = $(wildcard *.cpp)
 C_SRCS = $(wildcard *.c)
 CFLAGS += $(INC_DIR)
 CPPFLAGS += $(CFLAGS)
-LDFLAGS = $(LIB_DIR) $(LIBS)
+LDFLAGS += $(LIB_DIR) $(LIBS)
 DEPS = $(CPP_SRCS:.cpp=.d) $(C_SRCS:.c=.d)
 OBJS = $(CPP_SRCS:.cpp=.o) $(C_SRCS:.c=.o)
 TARGET = $(OUT_DIR)/$(PROJECT)

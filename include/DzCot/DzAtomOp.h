@@ -101,7 +101,7 @@ void* DzAtomCasPtr( void* volatile* val, void* cmp, void* set )
 #elif defined( __linux__ )
 
 static inline
-int DzAtomReadInt( int volatile* val )
+int DzAtomGetInt( int volatile* val )
 {
     return *val;
 }
@@ -113,7 +113,7 @@ void DzAtomSetInt( int volatile* val, int set )
 }
 
 static inline
-void* DzAtomReadPtr( void* volatile* val )
+void* DzAtomGetPtr( void* volatile* val )
 {
     return *val;
 }
