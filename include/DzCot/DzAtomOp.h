@@ -9,14 +9,11 @@
 #ifndef __DzAtomOp_h__
 #define __DzAtomOp_h__
 
-#if defined( _WIN32 )
-#include <Windows.h>
+#include "DzCot.h"
+
 #ifndef __cplusplus
 #define inline __inline
-#endif
-#endif
-
-#ifdef __cplusplus
+#else
 extern "C"{
 #endif
 
