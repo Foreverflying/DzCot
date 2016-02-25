@@ -14,7 +14,7 @@ ifeq ($(ARCH), x86_64)
 	ARCH_STR = x64
 else
 	ifeq ($(ARCH), i686)
-		ARCH_STR = x32
+		ARCH_STR = x86
 	else
 		$error( 'this makefile only support x86_64 or i686' )
 	endif

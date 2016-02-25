@@ -3,16 +3,6 @@ ifndef ARCH
 	ARCH = $(shell uname -m)
 endif
 
-ifeq ($(ARCH), x86_64)
-	ARCH_STR = x64
-else
-	ifeq ($(ARCH), i686)
-		ARCH_STR = x32
-	else
-		$error( 'this makefile only support x86_64 or i686' )
-	endif
-endif
-
 ifdef DEBUG
 	CFLAGS += -g3 -D_DEBUG
 else
