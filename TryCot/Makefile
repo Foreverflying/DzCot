@@ -27,7 +27,7 @@ CFLAGS += $(INC_DIR)
 CPPFLAGS += $(CFLAGS)
 LDFLAGS += $(LIB_DIR) $(LIBS)
 DEPS = $(CPP_SRCS:.cpp=.d) $(CXX_SRCS:.cxx=.d) $(CC_SRCS:.cc=.d) $(C_SRCS:.c=.d)
-OBJS = $(CPP_SRCS:.cpp=.o) $(CXX_SRCS:.cxx=.o) $(CC_SRCS:.cc=.o) $(C_SRCS:.c=.o)
+OBJS = $(DEPS:.d=.o)
 TARGET = $(OUT_DIR)/$(PROJECT)
 
 vpath %.c $(SRC_DIRS)
