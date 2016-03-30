@@ -21,16 +21,18 @@ LDFLAGS += -Wl,-rpath=\$$ORIGIN
 
 C_SRCS = $(notdir $(wildcard $(addsuffix /*.c,$(SRC_DIRS))))
 CPP_SRCS = $(notdir $(wildcard $(addsuffix /*.cpp,$(SRC_DIRS))))
+CXX_SRCS = $(notdir $(wildcard $(addsuffix /*.cxx,$(SRC_DIRS))))
 CC_SRCS = $(notdir $(wildcard $(addsuffix /*.cc,$(SRC_DIRS))))
 CFLAGS += $(INC_DIR)
 CPPFLAGS += $(CFLAGS)
 LDFLAGS += $(LIB_DIR) $(LIBS)
-DEPS = $(CPP_SRCS:.cpp=.d) $(CC_SRCS:.cc=.d) $(C_SRCS:.c=.d)
-OBJS = $(CPP_SRCS:.cpp=.o) $(CC_SRCS:.cc=.o) $(C_SRCS:.c=.o)
+DEPS = $(CPP_SRCS:.cpp=.d) $(CXX_SRCS:.cxx=.d) $(CC_SRCS:.cc=.d) $(C_SRCS:.c=.d)
+OBJS = $(CPP_SRCS:.cpp=.o) $(CXX_SRCS:.cxx=.o) $(CC_SRCS:.cc=.o) $(C_SRCS:.c=.o)
 TARGET = $(OUT_DIR)/$(PROJECT)
 
 vpath %.c $(SRC_DIRS)
 vpath %.cpp $(SRC_DIRS)
+vpath %.cxx $(SRC_DIRS)
 vpath %.cc $(SRC_DIRS)
 vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
@@ -54,6 +56,11 @@ clean:
 	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
+%.d: %.cxx
+	@set -e; \
+	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
+	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+
 %.d: %.cc
 	@set -e; \
 	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
@@ -66,6 +73,9 @@ sinclude $(DEPS)
 	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 %.o: %.cpp
+	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
+
+%.o: %.cxx
 	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 %.o: %.cc
