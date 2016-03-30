@@ -19,17 +19,19 @@ LIBS = -lDzCot -lgtest
 CPPFLAGS += -std=c++0x
 LDFLAGS += -Wl,-rpath=\$$ORIGIN
 
-CPP_SRCS = $(wildcard *.cpp)
-C_SRCS = $(wildcard *.c)
+C_SRCS = $(notdir $(wildcard $(addsuffix /*.c,$(SRC_DIRS))))
+CPP_SRCS = $(notdir $(wildcard $(addsuffix /*.cpp,$(SRC_DIRS))))
+CC_SRCS = $(notdir $(wildcard $(addsuffix /*.cc,$(SRC_DIRS))))
 CFLAGS += $(INC_DIR)
 CPPFLAGS += $(CFLAGS)
 LDFLAGS += $(LIB_DIR) $(LIBS)
-DEPS = $(CPP_SRCS:.cpp=.d) $(C_SRCS:.c=.d)
-OBJS = $(CPP_SRCS:.cpp=.o) $(C_SRCS:.c=.o)
+DEPS = $(CPP_SRCS:.cpp=.d) $(CC_SRCS:.cc=.d) $(C_SRCS:.c=.d)
+OBJS = $(CPP_SRCS:.cpp=.o) $(CC_SRCS:.cc=.o) $(C_SRCS:.c=.o)
 TARGET = $(OUT_DIR)/$(PROJECT)
 
 vpath %.c $(SRC_DIRS)
 vpath %.cpp $(SRC_DIRS)
+vpath %.cc $(SRC_DIRS)
 vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
 
@@ -42,24 +44,32 @@ clean:
 
 .PHONY: all clean
 
-%.d: %.cpp
-	@set -e; \
-	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
-	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
-
 %.d: %.c
 	@set -e; \
 	$(CC) $(CFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
+%.d: %.cpp
+	@set -e; \
+	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
+	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+
+%.d: %.cc
+	@set -e; \
+	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
+	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+
 
 sinclude $(DEPS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 %.o: %.cpp
 	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
+%.o: %.cc
+	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 $(TARGET): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
