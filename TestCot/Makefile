@@ -37,8 +37,9 @@ vpath %.cc $(SRC_DIRS)
 vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
 
+$(shell mkdir -p $(TMP_DIR) $(OUR_DIR))
 
-all: $(TMP_DIR) $(OUT_DIR) $(OBJS)
+all: $(OBJS)
 	$(MAKE) $(TARGET)
 
 clean:
@@ -83,9 +84,3 @@ sinclude $(DEPS)
 
 $(TARGET): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
-
-$(TMP_DIR):
-	@mkdir -p $(TMP_DIR)
-
-$(OUT_DIR):
-	@mkdir -p $(OUT_DIR)

@@ -49,8 +49,9 @@ vpath %.s $(SRC_DIRS)
 vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
 
+$(shell mkdir -p $(TMP_DIR) $(OUR_DIR))
 
-all: $(TMP_DIR) $(OUT_DIR) $(OBJS)
+all: $(OBJS)
 	$(MAKE) $(SHARE_LIB) $(STATIC_LIB)
 
 clean:
@@ -76,9 +77,3 @@ $(SHARE_LIB): $(OBJS)
 
 $(STATIC_LIB): $(OBJS)
 	$(AR) rcs $@ $^
-
-$(TMP_DIR):
-	@mkdir -p $(TMP_DIR)
-
-$(OUT_DIR):
-	@mkdir -p $(OUT_DIR)
