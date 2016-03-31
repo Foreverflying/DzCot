@@ -1,7 +1,5 @@
 
-ifndef ARCH
-    override ARCH = $(shell uname -m)
-endif
+ARCH = $(shell uname -m)
 
 ifdef DEBUG
     CFLAGS += -g3 -D_DEBUG

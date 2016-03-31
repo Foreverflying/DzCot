@@ -1,13 +1,11 @@
 
+ARCH = $(shell uname -m)
 OS = $(shell uname)
+
 ifeq ($(OS), Linux)
     OS_STR = linux
 else
     $(error this Makefile only support linux)
-endif
-
-ifndef ARCH
-    override ARCH = $(shell uname -m)
 endif
 
 ifeq ($(ARCH), x86_64)
