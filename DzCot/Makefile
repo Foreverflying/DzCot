@@ -3,27 +3,27 @@ OS = $(shell uname)
 ifeq ($(OS), Linux)
     OS_STR = linux
 else
-    error( 'this Makefile only support linux' )
+    $(error this Makefile only support linux)
 endif
 
 ifndef ARCH
-	ARCH = $(shell uname -m)
+    override ARCH = $(shell uname -m)
 endif
 
 ifeq ($(ARCH), x86_64)
-	ARCH_STR = x64
+    ARCH_STR = x64
 else
-	ifeq ($(ARCH), i686)
-		ARCH_STR = x86
-	else
-		$error( 'this makefile only support x86_64 or i686' )
-	endif
+    ifeq ($(ARCH), i686)
+        ARCH_STR = x86
+    else
+        $(error this Makefile does not support arch $(ARCH))
+    endif
 endif
 
 ifdef DEBUG
-	CFLAGS += -g3 -D_DEBUG
+    CFLAGS += -g3 -D_DEBUG
 else
-	CFLAGS += -O2
+    CFLAGS += -O2
 endif
 
 PROJECT = DzCot

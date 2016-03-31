@@ -1,12 +1,12 @@
 
 ifndef ARCH
-	ARCH = $(shell uname -m)
+    override ARCH = $(shell uname -m)
 endif
 
 ifdef DEBUG
-	CPPFLAGS += -g3 -D_DEBUG
+    CFLAGS += -g3 -D_DEBUG
 else
-	CPPFLAGS += -O2
+    CFLAGS += -O2
 endif
 
 PROJECT = TryCot
