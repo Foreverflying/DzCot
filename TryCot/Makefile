@@ -67,7 +67,6 @@ clean:
 	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
-
 sinclude $(DEPS)
 
 %.o: %.c
