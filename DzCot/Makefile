@@ -1,8 +1,18 @@
 
-ARCH = $(shell uname -m)
-OS = $(shell uname)
+AS      = $(CROSS_COMPILE)as
+LD      = $(CROSS_COMPILE)ld
+CC      = $(CROSS_COMPILE)gcc
+CXX     = $(CROSS_COMPILE)g++
+AR      = $(CROSS_COMPILE)ar
+NM      = $(CROSS_COMPILE)nm
+STRIP   = $(CROSS_COMPILE)strip
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
 
-ifeq ($(OS), Linux)
+ARCH = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$1}')
+OS = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$3}')
+
+ifeq ($(OS), linux)
     OS_STR = linux
 else
     $(error this Makefile only support linux)
@@ -26,8 +36,8 @@ endif
 
 PROJECT = DzCot
 SRC_DIRS = . ./thirdparty ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
-TMP_DIR = ../buildtmp/$(ARCH)/$(PROJECT)
-OUT_DIR = ../output/$(ARCH)
+TMP_DIR = ../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
+OUT_DIR = ../output/$(OS)-$(ARCH)
 INC_DIR =
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lpthread

@@ -1,5 +1,16 @@
 
-ARCH = $(shell uname -m)
+AS      = $(CROSS_COMPILE)as
+LD      = $(CROSS_COMPILE)ld
+CC      = $(CROSS_COMPILE)gcc
+CXX     = $(CROSS_COMPILE)g++
+AR      = $(CROSS_COMPILE)ar
+NM      = $(CROSS_COMPILE)nm
+STRIP   = $(CROSS_COMPILE)strip
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
+
+ARCH = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$1}')
+OS = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$3}')
 
 ifdef DEBUG
     CFLAGS += -g3 -D_DEBUG
@@ -9,8 +20,8 @@ endif
 
 PROJECT = TestCot
 SRC_DIRS = .
-TMP_DIR = ../buildtmp/$(ARCH)/$(PROJECT)
-OUT_DIR = ../output/$(ARCH)
+TMP_DIR = ../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
+OUT_DIR = ../output/$(OS)-$(ARCH)
 INC_DIR = -I../include
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot -lgtest
