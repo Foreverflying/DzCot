@@ -46,7 +46,7 @@ vpath %.cc $(SRC_DIRS)
 vpath %.d $(TMP_DIR)
 vpath %.o $(TMP_DIR)
 
-$(shell mkdir -p $(TMP_DIR) $(OUR_DIR))
+$(shell mkdir -p $(TMP_DIR) $(OUT_DIR))
 
 all: $(OBJS)
 	$(MAKE) $(TARGET)
