@@ -41,12 +41,14 @@ OUT_DIR = ../output/$(OS)-$(ARCH)
 INC_DIR =
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lpthread
+STATIC_LIBS =
+SHARED_LIBS =
 CFLAGS += -fPIC
 
 SRCS = $(notdir $(wildcard $(addsuffix /*.c,$(SRC_DIRS))))
 ASMS = $(notdir $(wildcard $(addsuffix /*.s,$(SRC_DIRS))))
 CFLAGS += $(INC_DIR)
-LDFLAGS += $(LIB_DIR) $(LIBS)
+LDFLAGS += $(LIB_DIR) $(LIBS) -Wl,-Bstatic $(STATIC_LIBS) -Wl,-Bdynamic $(SHARED_LIBS)
 DEPS = $(SRCS:.c=.d)
 OBJS = $(SRCS:.c=.o) $(ASMS:.s=.o)
 SHARE_LIB = $(OUT_DIR)/lib$(PROJECT).so
@@ -81,7 +83,7 @@ sinclude $(DEPS)
 	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 $(SHARE_LIB): $(OBJS)
-	$(CC) $(LDFLAGS) -shared -o $@ $^
+	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 $(STATIC_LIB): $(OBJS)
 	$(AR) rcs $@ $^

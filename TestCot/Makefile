@@ -25,6 +25,8 @@ OUT_DIR = ../output/$(OS)-$(ARCH)
 INC_DIR = -I../include
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot -lgtest
+STATIC_LIBS =
+SHARED_LIBS =
 CPPFLAGS += -std=c++0x
 LDFLAGS += -Wl,-rpath=\$$ORIGIN
 
@@ -34,7 +36,7 @@ CXX_SRCS = $(notdir $(wildcard $(addsuffix /*.cxx,$(SRC_DIRS))))
 CC_SRCS = $(notdir $(wildcard $(addsuffix /*.cc,$(SRC_DIRS))))
 CFLAGS += $(INC_DIR)
 CPPFLAGS += $(CFLAGS)
-LDFLAGS += $(LIB_DIR) $(LIBS)
+LDFLAGS += $(LIB_DIR) $(LIBS) -Wl,-Bstatic $(STATIC_LIBS) -Wl,-Bdynamic $(SHARED_LIBS)
 DEPS = $(CPP_SRCS:.cpp=.d) $(CXX_SRCS:.cxx=.d) $(CC_SRCS:.cc=.d) $(C_SRCS:.c=.d)
 OBJS = $(DEPS:.d=.o)
 TARGET = $(OUT_DIR)/$(PROJECT)
@@ -91,4 +93,4 @@ sinclude $(DEPS)
 	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
 
 $(TARGET): $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) -o $@ $^ $(LDFLAGS)
