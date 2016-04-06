@@ -20,8 +20,8 @@ endif
 
 PROJECT = TestCot
 SRC_DIRS = .
-TMP_DIR = ../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
-OUT_DIR = ../output/$(OS)-$(ARCH)
+TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
+OUT_DIR = ../../output/$(OS)-$(ARCH)
 INC_DIR = -I../../include
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot -lgtest
