@@ -36,8 +36,8 @@ endif
 
 PROJECT = DzCot
 SRC_DIRS = . ./thirdparty ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
-TMP_DIR = ../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
-OUT_DIR = ../output/$(OS)-$(ARCH)
+TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
+OUT_DIR = ../../output/$(OS)-$(ARCH)
 INC_DIR =
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lpthread

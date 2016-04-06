@@ -3,14 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DzCot", "DzCot\DzCot.vcxproj", "{8831D583-8EF8-4406-B736-6F84C5AC4E54}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DzCot", "src\DzCot\DzCot.vcxproj", "{8831D583-8EF8-4406-B736-6F84C5AC4E54}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestCot", "TestCot\TestCot.vcxproj", "{D498440A-3787-4A83-A876-8A15C4DEFAED}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestCot", "src\TestCot\TestCot.vcxproj", "{D498440A-3787-4A83-A876-8A15C4DEFAED}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8831D583-8EF8-4406-B736-6F84C5AC4E54} = {8831D583-8EF8-4406-B736-6F84C5AC4E54}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TryCot", "TryCot\TryCot.vcxproj", "{F270EE46-CB13-4DBF-9503-7D46320306D2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TryCot", "src\TryCot\TryCot.vcxproj", "{F270EE46-CB13-4DBF-9503-7D46320306D2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8831D583-8EF8-4406-B736-6F84C5AC4E54} = {8831D583-8EF8-4406-B736-6F84C5AC4E54}
 	EndProjectSection

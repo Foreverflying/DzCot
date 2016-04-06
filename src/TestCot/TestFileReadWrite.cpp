@@ -36,7 +36,7 @@ void ReadFileEntry( char* buff, size_t buffLen )
     unsigned char md5Ret[16];
     md5_context mc;
 
-    int fd = DzOpenT( _T( "../../test/Sailing.mp3" ), DZ_O_RD );
+    int fd = DzOpenT( _T( "../test/Sailing.mp3" ), DZ_O_RD );
     DZ_ASSERT_NE( -1, fd );
     size_t n = DzFileSize( fd );
     DZ_ASSERT_EQ( 3678906, n );
@@ -119,7 +119,7 @@ void WriteFileEntry( char* buff, size_t buffLen )
     }
 
     int fd = DzOpenT(
-        _T( "../../test/test_write.txt" ),
+        _T( "../test/test_write.txt" ),
         DZ_O_RDWR | DZ_O_TRUNC | DZ_O_CREATE
         );
     DZ_ASSERT_NE( -1, fd );

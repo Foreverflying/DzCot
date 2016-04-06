@@ -20,9 +20,9 @@ endif
 
 PROJECT = TryCot
 SRC_DIRS = .
-TMP_DIR = ../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
-OUT_DIR = ../output/$(OS)-$(ARCH)
-INC_DIR = -I../include
+TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
+OUT_DIR = ../../output/$(OS)-$(ARCH)
+INC_DIR = -I../../include
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot
 STATIC_LIBS =

@@ -1,14 +1,14 @@
 
 all: lib
-	cd TestCot; $(MAKE) all
-	cd TryCot; $(MAKE) all
+	cd src/TestCot; $(MAKE) all
+	cd src/TryCot; $(MAKE) all
 
 clean:
-	cd DzCot; $(MAKE) clean
-	cd TestCot; $(MAKE) clean
-	cd TryCot; $(MAKE) clean
+	cd src/DzCot; $(MAKE) clean
+	cd src/TestCot; $(MAKE) clean
+	cd src/TryCot; $(MAKE) clean
 
 lib:
-	cd DzCot; $(MAKE) all
+	cd src/DzCot; $(MAKE) all
 
 .PHONY: all clean lib
