@@ -18,8 +18,8 @@
 @ void CallDzCotEntry( void )
 CallDzCotEntry:
     mov     r0, r11             @ r11 is pointer of host
-    add     r1, sp
-    mov     r2, sp, #4
+    mov     r1, sp
+    add     r2, sp, #4
     bx      r10                 @ r10 is pointer of function DzCotEntry
 
 @ void DzSwitch( DzHost* host, DzCot* dzCot );
