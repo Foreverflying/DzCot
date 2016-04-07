@@ -197,7 +197,7 @@ void SetHost( DzHost* host )
     TlsSetValue( DZ_TLS_IDX, host );
 }
 
-#endif  //STORE_HOST_IN_ARBITRARY_USER_POINTER
+#endif  // STORE_HOST_IN_ARBITRARY_USER_POINTER
 
 #include DZ_ARCH_FILE( DzBaseArch.h )
 

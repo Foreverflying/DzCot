@@ -109,7 +109,7 @@ void __DbgCheckCotStackOverflow( DzHost* host, DzCot* dzCot )
             tmp = 0;
         }
     }
-    //rise a exception by divide 0
+    // rise a exception by divide 0
     p->maxStkUse = tmp / (int)( begin + 1 - end );
     //*/
 }

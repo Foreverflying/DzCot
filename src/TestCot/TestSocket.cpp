@@ -847,9 +847,9 @@ CotEntry TcpSvrRecvCloseRoutine( intptr_t context )
         if( type == 0 ){
             DzShutdown( fd, 0 );
             ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
-            //Warning: platform difference!
-            //after shutdown for READ, subsequent read call return different
-            //linux return 0 and windows return -1
+            // Warning: platform difference!
+            // after shutdown for READ, subsequent read call return different
+            // linux return 0 and windows return -1
             DZ_EXPECT_GE( 0, ret );
             ret = writeFunc( fd, &idx, sizeof( idx ), NULL, 0 );
             DZ_EXPECT_EQ( sizeof( idx ), ret );

@@ -56,7 +56,7 @@ public:
     typedef DbgNopeTracer Tracer;
 };
 
-//print trace
+// print trace
 class DbgPrintTracer
 {
 public:
@@ -69,7 +69,7 @@ public:
     }
 };
 
-}   //namespace __DzTraceInner
+}   // namespace __DzTraceInner
 
 using namespace __Inner;
 
@@ -79,7 +79,7 @@ typedef DbgNopeTracer __DzDbgTce3;
 typedef DbgNopeTracer __DzDbgTce4;
 typedef DbgNopeTracer __DzDbgTce5;
 
-}   //namespace __DzTrace
+}   // namespace __DzTrace
 
 using namespace __DzTrace;
 

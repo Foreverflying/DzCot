@@ -16,8 +16,8 @@ struct _DzStackBottom
 {
     void*       _unusedR15;
     void*       _unusedR14;
-    void*       dzCotEntry;     //use R13 register
-    void*       host;           //use R12 register
+    void*       dzCotEntry;     // use r13 register
+    void*       host;           // use r12 register
     void*       _unusedRbx;
     void*       _unusedRbp;
     void*       ipEntry;

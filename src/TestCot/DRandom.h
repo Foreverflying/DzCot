@@ -22,14 +22,14 @@ public:
     }
     unsigned long rand(unsigned long low = 0, unsigned long high = MAX_NUM)
     {
-        //returns a random integer in the range [low,high)
-        //if low > high, the result would be undefined
+        // returns a random integer in the range [low,high)
+        // if low > high, the result would be undefined
         randomize();
         return high > low ? seed % ( high - low ) + low : low;
     }
     double real()
     {
-        //returns a random real number in the range [0.0, 1.0)
+        // returns a random real number in the range [0.0, 1.0)
         randomize();
         return (double)(seed) / MAX_NUM;
     }

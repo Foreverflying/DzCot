@@ -38,7 +38,7 @@
 #define DZ_ARCH_FILE( file )            MAKE_STR( x64/file )
 #endif
 
-//predefine
+// predefine
 typedef struct _DzIov
 {
     unsigned long   len;
@@ -47,7 +47,7 @@ typedef struct _DzIov
 
 #define inline __inline
 
-//global constants on windows
+// global constants on windows
 #define THREAD_STACK_MIN            ( 64 * 1024 )
 #define DZ_PAGE_STACK_BOUNDARY      ( 65536 )
 
@@ -57,11 +57,11 @@ typedef struct _DzIov
 #define DZ_MIN_STACK_SIZE           ( 1024 )
 #endif
 
-//windows specific constants
+// windows specific constants
 
-//switchers
+// switchers
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
-//#define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
+// #define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
 #include DZ_ARCH_FILE( DzIncArch.h )
 

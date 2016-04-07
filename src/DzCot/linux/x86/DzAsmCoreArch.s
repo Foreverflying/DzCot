@@ -1,12 +1,12 @@
 #********************************************************************
 #   @file       DzAsmCoreArch.asm
-#   @brief      funciton used for switch cot in 32 bit linux
+#   @brief      funciton used for switch cot in linux x86
 #   @author     Foreverflying <foreverflying@live.cn>
 #   @date       2010/02/11
 #********************************************************************
 
-#PUBLIC CallDzCotEntry PROC     # CallDzCotEntry
-#PUBLIC DzSwitch PROC           # DzSwitch
+#PUBLIC CallDzCotEntry PROC
+#PUBLIC DzSwitch PROC
 
 .text
 

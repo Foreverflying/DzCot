@@ -323,14 +323,14 @@ BOOL NotifyTimerNode( DzHost* host, DzTimerNode* timerNode )
     switch( timerNode->type ){
     case TYPE_TIMER:
         timer = MEMBER_BASE( timerNode, DzSynObj, timerNode );
-        //since DzTimerNode.interval and DzTimer.notifyCount is union,
-        //DzTimer.notifyCount > 0 means not notified.
-        //For DzTimerNode.interval is always a negative number,
-        //when notifying Timer, DzTimerNode.notifyCount should keep positive
+        // since DzTimerNode.interval and DzTimer.notifyCount is union,
+        // DzTimer.notifyCount > 0 means not notified.
+        // For DzTimerNode.interval is always a negative number,
+        // when notifying Timer, DzTimerNode.notifyCount should keep positive
         timer->notifyCount = - timer->notifyCount;
         ret = NotifyWaitQueue( host, timer );
-        //if a timer can be notified repeatedly, it is still in timer heap.
-        //so we set it to NOT notified, or else, we keep it notified.
+        // if a timer can be notified repeatedly, it is still in timer heap.
+        // so we set it to NOT notified, or else, we keep it notified.
         if( IsTimeNodeInHeap( timerNode ) ){
             timer->notifyCount = - timer->notifyCount;
         }

@@ -14,8 +14,8 @@
 
 struct _DzStackBottom
 {
-    void*       dzCotEntry;     //use EDI register
-    void*       host;           //use ESI register
+    void*       dzCotEntry;     // use edi register
+    void*       host;           // use esi register
     void*       _unusedEbx;
     void*       _unusedEbp;
     void*       ipEntry;

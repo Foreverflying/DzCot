@@ -20,8 +20,8 @@ struct _DzStackBottom
     void*       _unusedR14;
     void*       _unusedR13;
     void*       _unusedR12;
-    void*       dzCotEntry;     //use RDI register
-    DzHost*     host;           //use RSI register
+    void*       dzCotEntry;     // use rdi register
+    DzHost*     host;           // use rsi register
     void*       _unusedRbx;
     void*       _unusedRbp;
     void*       ipEntry;

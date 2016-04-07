@@ -77,10 +77,10 @@ void FreeDzCot( DzHost* host, DzCot* dzCot )
         host->cotPools[ dzCot->sType ] = &dzCot->lItr;
         host->cotPoolNowDepth[ dzCot->sType ] --;
     }else{
-        //can not FreeCotStack( dzCot ) here!!
-        //the stack is still in use before switch
+        // can not FreeCotStack( dzCot ) here!!
+        // the stack is still in use before switch
         if( host->cotPools[ dzCot->sType ] ){
-            //if the cotPool is not empty swap and free the head
+            // if the cotPool is not empty swap and free the head
             tmp = MEMBER_BASE( host->cotPools[ dzCot->sType ], DzCot, lItr );
             dzCot->lItr.next = tmp->lItr.next;
             host->cotPools[ dzCot->sType ] = &dzCot->lItr;
@@ -88,7 +88,7 @@ void FreeDzCot( DzHost* host, DzCot* dzCot )
             tmp->lItr.next = host->cotPool;
             host->cotPool = &tmp->lItr;
         }else{
-            //switch to a helper cot to free it
+            // switch to a helper cot to free it
             StartCot( host, DelayFreeCotHelper, (intptr_t)dzCot, host->currPri, ST_FIRST );
         }
     }
@@ -485,7 +485,7 @@ int DispatchMinTimers( DzHost* host )
         while( GetMinTimerNode( host )->timestamp <= cmpTime ){
             timerNode = GetMinTimerNode( host );
             if( timerNode->repeat ){
-                //for timerNode->interval is a negative value, use minus
+                // for timerNode->interval is a negative value, use minus
                 timerNode->timestamp -= timerNode->interval;
                 AdjustMinTimer( host, timerNode );
             }else{

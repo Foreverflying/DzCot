@@ -102,7 +102,7 @@ void CotScheduleCenter( DzHost* host )
                 continue;
             }
         }else{
-            //be sure quit id 0 host at last, for hostMgr is in id 0 host's stack
+            // be sure quit id 0 host at last, for hostMgr is in id 0 host's stack
             for( n = host->hostCount - 1; n >= 0; n-- ){
                 if( n != host->hostId ){
                     AwakeRemoteHost( host->mgr->hostArr[ n ] );
@@ -266,8 +266,8 @@ int RunHost(
             cleanEntry( context );
         }
 
-        //after all cot finished, CotScheduleCenter will return.
-        //so cleanup the host struct
+        // after all cot finished, CotScheduleCenter will return.
+        // so cleanup the host struct
         SetHost( NULL );
         CleanOsStruct( host );
     }else{

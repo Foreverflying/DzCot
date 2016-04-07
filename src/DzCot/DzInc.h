@@ -19,10 +19,10 @@
 
 #include DZ_OS_FILE( DzIncOs.h )
 
-//debug switchers
-//#define __DBG_DEBUG_CHECK_MODE
+// debug switchers
+// #define __DBG_DEBUG_CHECK_MODE
 
-//global constants
+// global constants
 #define DZ_TLS_IDX                  ( 16 )
 #define CPU_CACHE_ALIGN             ( 64 )
 #define CPU_CACHE_ALIGN_MASK        ( CPU_CACHE_ALIGN - 1 )
@@ -48,7 +48,7 @@
 #define SCHEDULE_COUNTDOWN          ( 256 )
 #define LAZY_TIMER_INTERVAL         ( 4096 )
 
-//predefines
+// predefines
 typedef void (__stdcall *DzEntry)( intptr_t context );
 
 enum{

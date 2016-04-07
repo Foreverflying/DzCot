@@ -96,14 +96,14 @@ void __stdcall DzCotEntry(
     __Dbg( MarkCurrStackForCheck )( host );
     __try{
         while(1){
-            //call the entry
+            // call the entry
             ( *entryPtr )( *contextPtr );
 
-            //free the cot
+            // free the cot
             host->cotCount--;
             FreeDzCot( host, host->currCot );
 
-            //then schedule another cot
+            // then schedule another cot
             Schedule( host );
         }
     }__except( MiniDumpExpFilter( GetExceptionInformation() ) ){

@@ -11,7 +11,7 @@
 
 #include "DzInc.h"
 
-//used for cache align to avoid false sharing
+// used for cache align to avoid false sharing
 struct _DzCacheChunk
 {
     char        _padding[ CPU_CACHE_ALIGN ];
@@ -19,7 +19,7 @@ struct _DzCacheChunk
 
 typedef struct _DzCacheChunk    DzCacheChunk;
 
-//define in DzStructsList.h
+// define in DzStructsList.h
 struct _DzLItr;
 struct _DzSList;
 struct _DzDLItr;
@@ -32,7 +32,7 @@ typedef struct _DzDLItr         DzDlItr;
 typedef struct _DzDList         DzDList;
 typedef struct _DzLNode         DzLNode;
 
-//define in DzStructs.h
+// define in DzStructs.h
 struct _DzTimerNode;
 struct _DzEasyEvt;
 struct _DzFastEvt;
@@ -59,7 +59,7 @@ typedef struct _DzSysParam      DzSysParam;
 typedef struct _DzWorker        DzWorker;
 typedef struct _DzMemExTag      DzMemExTag;
 
-//define in DzStructsOs.h
+// define in DzStructsOs.h
 struct _DzOsStruct;
 struct _DzCot;
 struct _DzSysAutoEvt;
@@ -68,17 +68,17 @@ typedef struct _DzOsStruct      DzOsStruct;
 typedef struct _DzCot           DzCot;
 typedef struct _DzSysAutoEvt    DzSysAutoEvt;
 
-//define in DzStructArch.h
+// define in DzStructArch.h
 struct _DzStackBottom;
 
 typedef struct _DzStackBottom   DzStackBottom;
 
-//define in DzStructsIoOs.h
+// define in DzStructsIoOs.h
 struct _DzFd;
 
 typedef struct _DzFd            DzFd;
 
-//alias struct names when using in the interface
+// alias struct names when using in the interface
 typedef struct _DzLNode         DzParamNode;
 typedef struct _DzSynObj*       DzHandle;
 

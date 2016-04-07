@@ -36,7 +36,7 @@ void FreeTlsIndex()
 {
 }
 
-#endif  //STORE_HOST_IN_ARBITRARY_USER_POINTER
+#endif  // STORE_HOST_IN_ARBITRARY_USER_POINTER
 
 static inline
 void* GetExceptPtr()

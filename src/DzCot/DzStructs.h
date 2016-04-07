@@ -55,8 +55,8 @@ struct _DzFastEvt
         };
     };
     union{
-        DzWaitHelper*   helper;     //for timeout
-        DzCot*          dzCot;      //for fast event
+        DzWaitHelper*   helper;     // for timeout
+        DzCot*          dzCot;      // for fast event
     };
 };
 
@@ -69,7 +69,7 @@ struct _DzSynObj
             int         type;
             int         _unused1;
             int64_t     _unusedTimestamp;
-            int         notifyCount;        //for semaphore and event
+            int         notifyCount;        // for semaphore and event
             int         _unused2;
         };
     };
@@ -78,9 +78,9 @@ struct _DzSynObj
         struct{
             DzDList     waitQ[ COT_PRIORITY_COUNT ];
         };
-        //used for CallbackTimer, must reset
-        //the waitQ[ 0 ] and waitQ[ 1 ]
-        //when release CallbackTimer
+        // used for CallbackTimer, must reset
+        // the waitQ[ 0 ] and waitQ[ 1 ]
+        // when release CallbackTimer
         struct{
             DzEntry     routine;
             intptr_t    context;
@@ -146,139 +146,139 @@ struct _DzHostsMgr
 
 struct _DzHost
 {
-    //the first cache will be used only by the host itself.
+    // the first cache will be used only by the host itself.
     union{
         struct{
-            //running cot
+            // running cot
             DzCot*          currCot;
 
-            //union centerCot use sp only
+            // union centerCot use sp only
             void*           _unused_sp;
 
-            //cot schedule countdown
+            // cot schedule countdown
             int             scheduleCd;
 
-            //host's io reaction rate,
-            //check io state after ( ioReactionRate ) cots switches
+            // host's io reaction rate,
+            // check io state after ( ioReactionRate ) cots switches
             int             ioReactionRate;
 
-            //iterator for task lists when scheduling
+            // iterator for task lists when scheduling
             int             lowestPri;
             int             currPri;
 
-            //used for timer
+            // used for timer
             DzTimerNode**   timerHeap;
             int             timerCount;
             int             timerHeapSize;
             int64_t         latestMilUnixTime;
 
-            //current cot count
+            // current cot count
             int             cotCount;
         };
 
-        //the host thread's original stack info
+        // the host thread's original stack info
         DzCot               centerCot;
 
-        //CPU cache align
+        // CPU cache align
         DzCacheChunk        _pending1;
     };
 
-    //the second cache align may be read by all hosts.
-    //it is read only when hosts are running, so there's no false sharing
+    // the second cache align may be read by all hosts.
+    // it is read only when hosts are running, so there's no false sharing
     union{
         struct{
-            //host's id
+            // host's id
             int             hostId;
 
-            //host mask
+            // host mask
             int             hostMask;
 
-            //remote cot FIFOs
+            // remote cot FIFOs
             DzRmtCotFifo*   rmtFifoArr;
 
-            //remote check sign pointer
+            // remote check sign pointer
             int volatile*   rmtCheckSignPtr;
 
-            //Os struct
+            // Os struct
             DzOsStruct      os;
         };
 
-        //CPU cache align
+        // CPU cache align
         DzCacheChunk        _pending2;
     };
 
-    //the third cache align
-    //local access only, frequently
+    // the third cache align
+    // local access only, frequently
 
-    //schedule tasks' list
+    // schedule tasks' list
     DzSList         taskLs[ COT_PRIORITY_COUNT ];
 
-    //dlmalloc heap
+    // dlmalloc heap
     void*           mSpace;
 
-    //address prefix of handle struct
+    // address prefix of handle struct
     intptr_t        handleBase;
 
-    //the fourth and fifth cache align on 64 bit platform
-    //resource pools, local access only, frequently
+    // the fourth and fifth cache align on 64 bit platform
+    // resource pools, local access only, frequently
 
-    //DzCot struct pool
+    // DzCot struct pool
     DzLItr*         cotPools[ STACK_TYPE_COUNT ];
     int             cotPoolNowDepth[ STACK_TYPE_COUNT ];
     int             cotStackSize[ STACK_TYPE_COUNT ];
     DzLItr*         cotPool;
 
-    //DzSynObj struct pool
+    // DzSynObj struct pool
     DzLItr*         synObjPool;
 
-    //DzDqNode struct pool
+    // DzDqNode struct pool
     DzLItr*         lNodePool;
 
-    //DzFd struct Pool
+    // DzFd struct Pool
     DzLItr*         dzFdPool;
 
-    //multi hosts manager
+    // multi hosts manager
     DzHostsMgr*     mgr;
 
-    //pending remote cots
+    // pending remote cots
     DzSList*        pendRmtCot;
 
-    //lazy dispatch remote cots
+    // lazy dispatch remote cots
     DzSList*        lazyRmtCot;
 
-    //lazy free memory list
+    // lazy free memory list
     DzSList*        lazyFreeMem;
 
-    //the sixth cache align on 64 bit platform
+    // the sixth cache align on 64 bit platform
 
-    //lazy checking timer
+    // lazy checking timer
     DzSynObj*       lazyTimer;
 
-    //memory chunk pool
+    // memory chunk pool
     char*           memPoolPos;
     char*           memPoolEnd;
 
-    //record pool alloc history
+    // record pool alloc history
     DzLItr*         poolGrowList;
 
-    //handle struct chunk pool
+    // handle struct chunk pool
     char*           handlePoolPos;
     char*           handlePoolEnd;
 
-    //host count local copy,
-    //avoid reading global hostCount leads false sharing
+    // host count local copy,
+    // avoid reading global hostCount leads false sharing
     int             hostCount;
 
-    //default cot value
+    // default cot value
     int             dftPri;
     int             dftSType;
 
-    //the seventh cache align on 64 bit platform begin
+    // the seventh cache align on 64 bit platform begin
 
-    //configure data
+    // configure data
     int             cotPoolSetDepth[ STACK_TYPE_COUNT ];
 
-    //debug struct
+    // debug struct
     __DBG_STRUCT( DzHost )
 };
 
@@ -292,17 +292,17 @@ struct _DzSysParam
             DzHostsMgr* hostMgr;
             DzCot*      returnCot;
             int         hostId;
-        } hs;   //used for host start
+        } hs;   // used for host start
         struct{
             DzEntry     entry;
             intptr_t    context;
-        } cs;   //used for cot start
+        } cs;   // used for cot start
         struct{
             DzEntry     entry;
             intptr_t    context;
             DzCot*      dzCot;
             DzHostsMgr* hostMgr;
-        } wk;   //used for worker thread start
+        } wk;   // used for worker thread start
     };
 };
 

@@ -17,8 +17,8 @@ struct _DzStackBottom
     void*       stackLimit;
     void*       stackPtr;
     void*       exceptPtr;
-    void*       dzCotEntry;     //use edi register
-    DzHost*     host;           //use esi register
+    void*       dzCotEntry;     // use edi register
+    DzHost*     host;           // use esi register
     void*       _unusedEbx;
     void*       _unusedEbp;
     void*       ipEntry;
