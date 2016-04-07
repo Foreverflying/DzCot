@@ -24,7 +24,11 @@ else
     ifeq ($(ARCH), i686)
         ARCH_STR = x86
     else
-        $(error this Makefile does not support arch $(ARCH))
+        ifeq ($(ARCH), arm)
+            ARCH_STR = arm32
+        else
+            $(error this Makefile does not support arch $(ARCH))
+        endif
     endif
 endif
 
