@@ -55,8 +55,8 @@ CFLAGS += $(INC_DIR)
 LDFLAGS += $(LIB_DIR) $(LIBS) -Wl,-Bstatic $(STATIC_LIBS) -Wl,-Bdynamic $(SHARED_LIBS)
 DEPS = $(SRCS:.c=.d)
 OBJS = $(SRCS:.c=.o) $(ASMS:.s=.o)
-SHARE_LIB = $(OUT_DIR)/lib$(PROJECT).so
-STATIC_LIB = $(OUT_DIR)/lib$(PROJECT).a
+LIB_SHARED = $(OUT_DIR)/lib$(PROJECT).so
+LIB_STATIC = $(OUT_DIR)/lib$(PROJECT).a
 
 vpath %.c $(SRC_DIRS)
 vpath %.s $(SRC_DIRS)
@@ -66,10 +66,10 @@ vpath %.o $(TMP_DIR)
 $(shell mkdir -p $(TMP_DIR) $(OUT_DIR))
 
 all: $(OBJS)
-	$(MAKE) $(SHARE_LIB) $(STATIC_LIB)
+	$(MAKE) $(LIB_SHARED) $(LIB_STATIC)
 
 clean:
-	rm -f $(SHARE_LIB) $(STATIC_LIB); cd $(TMP_DIR); rm -f $(DEPS) $(OBJS)
+	rm -f $(LIB_SHARED) $(LIB_STATIC); cd $(TMP_DIR); rm -f $(DEPS) $(OBJS)
 
 .PHONY: all clean
 
@@ -86,8 +86,8 @@ sinclude $(DEPS)
 %.o: %.s
 	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
 
-$(SHARE_LIB): $(OBJS)
+$(LIB_SHARED): $(OBJS)
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
-$(STATIC_LIB): $(OBJS)
+$(LIB_STATIC): $(OBJS)
 	$(AR) rcs $@ $^
