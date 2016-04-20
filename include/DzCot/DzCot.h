@@ -13,11 +13,12 @@
 #include <Ws2tcpip.h>
 #elif defined( __linux__ )
 #include <stddef.h>
-#include <sys/socket.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
+#include <arpa/inet.h>
 #endif
 
 /** return type of Create cot and host functions */
