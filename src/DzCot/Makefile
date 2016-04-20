@@ -10,7 +10,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 
 ARCH = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$1}')
-OS = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$3}')
+OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 
 ifeq ($(OS), linux)
     OS_STR = linux
