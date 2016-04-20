@@ -24,7 +24,7 @@ TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
 OUT_DIR = ../../output/$(OS)-$(ARCH)
 INC_DIR = -I../../include
 LIB_DIR = -L$(OUT_DIR)
-LIBS = -lDzCot -lgtest
+LIBS = -lDzCot -lgtest -lpthread
 STATIC_LIBS =
 SHARED_LIBS =
 CPPFLAGS += -std=c++0x
