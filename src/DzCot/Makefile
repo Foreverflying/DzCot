@@ -12,23 +12,17 @@ OBJDUMP = $(CROSS_COMPILE)objdump
 ARCH = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$1}')
 OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 
-ifeq ($(OS), linux)
-    OS_STR = linux
-else
+ifneq ($(OS), linux)
     $(error this Makefile only support linux)
 endif
 
-ifeq ($(ARCH), x86_64)
-    ARCH_STR = x64
+ifneq ($(filter $(ARCH), i386 i486 i586 i686),)
+    ARCH_STR = i386
 else
-    ifeq ($(ARCH), i686)
-        ARCH_STR = x86
+    ifneq ($(filter $(ARCH), x86_64 arm),)
+        ARCH_STR = $(ARCH)
     else
-        ifeq ($(ARCH), arm)
-            ARCH_STR = arm32
-        else
-            $(error this Makefile does not support arch $(ARCH))
-        endif
+        $(error this Makefile does not support arch $(ARCH))
     endif
 endif
 
@@ -39,10 +33,10 @@ else
 endif
 
 PROJECT = DzCot
-SRC_DIRS = . ./thirdparty ./$(OS_STR) ./$(OS_STR)/$(ARCH_STR)
+SRC_DIRS = . ./thirdparty ./$(OS) ./$(OS)/$(ARCH_STR)
 TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
 OUT_DIR = ../../output/$(OS)-$(ARCH)
-INC_DIR = -I./$(OS_STR) -I./$(OS_STR)/$(ARCH_STR)
+INC_DIR = -I./$(OS) -I./$(OS)/$(ARCH_STR)
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lpthread
 STATIC_LIBS =
@@ -75,7 +69,7 @@ clean:
 
 %.d: %.c
 	@set -e; \
-	$(CC) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
+	$(CC) $(CFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
 	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
 
 sinclude $(DEPS)

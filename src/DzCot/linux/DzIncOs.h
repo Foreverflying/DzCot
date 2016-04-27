@@ -53,6 +53,6 @@ typedef int BOOL;
 
 //switchers
 
-#include DZ_ARCH_FILE( DzIncArch.h )
+#include "DzIncArch.h"
 
 #endif // __DzIncOs_h__

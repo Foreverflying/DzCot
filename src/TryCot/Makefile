@@ -18,11 +18,21 @@ else
     CFLAGS += -O2
 endif
 
+ifneq ($(filter $(ARCH), i386 i486 i586 i686),)
+    ARCH_STR = i386
+else
+    ifneq ($(filter $(ARCH), x86_64 arm),)
+        ARCH_STR = $(ARCH)
+    else
+        $(error this Makefile does not support arch $(ARCH))
+    endif
+endif
+
 PROJECT = TryCot
 SRC_DIRS = .
 TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
 OUT_DIR = ../../output/$(OS)-$(ARCH)
-INC_DIR = -I../../include -I../DzCot/$(OS_STR) -I../DzCot/$(OS_STR)/$(ARCH_STR)
+INC_DIR = -I../../include -I../DzCot/$(OS) -I../DzCot/$(OS)/$(ARCH_STR)
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot
 STATIC_LIBS =
