@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="源文件">
+    <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="头文件">
+    <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="资源文件">
+    <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
@@ -33,78 +33,78 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DzCore.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DzResourceMgr.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DzDebug.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DzRmtCore.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DzCot.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="thirdparty\dlmalloc.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="win\DzCoreOs.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="win\DzIoOs.c">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DzCore.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzResourceMgr.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzSchedule.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzStructs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzSynObj.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzTimer.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzStructsList.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzList.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzDebug.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzDeclareStructs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzStructsDebug.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzRmtCore.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzBase.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DzInc.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\dlconfig.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="thirdparty\dlmalloc.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\DzCot.h">
       <Filter>include</Filter>
@@ -119,22 +119,22 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="win\DzIncOs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win\DzIoOs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win\DzStructsIoOs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win\DzStructsOs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win\DzBaseOs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win\DzCoreOs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win\x64\DzIncArch.h">
       <Filter>x64</Filter>
@@ -158,7 +158,7 @@
   <ItemGroup>
     <None Include="ReadMe.txt" />
     <None Include="DzCot.def">
-      <Filter>源文件</Filter>
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>
