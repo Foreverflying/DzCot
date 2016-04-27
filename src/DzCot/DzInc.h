@@ -9,15 +9,7 @@
 #ifndef __DzInc_h__
 #define __DzInc_h__
 
-#define MAKE_STR( str )             #str
-
-#if defined __linux__
-#define DZ_OS_FILE( file )          MAKE_STR( linux/file )
-#elif defined _WIN32
-#define DZ_OS_FILE( file )          MAKE_STR( win/file )
-#endif
-
-#include DZ_OS_FILE( DzIncOs.h )
+#include "DzIncOs.h"
 
 // debug switchers
 // #define __DBG_DEBUG_CHECK_MODE

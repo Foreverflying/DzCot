@@ -12,7 +12,7 @@
 #include "DzInc.h"
 #include "DzDeclareStructs.h"
 #include "DzStructsList.h"
-#include DZ_OS_FILE( DzStructsOs.h )
+#include "DzStructsOs.h"
 
 enum
 {

@@ -9,7 +9,7 @@
 #include "DzInc.h"
 #include "DzSynObj.h"
 #include "DzCore.h"
-#include DZ_OS_FILE( DzIoOs.h )
+#include "DzIoOs.h"
 #include "DzRmtCore.h"
 
 int DzRunHosts(

@@ -16,13 +16,19 @@
     <Filter Include="include">
       <UniqueIdentifier>{e90a39fb-6a7d-488e-9e5a-69a41a64b54e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="x64">
+      <UniqueIdentifier>{545d9972-9756-4933-82fb-8bfb8c345d57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Win32">
+      <UniqueIdentifier>{5bfbc8f9-64db-4239-bd5b-64dab00fae17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="win\x86\DzAsmCoreArch.asm">
-      <Filter>源文件</Filter>
-    </MASM>
     <MASM Include="win\x64\DzAsmCoreArch.asm">
-      <Filter>源文件</Filter>
+      <Filter>x64</Filter>
+    </MASM>
+    <MASM Include="win\Win32\DzAsmCoreArch.asm">
+      <Filter>Win32</Filter>
     </MASM>
   </ItemGroup>
   <ItemGroup>
@@ -130,23 +136,23 @@
     <ClInclude Include="win\DzCoreOs.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="win\x86\DzBaseArch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="win\x86\DzIncArch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="win\x64\DzIncArch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="win\x64\DzBaseArch.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="win\x86\DzStructsArch.h">
-      <Filter>头文件</Filter>
+      <Filter>x64</Filter>
     </ClInclude>
     <ClInclude Include="win\x64\DzStructsArch.h">
-      <Filter>头文件</Filter>
+      <Filter>x64</Filter>
+    </ClInclude>
+    <ClInclude Include="win\x64\DzBaseArch.h">
+      <Filter>x64</Filter>
+    </ClInclude>
+    <ClInclude Include="win\Win32\DzBaseArch.h">
+      <Filter>Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="win\Win32\DzIncArch.h">
+      <Filter>Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="win\Win32\DzStructsArch.h">
+      <Filter>Win32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

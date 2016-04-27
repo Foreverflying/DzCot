@@ -11,7 +11,7 @@
 
 #include "DzInc.h"
 #include "DzStructs.h"
-#include DZ_OS_FILE( DzBaseOs.h )
+#include "DzBaseOs.h"
 
 static inline
 DzLItr* AtomPopStack( DzLItr** top )

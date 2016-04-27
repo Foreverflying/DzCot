@@ -11,7 +11,7 @@
 
 #include "DzStructs.h"
 #include "DzList.h"
-#include DZ_OS_FILE( DzStructsIoOs.h )
+#include "DzStructsIoOs.h"
 #include "DzBase.h"
 
 BOOL MemeryPoolGrow( DzHost* host );

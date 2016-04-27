@@ -30,14 +30,6 @@
 #include <netdb.h>
 #include <assert.h>
 
-#if defined( __i386 )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x86/file )
-#elif defined( __x86_64 )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x64/file )
-#elif defined( __arm__ )
-#define DZ_ARCH_FILE( file )            MAKE_STR( arm32/file )
-#endif
-
 typedef struct _DzIov
 {
     void*           buf;

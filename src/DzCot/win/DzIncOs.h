@@ -32,12 +32,6 @@
 #include <malloc.h>
 #include <assert.h>
 
-#if defined( _X86_ )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x86/file )
-#elif defined( _AMD64_ )
-#define DZ_ARCH_FILE( file )            MAKE_STR( x64/file )
-#endif
-
 // predefine
 typedef struct _DzIov
 {
@@ -63,6 +57,6 @@ typedef struct _DzIov
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER
 // #define GENERATE_MINIDUMP_FOR_UNHANDLED_EXP
 
-#include DZ_ARCH_FILE( DzIncArch.h )
+#include "DzIncArch.h"
 
 #endif // __DzIncOs_h__

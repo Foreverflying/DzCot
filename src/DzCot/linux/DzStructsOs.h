@@ -13,7 +13,7 @@
 #include "../DzDeclareStructs.h"
 #include "../DzStructsDebug.h"
 #include "../DzStructsList.h"
-#include DZ_ARCH_FILE( DzStructsArch.h )
+#include "DzStructsArch.h"
 
 struct _DzOsStruct
 {

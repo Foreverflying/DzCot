@@ -10,7 +10,7 @@
 #define __DzStructsIoOs_h__
 
 #include "../DzStructs.h"
-#include DZ_ARCH_FILE( DzStructsArch.h )
+#include "DzStructsArch.h"
 
 struct _DzFd
 {

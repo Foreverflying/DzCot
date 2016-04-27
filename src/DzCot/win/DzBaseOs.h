@@ -199,6 +199,6 @@ void SetHost( DzHost* host )
 
 #endif  // STORE_HOST_IN_ARBITRARY_USER_POINTER
 
-#include DZ_ARCH_FILE( DzBaseArch.h )
+#include "DzBaseArch.h"
 
 #endif // __DzBaseOs_h__
