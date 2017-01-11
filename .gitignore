@@ -1,5 +1,7 @@
 *.suo
 *.sdf
 *.opensdf
+*.VC.opendb
+*.VC.db
 buildtmp/*
 output/*

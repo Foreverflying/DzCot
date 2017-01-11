@@ -855,6 +855,7 @@ CotEntry TcpSvrRecvCloseRoutine( intptr_t context )
             DZ_EXPECT_EQ( sizeof( idx ), ret );
             DzClose( fd );
         }else if( type == 1 ){
+            ret = writeFunc( fd, &idx, sizeof(idx), NULL, 0 );
             DzHandle timer = DzCreateCallbackTimer( 200, FALSE, HelpCloseSocket, (intptr_t)&fd );
             unsigned long long start = DzMilUnixTime();
             ret = readFunc( fd, buff, sizeof( buff ), NULL, NULL );
@@ -908,6 +909,7 @@ CotEntry TcpCltSendCloseRoutine( intptr_t context )
             DZ_EXPECT_EQ( idx, idx1 );
             DzClose( fd );
         }else if( type == 1 ){
+            ret = readFunc( fd, &idx, sizeof(idx), NULL, NULL );
             DzSleep( 2000 );
             DzClose( fd );
         }else{
