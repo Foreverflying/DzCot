@@ -42,16 +42,17 @@ typedef struct _DzIov
 #define inline __inline
 
 // global constants on windows
-#define THREAD_STACK_MIN            ( 64 * 1024 )
-#define DZ_PAGE_STACK_BOUNDARY      ( 65536 )
+#define THREAD_STACK_MIN            (64 * 1024)
+#define DZ_PAGE_STACK_BOUNDARY      (65536)
 
 #ifdef _DEBUG
-#define DZ_MIN_STACK_SIZE           ( 2048 )
+#define DZ_MIN_STACK_SIZE           (2048)
 #else
-#define DZ_MIN_STACK_SIZE           ( 1024 )
+#define DZ_MIN_STACK_SIZE           (1024)
 #endif
 
 // windows specific constants
+#define OVERLAPPED_ENTRY_LIST_SIZE  (1024)
 
 // switchers
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER

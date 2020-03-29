@@ -12,7 +12,7 @@
 
 _TEXT   SEGMENT
 
-; void __stdcall CallDzCotEntry( void );
+; void __stdcall CallDzCotEntry(void);
 _CallDzCotEntry@0 PROC
     lea     edx, [esp+4]
     lea     ecx, [esp]
@@ -22,7 +22,7 @@ _CallDzCotEntry@0 PROC
     call    edi                 ; edi is pointer of function DzCotEntry
 _CallDzCotEntry@0 ENDP
 
-; void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
+; void __fastcall DzSwitch(DzHost* host, DzCot* dzCot);
 ; host$ = ecx
 ; dzCot$ = edx
 @DzSwitch@8 PROC

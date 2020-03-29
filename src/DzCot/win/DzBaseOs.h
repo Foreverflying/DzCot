@@ -11,131 +11,131 @@
 
 #include "../DzStructs.h"
 
-void __cdecl SysThreadMain( void* context );
-void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
+void __cdecl SysThreadMain(void* context);
+void __fastcall DzSwitch(DzHost* host, DzCot* dzCot);
 
 static inline
-void* PageAlloc( size_t size )
+void* PageAlloc(size_t size)
 {
-    return VirtualAlloc( NULL, size, MEM_COMMIT, PAGE_READWRITE );
+    return VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
 }
 
 static inline
-void* PageReserv( size_t size )
+void* PageReserv(size_t size)
 {
-    return VirtualAlloc( NULL, size, MEM_RESERVE, PAGE_READWRITE );
+    return VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_READWRITE);
 }
 
 static inline
-void* PageCommit( void* p, size_t size )
+void* PageCommit(void* p, size_t size)
 {
-    return VirtualAlloc( p, size, MEM_COMMIT, PAGE_READWRITE ) ? p : NULL;
+    return VirtualAlloc(p, size, MEM_COMMIT, PAGE_READWRITE) ? p : NULL;
 }
 
 static inline
-void PageFree( void* p, size_t size )
+void PageFree(void* p, size_t size)
 {
-    VirtualFree( p, 0, MEM_RELEASE );
+    VirtualFree(p, 0, MEM_RELEASE);
 }
 
 static inline
-void StartSystemThread( DzSysParam* param, int stackSize )
+void StartSystemThread(DzSysParam* param, int stackSize)
 {
-    _beginthread( SysThreadMain, stackSize, param );
+    _beginthread(SysThreadMain, stackSize, param);
 }
 
 static inline
-void AwakeRemoteHost( DzHost* dstHost )
+void AwakeRemoteHost(DzHost* dstHost)
 {
-    PostQueuedCompletionStatus( dstHost->os.iocp, 0, 1, (LPOVERLAPPED)1 );
+    PostQueuedCompletionStatus(dstHost->os.iocp, 0, 1, (LPOVERLAPPED)1);
 }
 
 static inline
-void InitSysAutoEvt( DzSysAutoEvt* sysEvt )
+void InitSysAutoEvt(DzSysAutoEvt* sysEvt)
 {
-    sysEvt->event = CreateEvent( NULL, FALSE, FALSE, NULL );
+    sysEvt->event = CreateEvent(NULL, FALSE, FALSE, NULL);
 }
 
 static inline
-void FreeSysAutoEvt( DzSysAutoEvt* sysEvt )
+void FreeSysAutoEvt(DzSysAutoEvt* sysEvt)
 {
-    CloseHandle( sysEvt->event );
+    CloseHandle(sysEvt->event);
 }
 
 static inline
-void WaitSysAutoEvt( DzSysAutoEvt* sysEvt )
+void WaitSysAutoEvt(DzSysAutoEvt* sysEvt)
 {
-    WaitForSingleObject( sysEvt->event, INFINITE );
+    WaitForSingleObject(sysEvt->event, INFINITE);
 }
 
 static inline
-void NotifySysAutoEvt( DzSysAutoEvt* sysEvt )
+void NotifySysAutoEvt(DzSysAutoEvt* sysEvt)
 {
-    SetEvent( sysEvt->event );
+    SetEvent(sysEvt->event);
 }
 
 static inline
-int AtomGetInt( int volatile* val )
-{
-    return *val;
-}
-
-static inline
-void AtomSetInt( int volatile* val, int set )
-{
-    *val = set;
-}
-
-static inline
-void* AtomGetPtr( void* volatile* val )
+int AtomGetInt(int volatile* val)
 {
     return *val;
 }
 
 static inline
-void AtomSetPtr( void* volatile* val, void* set )
+void AtomSetInt(int volatile* val, int set)
 {
     *val = set;
 }
 
 static inline
-int AtomIncInt( int volatile* val )
+void* AtomGetPtr(void* volatile* val)
 {
-    return InterlockedIncrement( (LONG volatile*)val ) - 1;
+    return *val;
 }
 
 static inline
-int AtomDecInt( int volatile* val )
+void AtomSetPtr(void* volatile* val, void* set)
 {
-    return InterlockedDecrement( (LONG volatile*)val ) + 1;
+    *val = set;
 }
 
 static inline
-int AtomAddInt( int volatile* val, int add )
+int AtomIncInt(int volatile* val)
 {
-    return InterlockedExchangeAdd( (LONG volatile*)val, (LONG)add );
+    return InterlockedIncrement((LONG volatile*)val) - 1;
 }
 
 static inline
-int AtomSubInt( int volatile* val, int sub )
+int AtomDecInt(int volatile* val)
 {
-    return InterlockedExchangeAdd( (LONG volatile*)val, (LONG)( - sub ) );
+    return InterlockedDecrement((LONG volatile*)val) + 1;
 }
 
 static inline
-int AtomOrInt( int volatile* val, int mask )
+int AtomAddInt(int volatile* val, int add)
 {
-    return _InterlockedOr( (LONG volatile*)val, (LONG)mask );
+    return InterlockedExchangeAdd((LONG volatile*)val, (LONG)add);
 }
 
 static inline
-int AtomAndInt( int volatile* val, int mask )
+int AtomSubInt(int volatile* val, int sub)
 {
-    return _InterlockedAnd( (LONG volatile*)val, (LONG)mask );
+    return InterlockedExchangeAdd((LONG volatile*)val, (LONG)(- sub));
 }
 
 static inline
-int AtomCasInt( int volatile* val, int cmp, int set )
+int AtomOrInt(int volatile* val, int mask)
+{
+    return _InterlockedOr((LONG volatile*)val, (LONG)mask);
+}
+
+static inline
+int AtomAndInt(int volatile* val, int mask)
+{
+    return _InterlockedAnd((LONG volatile*)val, (LONG)mask);
+}
+
+static inline
+int AtomCasInt(int volatile* val, int cmp, int set)
 {
     return InterlockedCompareExchange(
         (LONG volatile*)val, (LONG)set, (LONG)cmp
@@ -143,7 +143,7 @@ int AtomCasInt( int volatile* val, int cmp, int set )
 }
 
 static inline
-void* AtomCasPtr( void* volatile* val, void* cmp, void* set )
+void* AtomCasPtr(void* volatile* val, void* cmp, void* set)
 {
     return (void*)InterlockedCompareExchangePointer(
         (PVOID volatile*)val, (PVOID)set, (PVOID)cmp
@@ -157,24 +157,24 @@ BOOL AllocTlsIndex()
 {
     int i;
     DWORD tlsIndex;
-    DWORD tlsArr[ DZ_TLS_IDX * 2 ];
+    DWORD tlsArr[DZ_TLS_IDX * 2];
 
     i = 0;
     tlsIndex = TlsAlloc();
-    while( tlsIndex != DZ_TLS_IDX && i < DZ_TLS_IDX * 2 - 1 ){
+    while (tlsIndex != DZ_TLS_IDX && i < DZ_TLS_IDX * 2 - 1) {
         tlsArr[i] = tlsIndex;
         tlsIndex = TlsAlloc();
         i++;
     }
     i--;
-    while( i >= 0 ){
-        TlsFree( tlsArr[i] );
+    while (i >= 0) {
+        TlsFree(tlsArr[i]);
         i--;
     }
-    if( tlsIndex != DZ_TLS_IDX ){
-        TlsFree( tlsIndex );
+    if (tlsIndex != DZ_TLS_IDX) {
+        TlsFree(tlsIndex);
         return FALSE;
-    }else{
+    } else {
         return TRUE;
     }
 }
@@ -182,19 +182,19 @@ BOOL AllocTlsIndex()
 static inline
 void FreeTlsIndex()
 {
-    TlsFree( DZ_TLS_IDX );
+    TlsFree(DZ_TLS_IDX);
 }
 
 static inline
 DzHost* GetHost()
 {
-    return (DzHost*)TlsGetValue( DZ_TLS_IDX );
+    return (DzHost*)TlsGetValue(DZ_TLS_IDX);
 }
 
 static inline
-void SetHost( DzHost* host )
+void SetHost(DzHost* host)
 {
-    TlsSetValue( DZ_TLS_IDX, host );
+    TlsSetValue(DZ_TLS_IDX, host);
 }
 
 #endif  // STORE_HOST_IN_ARBITRARY_USER_POINTER

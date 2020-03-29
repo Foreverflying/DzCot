@@ -14,32 +14,32 @@
 #include "DzBaseOs.h"
 
 static inline
-DzLItr* AtomPopStack( DzLItr** top )
+DzLItr* AtomPopStack(DzLItr** top)
 {
     DzLItr* now;
     DzLItr* origin;
 
     origin = NULL;
-    now = (DzLItr*)AtomGetPtr( (void**)top );
-    while( now && now != origin ){
+    now = (DzLItr*)AtomGetPtr((void**)top);
+    while (now && now != origin) {
         origin = now;
-        now = (DzLItr*)AtomCasPtr( (void**)top, origin, origin->next );
+        now = (DzLItr*)AtomCasPtr((void**)top, origin, origin->next);
     }
     return now;
 }
 
 static inline
-void AtomPushStack( DzLItr** top, DzLItr* lItr )
+void AtomPushStack(DzLItr** top, DzLItr* lItr)
 {
     DzLItr* now;
     DzLItr* origin;
 
-    now = (DzLItr*)AtomGetPtr( (void**)top );
-    do{
+    now = (DzLItr*)AtomGetPtr((void**)top);
+    do {
         lItr->next = now;
         origin = now;
-        now = (DzLItr*)AtomCasPtr( (void**)top, origin, lItr );
-    }while( now != origin );
+        now = (DzLItr*)AtomCasPtr((void**)top, origin, lItr);
+    } while (now != origin);
 }
 
 #endif // __DzBase_h__

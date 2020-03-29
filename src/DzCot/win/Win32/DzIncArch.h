@@ -12,6 +12,6 @@
 typedef int ssize_t;
 
 // for debug check
-#define CHECK_RESERV_SIZE           ( PAGE_SIZE )
+#define CHECK_RESERV_SIZE           (PAGE_SIZE)
 
 #endif // __DzIncArch_h__

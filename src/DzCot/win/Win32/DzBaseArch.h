@@ -16,13 +16,13 @@
 static inline
 DzHost* GetHost()
 {
-    return (DzHost*)__readfsdword( 20 );
+    return (DzHost*)__readfsdword(20);
 }
 
 static inline
-void SetHost( DzHost* host )
+void SetHost(DzHost* host)
 {
-    __writefsdword( 20, (DWORD)host );
+    __writefsdword(20, (DWORD)host);
 }
 
 static inline
@@ -41,13 +41,13 @@ void FreeTlsIndex()
 static inline
 void* GetExceptPtr()
 {
-    return (void*)__readfsdword( 0 );
+    return (void*)__readfsdword(0);
 }
 
 static inline
 char* GetStackPtr()
 {
-    return (char*)__readfsdword( 4 );
+    return (char*)__readfsdword(4);
 }
 
 #endif // __DzBaseArch_h__

@@ -16,13 +16,13 @@
 static inline
 DzHost* GetHost()
 {
-    return *(DzHost**)( __readgsqword( 0x30 ) + 40 );
+    return *(DzHost**)(__readgsqword(0x30) + 40);
 }
 
 static inline
-void SetHost( DzHost* host )
+void SetHost(DzHost* host)
 {
-    *(DzHost**)( __readgsqword( 0x30 ) + 40 ) = host;
+    *(DzHost**)(__readgsqword(0x30) + 40) = host;
 }
 
 static inline
@@ -47,7 +47,7 @@ void* GetExceptPtr()
 static inline
 char* GetStackPtr()
 {
-    return (char*)( __readgsqword( 0x30 ) + 8 );
+    return (char*)(__readgsqword(0x30) + 8);
 }
 
 #endif // __DzBaseArch_h__

@@ -17,70 +17,70 @@
 extern "C"{
 #endif
 
-#if defined( _WIN32 )
+#if defined(_WIN32)
 
 static inline
-int DzAtomGetInt( int volatile* val )
+int DzAtomGetInt(int volatile* val)
 {
     return *val;
 }
 
 static inline
-void DzAtomSetInt( int volatile* val, int set )
+void DzAtomSetInt(int volatile* val, int set)
 {
     *val = set;
 }
 
 static inline
-void* DzAtomGetPtr( void* volatile* val )
+void* DzAtomGetPtr(void* volatile* val)
 {
     return *val;
 }
 
 static inline
-void DzAtomSetPtr( void* volatile* val, void* set )
+void DzAtomSetPtr(void* volatile* val, void* set)
 {
     *val = set;
 }
 
 static inline
-int DzAtomIncInt( int volatile* val )
+int DzAtomIncInt(int volatile* val)
 {
-    return InterlockedIncrement( (LONG volatile*)val ) - 1;
+    return InterlockedIncrement((LONG volatile*)val) - 1;
 }
 
 static inline
-int DzAtomDecInt( int volatile* val )
+int DzAtomDecInt(int volatile* val)
 {
-    return InterlockedDecrement( (LONG volatile*)val ) + 1;
+    return InterlockedDecrement((LONG volatile*)val) + 1;
 }
 
 static inline
-int DzAtomAddInt( int volatile* val, int add )
+int DzAtomAddInt(int volatile* val, int add)
 {
-    return InterlockedExchangeAdd( (LONG volatile*)val, (LONG)add );
+    return InterlockedExchangeAdd((LONG volatile*)val, (LONG)add);
 }
 
 static inline
-int DzAtomSubInt( int volatile* val, int sub )
+int DzAtomSubInt(int volatile* val, int sub)
 {
-    return InterlockedExchangeAdd( (LONG volatile*)val, (LONG)( - sub ) );
+    return InterlockedExchangeAdd((LONG volatile*)val, (LONG)(- sub));
 }
 
 static inline
-int DzAtomOrInt( int volatile* val, int mask )
+int DzAtomOrInt(int volatile* val, int mask)
 {
-    return _InterlockedOr( (LONG volatile*)val, (LONG)mask );
+    return _InterlockedOr((LONG volatile*)val, (LONG)mask);
 }
 
 static inline
-int DzAtomAndInt( int volatile* val, int mask )
+int DzAtomAndInt(int volatile* val, int mask)
 {
-    return _InterlockedAnd( (LONG volatile*)val, (LONG)mask );
+    return _InterlockedAnd((LONG volatile*)val, (LONG)mask);
 }
 
 static inline
-int DzAtomCasInt( int volatile* val, int cmp, int set )
+int DzAtomCasInt(int volatile* val, int cmp, int set)
 {
     return InterlockedCompareExchange(
         (LONG volatile*)val, (LONG)set, (LONG)cmp
@@ -88,99 +88,99 @@ int DzAtomCasInt( int volatile* val, int cmp, int set )
 }
 
 static inline
-void* DzAtomCasPtr( void* volatile* val, void* cmp, void* set )
+void* DzAtomCasPtr(void* volatile* val, void* cmp, void* set)
 {
     return (void*)InterlockedCompareExchangePointer(
         (PVOID volatile*)val, (PVOID)set, (PVOID)cmp
         );
 }
 
-#elif defined( __linux__ )
+#elif defined(__linux__)
 
 static inline
-int DzAtomGetInt( int volatile* val )
+int DzAtomGetInt(int volatile* val)
 {
     return *val;
 }
 
 static inline
-void DzAtomSetInt( int volatile* val, int set )
+void DzAtomSetInt(int volatile* val, int set)
 {
     *val = set;
 }
 
 static inline
-void* DzAtomGetPtr( void* volatile* val )
+void* DzAtomGetPtr(void* volatile* val)
 {
     return *val;
 }
 
 static inline
-void DzAtomSetPtr( void* volatile* val, void* set )
+void DzAtomSetPtr(void* volatile* val, void* set)
 {
     *val = set;
 }
 
 static inline
-int DzAtomIncInt( int volatile* val )
+int DzAtomIncInt(int volatile* val)
 {
-    return __sync_fetch_and_add( val, 1 );
+    return __sync_fetch_and_add(val, 1);
 }
 
 static inline
-int DzAtomDecInt( int volatile* val )
+int DzAtomDecInt(int volatile* val)
 {
-    return __sync_fetch_and_sub( val, 1 );
+    return __sync_fetch_and_sub(val, 1);
 }
 
 static inline
-int DzAtomAddInt( int volatile* val, int add )
+int DzAtomAddInt(int volatile* val, int add)
 {
-    return __sync_fetch_and_add( val, add );
+    return __sync_fetch_and_add(val, add);
 }
 
 static inline
-int DzAtomSubInt( int volatile* val, int sub )
+int DzAtomSubInt(int volatile* val, int sub)
 {
-    return __sync_fetch_and_sub( val, sub );
+    return __sync_fetch_and_sub(val, sub);
 }
 
 static inline
-int DzAtomOrInt( int volatile* val, int mask )
+int DzAtomOrInt(int volatile* val, int mask)
 {
-    return __sync_fetch_and_or( val, mask );
+    return __sync_fetch_and_or(val, mask);
 }
 
 static inline
-int DzAtomAndInt( int volatile* val, int mask )
+int DzAtomAndInt(int volatile* val, int mask)
 {
-    return __sync_fetch_and_and( val, mask );
+    return __sync_fetch_and_and(val, mask);
 }
 
 static inline
-int DzAtomCasInt( int volatile* val, int cmp, int set )
+int DzAtomCasInt(int volatile* val, int cmp, int set)
 {
-    return __sync_val_compare_and_swap( val, cmp, set );
+    return __sync_val_compare_and_swap(val, cmp, set);
 }
 
 static inline
-void* DzAtomCasPtr( void* volatile* val, void* cmp, void* set )
+void* DzAtomCasPtr(void* volatile* val, void* cmp, void* set)
 {
-    return __sync_val_compare_and_swap( val, cmp, set );
+    return __sync_val_compare_and_swap(val, cmp, set);
 }
 
 #endif
 
 static inline
-void DzSpinLock( int volatile* lock )
+void DzSpinLock(int volatile* lock)
 {
-    while( DzAtomCasInt( lock, 0, 1 ) == 1 );
+    while (DzAtomCasInt(lock, 0, 1) == 1);
 }
 
 static inline
-void DzSpinUnlock( int volatile* lock )
+void DzSpinUnlock(int volatile* lock)
 {
-    DzAtomSetInt( lock, 0 );
+    DzAtomSetInt(lock, 0);
 }
 
 #ifdef __cplusplus

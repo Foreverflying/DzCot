@@ -21,55 +21,55 @@
 using namespace std;
 
 #ifdef _MSC_VER
-#pragma warning( disable : 4290 )
+#pragma warning(disable : 4290)
 #endif
 
-void* operator new( size_t count ) throw( bad_alloc )
+void* operator new(size_t count) throw(bad_alloc)
 {
-    void* ret = DzMallocEx( count );
-    if( !ret ){
+    void* ret = DzMallocEx(count);
+    if (!ret) {
         throw bad_alloc();
     }
     return ret;
 }
 
-void operator delete( void* p ) throw()
+void operator delete(void* p) throw()
 {
-    DzFreeEx( p );
+    DzFreeEx(p);
 }
 
-void* operator new[]( size_t count ) throw( bad_alloc )
+void* operator new[](size_t count) throw(bad_alloc)
 {
-    void* ret = DzMallocEx( count );
-    if( !ret ){
+    void* ret = DzMallocEx(count);
+    if (!ret) {
         throw bad_alloc();
     }
     return ret;
 }
 
-void operator delete[]( void* p ) throw()
+void operator delete[](void* p) throw()
 {
-    DzFreeEx( p );
+    DzFreeEx(p);
 }
 
-void* operator new( size_t count, const nothrow_t& ) throw()
+void* operator new(size_t count, const nothrow_t&) throw()
 {
-    return DzMallocEx( count );
+    return DzMallocEx(count);
 }
 
-void operator delete( void* p, const nothrow_t& ) throw()
+void operator delete(void* p, const nothrow_t&) throw()
 {
-    DzFreeEx( p );
+    DzFreeEx(p);
 }
 
-void* operator new[]( size_t count, const nothrow_t& ) throw()
+void* operator new[](size_t count, const nothrow_t&) throw()
 {
-    return DzMallocEx( count );
+    return DzMallocEx(count);
 }
 
-void operator delete[]( void* p, const nothrow_t& ) throw()
+void operator delete[](void* p, const nothrow_t&) throw()
 {
-    DzFreeEx( p );
+    DzFreeEx(p);
 }
 
 #endif

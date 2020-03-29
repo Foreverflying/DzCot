@@ -15,33 +15,33 @@
 // #define __DBG_DEBUG_CHECK_MODE
 
 // global constants
-#define DZ_TLS_IDX                  ( 16 )
-#define CPU_CACHE_ALIGN             ( 64 )
-#define CPU_CACHE_ALIGN_MASK        ( CPU_CACHE_ALIGN - 1 )
-#define PAGE_SIZE                   ( 4096 )
-#define MIN_PERMANENT_CHUNK_SIZE    ( 1024 )
-#define DZ_MAX_STACK_SIZE           ( 1024 * 1024 * 16 )
-#define DZ_MIN_PAGE_STACK_SIZE      ( 16384 )
-#define DZ_PERMENENT_STACK_BOUNDARY ( 1024 )
-#define DZ_MAX_COT_POOL_DEPTH       ( 1024 * 1024 * 64 )
-#define DZ_MAX_WORKER_POOL_DEPTH    ( 1024 )
-#define MEMERY_POOL_GROW_SIZE       ( 16 * 1024 * 1024 )
-#define HANDLE_POOL_SIZE            ( 64 * 1024 * 1024 )
-#define WORKER_STACK_SIZE           ( 65536 )
-#define OBJ_POOL_GROW_COUNT         ( 1024 )
-#define TIME_HEAP_SIZE              ( 1024 * 1024 )
-#define DFT_SSIZE_POOL_DEPTH        ( 64 )
-#define DZ_MAX_IOV                  ( 64 )
-#define DZ_MAX_HOST                 ( 16 )
-#define HANDLE_HOST_ID_MASK         ( DZ_MAX_HOST - 1 )
-#define RMT_CHECK_AWAKE_SIGN        ( 1 << 31 )
-#define RMT_CALL_FIFO_SIZE          ( 64 )
-#define MIN_TIME_INTERVAL           ( 5 )
-#define SCHEDULE_COUNTDOWN          ( 256 )
-#define LAZY_TIMER_INTERVAL         ( 4096 )
+#define DZ_TLS_IDX                  (16)
+#define CPU_CACHE_ALIGN             (64)
+#define CPU_CACHE_ALIGN_MASK        (CPU_CACHE_ALIGN - 1)
+#define PAGE_SIZE                   (4096)
+#define MIN_PERMANENT_CHUNK_SIZE    (1024)
+#define DZ_MAX_STACK_SIZE           (1024 * 1024 * 16)
+#define DZ_MIN_PAGE_STACK_SIZE      (16384)
+#define DZ_PERMENENT_STACK_BOUNDARY (1024)
+#define DZ_MAX_COT_POOL_DEPTH       (1024 * 1024 * 64)
+#define DZ_MAX_WORKER_POOL_DEPTH    (1024)
+#define MEMERY_POOL_GROW_SIZE       (16 * 1024 * 1024)
+#define HANDLE_POOL_SIZE            (64 * 1024 * 1024)
+#define WORKER_STACK_SIZE           (65536)
+#define OBJ_POOL_GROW_COUNT         (1024)
+#define TIME_HEAP_SIZE              (1024 * 1024)
+#define DFT_SSIZE_POOL_DEPTH        (64)
+#define DZ_MAX_IOV                  (64)
+#define DZ_MAX_HOST                 (16)
+#define HANDLE_HOST_ID_MASK         (DZ_MAX_HOST - 1)
+#define RMT_CHECK_AWAKE_SIGN        (1 << 31)
+#define RMT_CALL_FIFO_SIZE          (64)
+#define MIN_TIME_INTERVAL           (5)
+#define SCHEDULE_COUNTDOWN          (256)
+#define LAZY_TIMER_INTERVAL         (4096)
 
 // predefines
-typedef void (__stdcall *DzEntry)( intptr_t context );
+typedef void (__stdcall *DzEntry)(intptr_t context);
 
 enum{
     RMT_PKG_SYNOBJ_EVT,

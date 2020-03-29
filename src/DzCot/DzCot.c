@@ -25,11 +25,11 @@ int DzRunHosts(
     DzEntry     cleanEntry
     )
 {
-    assert( !GetHost() );
-    assert( hostCount >= 0 && hostCount <= DZ_MAX_HOST );
-    assert( smallStackSize > 0 && smallStackSize <= DZ_MAX_STACK_SIZE );
-    assert( middleStackSize > 0 && middleStackSize <= DZ_MAX_STACK_SIZE );
-    assert( largeStackSize > 0 && largeStackSize <= DZ_MAX_STACK_SIZE );
+    assert(!GetHost());
+    assert(hostCount >= 0 && hostCount <= DZ_MAX_HOST);
+    assert(smallStackSize > 0 && smallStackSize <= DZ_MAX_STACK_SIZE);
+    assert(middleStackSize > 0 && middleStackSize <= DZ_MAX_STACK_SIZE);
+    assert(largeStackSize > 0 && largeStackSize <= DZ_MAX_STACK_SIZE);
     assert(
         lowestPri >= CP_FIRST &&
         lowestPri < COT_PRIORITY_COUNT
@@ -42,7 +42,7 @@ int DzRunHosts(
         dftSType >= ST_FIRST &&
         dftSType < STACK_TYPE_COUNT
         );
-    assert( firstEntry );
+    assert(firstEntry);
 
     return RunHosts(
         hostCount, smallStackSize, middleStackSize, largeStackSize,
@@ -58,18 +58,18 @@ int DzStartCot(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( entry );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(entry);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return StartCot( host, entry, context, priority, sType );
+    return StartCot(host, entry, context, priority, sType);
 }
 
 int DzStartCotInstant(
@@ -80,18 +80,18 @@ int DzStartCotInstant(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( entry );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(entry);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return StartCotInstant( host, entry, context, priority, sType );
+    return StartCotInstant(host, entry, context, priority, sType);
 }
 
 int DzEvtStartCot(
@@ -103,19 +103,19 @@ int DzEvtStartCot(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
-    assert( entry );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT);
+    assert(entry);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return EvtStartCot( host, evt, entry, context, priority, sType );
+    return EvtStartCot(host, evt, entry, context, priority, sType);
 }
 
 int DzEvtStartCotInstant(
@@ -127,19 +127,19 @@ int DzEvtStartCotInstant(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
-    assert( entry );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT);
+    assert(entry);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return EvtStartCotInstant( host, evt, entry, context, priority, sType );
+    return EvtStartCotInstant(host, evt, entry, context, priority, sType);
 }
 
 int DzStartRemoteCot(
@@ -151,20 +151,20 @@ int DzStartRemoteCot(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( rmtId >= 0 && rmtId < host->hostCount );
-    assert( host->hostId != rmtId );
-    assert( entry );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(rmtId >= 0 && rmtId < host->hostCount);
+    assert(host->hostId != rmtId);
+    assert(entry);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return StartRemoteCot( host, rmtId, entry, context, priority, sType );
+    return StartRemoteCot(host, rmtId, entry, context, priority, sType);
 }
 
 int DzEvtStartRemoteCot(
@@ -177,21 +177,21 @@ int DzEvtStartRemoteCot(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT );
-    assert( rmtId >= 0 && rmtId < host->hostCount );
-    assert( host->hostId != rmtId );
-    assert( entry );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(evt->type >= TYPE_EVT_AUTO && evt->type <= TYPE_EVT_COUNT);
+    assert(rmtId >= 0 && rmtId < host->hostCount);
+    assert(host->hostId != rmtId);
+    assert(entry);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return EvtStartRemoteCot( host, evt, rmtId, entry, context, priority, sType );
+    return EvtStartRemoteCot(host, evt, rmtId, entry, context, priority, sType);
 }
 
 int DzRunRemoteCot(
@@ -203,261 +203,261 @@ int DzRunRemoteCot(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( rmtId >= 0 && rmtId < host->hostCount );
-    assert( host->hostId != rmtId );
-    assert( entry );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(rmtId >= 0 && rmtId < host->hostCount);
+    assert(host->hostId != rmtId);
+    assert(entry);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return RunRemoteCot( host, rmtId, entry, context, priority, sType );
+    return RunRemoteCot(host, rmtId, entry, context, priority, sType);
 }
 
-int DzRunWorker( DzEntry entry, intptr_t context )
+int DzRunWorker(DzEntry entry, intptr_t context)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( entry );
+    assert(host);
+    assert(entry);
 
-    return RunWorker( host, entry, context );
+    return RunWorker(host, entry, context);
 }
 
 intptr_t DzGetCotData()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return GetCotData( host );
+    return GetCotData(host);
 }
 
-void DzSetCotData( intptr_t data )
+void DzSetCotData(intptr_t data)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    SetCotData( host, data );
+    SetCotData(host, data);
 }
 
 int DzGetCotCount()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return GetCotCount( host );
+    return GetCotCount(host);
 }
 
 int DzGetHostId()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return GetHostId( host );
+    return GetHostId(host);
 }
 
-int DzSetPriority( int priority )
+int DzSetPriority(int priority)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( priority <= host->lowestPri );
+    assert(host);
+    assert(priority <= host->lowestPri);
 
-    return SetCurrCotPriority( host, priority );
+    return SetCurrCotPriority(host, priority);
 }
 
-int DzSetCotPoolDepth( int sType, int depth )
+int DzSetCotPoolDepth(int sType, int depth)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
-    assert( depth <= DZ_MAX_COT_POOL_DEPTH );
+    assert(host);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
+    assert(depth <= DZ_MAX_COT_POOL_DEPTH);
 
-    return SetCotPoolDepth( host, sType, depth );
+    return SetCotPoolDepth(host, sType, depth);
 }
 
-int DzSetWorkerPoolDepth( int depth )
+int DzSetWorkerPoolDepth(int depth)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( depth >= 0 && depth <= DZ_MAX_WORKER_POOL_DEPTH );
+    assert(host);
+    assert(depth >= 0 && depth <= DZ_MAX_WORKER_POOL_DEPTH);
 
-    return SetWorkerPoolDepth( host, depth );
+    return SetWorkerPoolDepth(host, depth);
 }
 
-int DzSetHostParam( int lowestPri, int dftPri, int dftSType )
+int DzSetHostParam(int lowestPri, int dftPri, int dftSType)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
     assert(
         lowestPri >= CP_FIRST &&
         lowestPri < COT_PRIORITY_COUNT
         );
-    assert( dftPri <= lowestPri );
-    assert( dftSType < STACK_TYPE_COUNT );
+    assert(dftPri <= lowestPri);
+    assert(dftSType < STACK_TYPE_COUNT);
 
-    return SetHostParam( host, lowestPri, dftPri, dftSType );
+    return SetHostParam(host, lowestPri, dftPri, dftSType);
 }
 
-int DzSetHostIoReaction( int rate )
+int DzSetHostIoReaction(int rate)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return SetHostIoReaction( host, rate );
+    return SetHostIoReaction(host, rate);
 }
 
-int DzWaitSynObj( DzHandle obj, int timeout )
+int DzWaitSynObj(DzHandle obj, int timeout)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( obj->type <= TYPE_MAX_USER_CAN_WAIT );
-    assert( timeout <= 0 || host->timerCount < TIME_HEAP_SIZE );
+    assert(host);
+    assert(obj->type <= TYPE_MAX_USER_CAN_WAIT);
+    assert(timeout <= 0 || host->timerCount < TIME_HEAP_SIZE);
 
-    return WaitSynObj( host, obj, timeout );
+    return WaitSynObj(host, obj, timeout);
 }
 
-int DzWaitMultiSynObj( int count, DzHandle* objs, BOOL waitAll, int timeout )
+int DzWaitMultiSynObj(int count, DzHandle* objs, BOOL waitAll, int timeout)
 {
     int i;
     DzHost* host = GetHost();
-    assert( host );
-    assert( timeout <= 0 || host->timerCount < TIME_HEAP_SIZE );
-    assert( objs );
-    assert( count > 0 );
-    for( i = 0; i < count; i++ ){
-        assert( objs[i]->type <= TYPE_MAX_USER_CAN_WAIT );
+    assert(host);
+    assert(timeout <= 0 || host->timerCount < TIME_HEAP_SIZE);
+    assert(objs);
+    assert(count > 0);
+    for (i = 0; i < count; i++) {
+        assert(objs[i]->type <= TYPE_MAX_USER_CAN_WAIT);
     }
 
-    return WaitMultiSynObj( host, count, objs, waitAll, timeout );
+    return WaitMultiSynObj(host, count, objs, waitAll, timeout);
 }
 
-DzHandle DzCreateMtx( BOOL owner )
+DzHandle DzCreateMtx(BOOL owner)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return CreateAutoEvt( host, !owner );
+    return CreateAutoEvt(host, !owner);
 }
 
-BOOL DzReleaseMtx( DzHandle mtx )
+BOOL DzReleaseMtx(DzHandle mtx)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( mtx->type == TYPE_EVT_AUTO );
+    assert(host);
+    assert(mtx->type == TYPE_EVT_AUTO);
 
-    SetEvt( host, mtx );
+    SetEvt(host, mtx);
     return TRUE;
 }
 
-DzHandle DzCreateManualEvt( BOOL notified )
+DzHandle DzCreateManualEvt(BOOL notified)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return CreateManualEvt( host, notified );
+    return CreateManualEvt(host, notified);
 }
 
-DzHandle DzCreateAutoEvt( BOOL notified )
+DzHandle DzCreateAutoEvt(BOOL notified)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return CreateAutoEvt( host, notified );
+    return CreateAutoEvt(host, notified);
 }
 
-DzHandle DzCreateCdEvt( u_int count )
+DzHandle DzCreateCdEvt(u_int count)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( count >= 0 );
+    assert(host);
+    assert(count >= 0);
 
-    return CreateCdEvt( host, count );
+    return CreateCdEvt(host, count);
 }
 
-BOOL DzSetEvt( DzHandle evt )
+BOOL DzSetEvt(DzHandle evt)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
     assert(
         evt->type == TYPE_EVT_AUTO ||
         evt->type == TYPE_EVT_MANUAL ||
         evt->type == TYPE_EVT_COUNT
         );
 
-    SetEvt( host, evt );
+    SetEvt(host, evt);
     return TRUE;
 }
 
-BOOL DzResetEvt( DzHandle evt )
+BOOL DzResetEvt(DzHandle evt)
 {
-    assert( GetHost() );
+    assert(GetHost());
     assert(
         evt->type == TYPE_EVT_AUTO ||
         evt->type == TYPE_EVT_MANUAL ||
         evt->type == TYPE_EVT_COUNT
         );
 
-    ResetEvt( evt );
+    ResetEvt(evt);
     return TRUE;
 }
 
-DzHandle DzCreateSem( int count )
+DzHandle DzCreateSem(int count)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( count >= 0 );
+    assert(host);
+    assert(count >= 0);
 
-    return CreateSem( host, count );
+    return CreateSem(host, count);
 }
 
-int DzReleaseSem( DzHandle sem, int count )
+int DzReleaseSem(DzHandle sem, int count)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( sem->type == TYPE_SEM );
-    assert( count > 0 );
-    assert( sem->notifyCount + count > sem->notifyCount );
+    assert(host);
+    assert(sem->type == TYPE_SEM);
+    assert(count > 0);
+    assert(sem->notifyCount + count > sem->notifyCount);
 
-    return ReleaseSem( host, sem, count );
+    return ReleaseSem(host, sem, count);
 }
 
-DzHandle DzCreateTimer( int milSec, BOOL repeat )
+DzHandle DzCreateTimer(int milSec, BOOL repeat)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( milSec > 0 );
-    assert( host->timerCount < TIME_HEAP_SIZE );
+    assert(host);
+    assert(milSec > 0);
+    assert(host->timerCount < TIME_HEAP_SIZE);
 
-    return CreateTimer( host, milSec, repeat );
+    return CreateTimer(host, milSec, repeat);
 }
 
-BOOL DzIsNotified( DzHandle obj )
+BOOL DzIsNotified(DzHandle obj)
 {
-    assert( GetHost() );
-    assert( obj->type <= TYPE_MAX_USER_CAN_WAIT );
+    assert(GetHost());
+    assert(obj->type <= TYPE_MAX_USER_CAN_WAIT);
 
-    return IsNotified( obj );
+    return IsNotified(obj);
 }
 
-DzHandle DzCloneSynObj( DzHandle obj )
+DzHandle DzCloneSynObj(DzHandle obj)
 {
-    assert( GetHost() );
-    assert( obj->type <= TYPE_MAX_USER_CAN_WAIT );
+    assert(GetHost());
+    assert(obj->type <= TYPE_MAX_USER_CAN_WAIT);
 
-    return CloneSynObj( obj );
+    return CloneSynObj(obj);
 }
 
-BOOL DzDelSynObj( DzHandle obj )
+BOOL DzDelSynObj(DzHandle obj)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( obj->type != TYPE_CALLBACK_TIMER );
+    assert(host);
+    assert(obj->type != TYPE_CALLBACK_TIMER);
 
-    DelSynObj( host, obj );
+    DelSynObj(host, obj);
     return TRUE;
 }
 
@@ -471,195 +471,195 @@ DzHandle DzCreateCallbackTimer(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    if( priority == CP_DEFAULT ){
+    assert(host);
+    if (priority == CP_DEFAULT) {
         priority = host->dftPri;
     }
-    if( sType == ST_DEFAULT ){
+    if (sType == ST_DEFAULT) {
         sType = host->dftSType;
     }
-    assert( milSec > 0 );
-    assert( host->timerCount < TIME_HEAP_SIZE );
-    assert( callback );
-    assert( priority >= CP_FIRST && priority <= host->lowestPri );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(milSec > 0);
+    assert(host->timerCount < TIME_HEAP_SIZE);
+    assert(callback);
+    assert(priority >= CP_FIRST && priority <= host->lowestPri);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return CreateCallbackTimer( host, milSec, repeat, callback, context, priority, sType );
+    return CreateCallbackTimer(host, milSec, repeat, callback, context, priority, sType);
 }
 
-BOOL DzDelCallbackTimer( DzHandle timer )
+BOOL DzDelCallbackTimer(DzHandle timer)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( timer->type == TYPE_CALLBACK_TIMER );
+    assert(host);
+    assert(timer->type == TYPE_CALLBACK_TIMER);
 
-    CloseCallbackTimer( host, timer );
+    CloseCallbackTimer(host, timer);
     return TRUE;
 }
 
-void DzSleep( int milSec )
+void DzSleep(int milSec)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( milSec >= 0 );
-    assert( milSec == 0 || host->timerCount < TIME_HEAP_SIZE );
+    assert(host);
+    assert(milSec >= 0);
+    assert(milSec == 0 || host->timerCount < TIME_HEAP_SIZE);
 
-    if( milSec > 0 ){
-        DelayCurrCot( host, milSec );
-    }else{
-        DispatchCurrCot( host );
+    if (milSec > 0) {
+        DelayCurrCot(host, milSec);
+    } else {
+        DispatchCurrCot(host);
     }
 }
 
-int DzSocket( int domain, int type, int protocol )
+int DzSocket(int domain, int type, int protocol)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return Socket( host, domain, type, protocol );
+    return Socket(host, domain, type, protocol);
 }
 
-intptr_t DzRawSocket( int fd )
+intptr_t DzRawSocket(int fd)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return RawSocket( host, fd );
+    return RawSocket(host, fd);
 }
 
-int DzGetSockOpt( int fd, int level, int name, void* option, socklen_t* len )
+int DzGetSockOpt(int fd, int level, int name, void* option, socklen_t* len)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return GetSockOpt( host, fd, level, name, option, len );
+    return GetSockOpt(host, fd, level, name, option, len);
 }
 
-int DzSetSockOpt( int fd, int level, int name, const void* option, socklen_t len )
+int DzSetSockOpt(int fd, int level, int name, const void* option, socklen_t len)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( !( level == SOL_SOCKET && name == SO_LINGER ) );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
+    assert(!(level == SOL_SOCKET && name == SO_LINGER));
 
-    return SetSockOpt( host, fd, level, name, option, len );
+    return SetSockOpt(host, fd, level, name, option, len);
 }
 
-int DzGetSockName( int fd, struct sockaddr* addr, socklen_t* addrLen )
+int DzGetSockName(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return GetSockName( host, fd, addr, addrLen );
+    return GetSockName(host, fd, addr, addrLen);
 }
 
-int DzGetPeerName( int fd, struct sockaddr* addr, socklen_t* addrLen )
+int DzGetPeerName(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return GetPeerName( host, fd, addr, addrLen );
+    return GetPeerName(host, fd, addr, addrLen);
 }
 
-int DzBind( int fd, const struct sockaddr* addr, socklen_t addrLen )
+int DzBind(int fd, const struct sockaddr* addr, socklen_t addrLen)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Bind( host, fd, addr, addrLen );
+    return Bind(host, fd, addr, addrLen);
 }
 
-int DzListen( int fd, int backlog )
+int DzListen(int fd, int backlog)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Listen( host, fd, backlog );
+    return Listen(host, fd, backlog);
 }
 
-int DzShutdown( int fd, int how )
+int DzShutdown(int fd, int how)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Shutdown( host, fd, how );
+    return Shutdown(host, fd, how);
 }
 
-int DzConnect( int fd, const struct sockaddr* addr, socklen_t addrLen )
+int DzConnect(int fd, const struct sockaddr* addr, socklen_t addrLen)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Connect( host, fd, addr, addrLen );
+    return Connect(host, fd, addr, addrLen);
 }
 
-int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen )
+int DzAccept(int fd, struct sockaddr* addr, socklen_t* addrLen)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Accept( host, fd, addr, addrLen );
+    return Accept(host, fd, addr, addrLen);
 }
 
-int DzIovSend( int fd, DzIov* bufs, size_t bufCount, int flags )
+int DzIovSend(int fd, DzIov* bufs, size_t bufCount, int flags)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
+    assert(bufCount > 0 && bufCount <= DZ_MAX_IOV);
 
-    return IovSend( host, fd, bufs, bufCount, flags );
+    return IovSend(host, fd, bufs, bufCount, flags);
 }
 
-int DzIovRecv( int fd, DzIov* bufs, size_t bufCount, int flags )
+int DzIovRecv(int fd, DzIov* bufs, size_t bufCount, int flags)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
+    assert(bufCount > 0 && bufCount <= DZ_MAX_IOV);
 
-    return IovRecv( host, fd, bufs, bufCount, flags );
+    return IovRecv(host, fd, bufs, bufCount, flags);
 }
 
-int DzSend( int fd, const void* buf, size_t len, int flags )
+int DzSend(int fd, const void* buf, size_t len, int flags)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Send( host, fd, buf, len, flags );
+    return Send(host, fd, buf, len, flags);
 }
 
-int DzRecv( int fd, void* buf, size_t len, int flags )
+int DzRecv(int fd, void* buf, size_t len, int flags)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Recv( host, fd, buf, len, flags );
+    return Recv(host, fd, buf, len, flags);
 }
 
 int DzIovSendTo(
@@ -672,12 +672,12 @@ int DzIovSendTo(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
+    assert(bufCount > 0 && bufCount <= DZ_MAX_IOV);
 
-    return IovSendTo( host, fd, bufs, bufCount, flags, to, tolen );
+    return IovSendTo(host, fd, bufs, bufCount, flags, to, tolen);
 }
 
 int DzIovRecvFrom(
@@ -690,12 +690,12 @@ int DzIovRecvFrom(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
-    assert( bufCount > 0 && bufCount <= DZ_MAX_IOV );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
+    assert(bufCount > 0 && bufCount <= DZ_MAX_IOV);
 
-    return IovRecvFrom( host, fd, bufs, bufCount, flags, from, fromlen );
+    return IovRecvFrom(host, fd, bufs, bufCount, flags, from, fromlen);
 }
 
 int DzSendTo(
@@ -708,11 +708,11 @@ int DzSendTo(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return SendTo( host, fd, buf, len, flags, to, tolen );
+    return SendTo(host, fd, buf, len, flags, to, tolen);
 }
 
 int DzRecvFrom(
@@ -725,11 +725,11 @@ int DzRecvFrom(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return RecvFrom( host, fd, buf, len, flags, from, fromlen );
+    return RecvFrom(host, fd, buf, len, flags, from, fromlen);
 }
 
 int DzGetNameInfo(
@@ -743,9 +743,9 @@ int DzGetNameInfo(
     )
 {
     DzHost* dzHost = GetHost();
-    assert( dzHost );
+    assert(dzHost);
 
-    return DGetNameInfo( dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags );
+    return DGetNameInfo(dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags);
 }
 
 int DzGetAddrInfo(
@@ -756,174 +756,174 @@ int DzGetAddrInfo(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return DGetAddrInfo( host, node, service, hints, res );
+    return DGetAddrInfo(host, node, service, hints, res);
 }
 
-void DzFreeAddrInfo( struct addrinfo *res )
+void DzFreeAddrInfo(struct addrinfo *res)
 {
-    DFreeAddrInfo( res );
+    DFreeAddrInfo(res);
 }
 
-int DzInetPton( int af, const char* src, void* dst )
+int DzInetPton(int af, const char* src, void* dst)
 {
-    return DInetPton( af, src, dst );
+    return DInetPton(af, src, dst);
 }
 
-const char* DzInetNtop( int af, const void* src, char* dst, socklen_t size )
+const char* DzInetNtop(int af, const void* src, char* dst, socklen_t size)
 {
-    return DInetNtop( af, src, dst, size );
+    return DInetNtop(af, src, dst, size);
 }
 
-int DzOpen( const char* fileName, int flags )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return Open( host, fileName, flags );
-}
-
-ssize_t DzRead( int fd, void* buf, size_t count )
+int DzOpen(const char* fileName, int flags)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
 
-    return Read( host, fd, buf, count );
+    return Open(host, fileName, flags);
 }
 
-ssize_t DzWrite( int fd, const void* buf, size_t count )
+ssize_t DzRead(int fd, void* buf, size_t count)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Write( host, fd, buf, count );
+    return Read(host, fd, buf, count);
 }
 
-size_t DzSeek( int fd, ssize_t offset, int whence )
+ssize_t DzWrite(int fd, const void* buf, size_t count)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Seek( host, fd, offset, whence );
+    return Write(host, fd, buf, count);
 }
 
-size_t DzFileSize( int fd )
+size_t DzSeek(int fd, ssize_t offset, int whence)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return FileSize( host, fd );
+    return Seek(host, fd, offset, whence);
 }
 
-intptr_t DzGetFdData( int fd )
+size_t DzFileSize(int fd)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return GetFdData( host, fd );
+    return FileSize(host, fd);
 }
 
-void DzSetFdData( int fd, intptr_t data )
+intptr_t DzGetFdData(int fd)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    SetFdData( host, fd, data );
+    return GetFdData(host, fd);
 }
 
-int DzClose( int fd )
+void DzSetFdData(int fd, intptr_t data)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( fd >= 0 );
-    assert( ( fd & HANDLE_HOST_ID_MASK ) == host->hostId );
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
 
-    return Close( host, fd );
+    SetFdData(host, fd, data);
+}
+
+int DzClose(int fd)
+{
+    DzHost* host = GetHost();
+    assert(host);
+    assert(fd >= 0);
+    assert((fd & HANDLE_HOST_ID_MASK) == host->hostId);
+
+    return Close(host, fd);
 }
 
 DzParamNode* DzAllocParamNode()
 {
     DzParamNode* ret;
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    ret = AllocLNode( host );
-    __Dbg( AllocParamNode )( host, ret );
+    ret = AllocLNode(host);
+    __Dbg(AllocParamNode)(host, ret);
     return ret;
 }
 
-void DzFreeParamNode( DzParamNode* node )
+void DzFreeParamNode(DzParamNode* node)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( node );
+    assert(host);
+    assert(node);
 
-    __Dbg( FreeParamNode )( host, node );
-    FreeLNode( host, (DzLNode*)node );
+    __Dbg(FreeParamNode)(host, node);
+    FreeLNode(host, (DzLNode*)node);
 }
 
-void* DzAllocPermanentChunk( size_t size )
+void* DzAllocPermanentChunk(size_t size)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( size % MIN_PERMANENT_CHUNK_SIZE == 0 );
+    assert(host);
+    assert(size % MIN_PERMANENT_CHUNK_SIZE == 0);
 
-    return AllocChunk( host, size );
+    return AllocChunk(host, size);
 }
 
-void* DzPageAlloc( size_t size )
+void* DzPageAlloc(size_t size)
 {
-    return PageAlloc( size );
+    return PageAlloc(size);
 }
 
-void DzPageFree( void* p, size_t size )
+void DzPageFree(void* p, size_t size)
 {
-    PageFree( p, size );
+    PageFree(p, size);
 }
 
-void* DzMalloc( size_t size )
-{
-    DzHost* host = GetHost();
-    assert( host );
-
-    return Malloc( host, size );
-}
-
-void DzFree( void* p )
+void* DzMalloc(size_t size)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    Free( host, p );
+    return Malloc(host, size);
 }
 
-void* DzMallocEx( size_t size )
+void DzFree(void* p)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return MallocEx( host, size );
+    Free(host, p);
 }
 
-void DzFreeEx( void* p )
+void* DzMallocEx(size_t size)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    FreeEx( host, p );
+    return MallocEx(host, size);
+}
+
+void DzFreeEx(void* p)
+{
+    DzHost* host = GetHost();
+    assert(host);
+
+    FreeEx(host, p);
 }
 
 unsigned long long DzUnixTime()
@@ -934,15 +934,15 @@ unsigned long long DzUnixTime()
 unsigned long long DzMilUnixTime()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return (unsigned long long)MilUnixTime( host );
+    return (unsigned long long)MilUnixTime(host);
 }
 
 unsigned long long DzLatestMilUnixTime()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
     return (unsigned long long)host->latestMilUnixTime;
 }
@@ -950,48 +950,48 @@ unsigned long long DzLatestMilUnixTime()
 int __DzDbgLastErr()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return __Dbg( GetLastErr )( host );
+    return __Dbg(GetLastErr)(host);
 }
 
-int __DzDbgMaxStackUse( int sType )
+int __DzDbgMaxStackUse(int sType)
 {
     DzHost* host = GetHost();
-    assert( host );
-    assert( sType >= ST_FIRST && sType < STACK_TYPE_COUNT );
+    assert(host);
+    assert(sType >= ST_FIRST && sType < STACK_TYPE_COUNT);
 
-    return __Dbg( GetMaxStackUse )( host, sType );
+    return __Dbg(GetMaxStackUse)(host, sType);
 }
 
 int __DzDbgSynObjLeak()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return __Dbg( GetSynObjLeak )( host );
+    return __Dbg(GetSynObjLeak)(host);
 }
 
 int __DzDbgFdLeak()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return __Dbg( GetFdLeak )( host );
+    return __Dbg(GetFdLeak)(host);
 }
 
 int __DzDbgHeapLeak()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return __Dbg( GetHeapLeak )( host );
+    return __Dbg(GetHeapLeak)(host);
 }
 
 int __DzDbgParamNodeLeak()
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return __Dbg( GetParamNodeLeak )( host );
+    return __Dbg(GetParamNodeLeak)(host);
 }

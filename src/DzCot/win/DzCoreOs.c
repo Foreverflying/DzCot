@@ -9,36 +9,36 @@
 #include "../DzInc.h"
 #include "../DzCore.h"
 
-void __cdecl SysThreadMain( void* context )
+void __cdecl SysThreadMain(void* context)
 {
     DzSysParam* param = (DzSysParam*)context;
-    param->threadEntry( (intptr_t)param );
+    param->threadEntry((intptr_t)param);
 }
 
-DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
+DzCot* InitCot(DzHost* host, DzCot* dzCot, int sType)
 {
     int size;
 
-    size = host->cotStackSize[ sType ];
-    if( size < DZ_MIN_PAGE_STACK_SIZE ){
-        dzCot->stackLimit = (char*)AllocChunk( host, size );
-        if( !dzCot->stackLimit ){
+    size = host->cotStackSize[sType];
+    if (size < DZ_MIN_PAGE_STACK_SIZE) {
+        dzCot->stackLimit = (char*)AllocChunk(host, size);
+        if (!dzCot->stackLimit) {
             return NULL;
         }
         dzCot->stack = dzCot->stackLimit + size;
-    }else{
-        dzCot->stack = AllocStack( host, size );
-        if( !dzCot->stack ){
+    } else {
+        dzCot->stack = AllocStack(host, size);
+        if (!dzCot->stack) {
             return NULL;
         }
-        dzCot->stackLimit = CommitStack( dzCot->stack, PAGE_SIZE * 3 );
-        if( !dzCot->stackLimit )
+        dzCot->stackLimit = CommitStack(dzCot->stack, PAGE_SIZE * 3);
+        if (!dzCot->stackLimit)
         {
             return NULL;
         }
     }
     dzCot->sType = sType;
-    InitCotStack( host, dzCot );
+    InitCotStack(host, dzCot);
     return dzCot;
 }
 
@@ -46,9 +46,9 @@ DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
 
 #include <tchar.h>
 #include <DbgHelp.h>
-#pragma comment( lib, "DbgHelp.lib" )
+#pragma comment(lib, "DbgHelp.lib")
 
-int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
+int MiniDumpExpFilter(LPEXCEPTION_POINTERS exception)
 {
     int size;
     HANDLE dumpFile;
@@ -58,9 +58,9 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
     dumpExpInfo.ThreadId = GetCurrentThreadId();
     dumpExpInfo.ExceptionPointers = exception;
     dumpExpInfo.ClientPointers = TRUE;
-    size = GetModuleFileName( NULL, fileName, MAX_PATH );
-    _stprintf( fileName + size, _T("%s"), _T(".dmp") );
-    dumpFile = CreateFile( fileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+    size = GetModuleFileName(NULL, fileName, MAX_PATH);
+    _stprintf(fileName + size, _T("%s"), _T(".dmp"));
+    dumpFile = CreateFile(fileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     MiniDumpWriteDump(
         GetCurrentProcess(),
         GetCurrentProcessId(),
@@ -70,13 +70,13 @@ int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
         NULL,
         NULL
         );
-    CloseHandle( dumpFile );
+    CloseHandle(dumpFile);
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
 #else
 
-int MiniDumpExpFilter( LPEXCEPTION_POINTERS exception )
+int MiniDumpExpFilter(LPEXCEPTION_POINTERS exception)
 {
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -93,42 +93,42 @@ void __stdcall DzCotEntry(
     intptr_t volatile*  contextPtr
     )
 {
-    __Dbg( MarkCurrStackForCheck )( host );
+    __Dbg(MarkCurrStackForCheck)(host);
     __try{
-        while(1){
+        while (1) {
             // call the entry
-            ( *entryPtr )( *contextPtr );
+            (*entryPtr)(*contextPtr);
 
             // free the cot
             host->cotCount--;
-            FreeDzCot( host, host->currCot );
+            FreeDzCot(host, host->currCot);
 
             // then schedule another cot
-            Schedule( host );
+            Schedule(host);
         }
-    }__except( MiniDumpExpFilter( GetExceptionInformation() ) ){
-        exit( 0 );
+    }__except(MiniDumpExpFilter(GetExceptionInformation())) {
+        exit(0);
     }
 }
 
 static inline
-void GetWinSockFunc( SOCKET tmpSock, GUID* guid, void* funcAddr )
+void GetWinSockFunc(SOCKET tmpSock, GUID* guid, void* funcAddr)
 {
     DWORD bytes;
     WSAIoctl(
         tmpSock,
         SIO_GET_EXTENSION_FUNCTION_POINTER,
         guid,
-        (DWORD)sizeof( GUID ),
+        (DWORD)sizeof(GUID),
         funcAddr,
-        (DWORD)sizeof( void* ),
+        (DWORD)sizeof(void*),
         &bytes,
         NULL,
         NULL
         );
 }
 
-BOOL SockStartup( DzOsStruct* osStruct )
+BOOL SockStartup(DzHost* host)
 {
     BOOL ret;
     WSADATA data;
@@ -138,14 +138,14 @@ BOOL SockStartup( DzOsStruct* osStruct )
     GUID guidConnectEx = WSAID_CONNECTEX;
     GUID guidGetAcceptExSockAddrs = WSAID_GETACCEPTEXSOCKADDRS;
 
-    wVer = MAKEWORD( 2, 2 );
-    ret = WSAStartup( wVer, &data ) == 0;
-    if( ret ){
-        tmpSock = socket( AF_INET, SOCK_STREAM, 0 );
-        GetWinSockFunc( tmpSock, &guidAcceptEx, &osStruct->_AcceptEx );
-        GetWinSockFunc( tmpSock, &guidConnectEx, &osStruct->_ConnectEx );
-        GetWinSockFunc( tmpSock, &guidGetAcceptExSockAddrs, &osStruct->_GetAcceptExSockAddrs );
-        closesocket( tmpSock );
+    wVer = MAKEWORD(2, 2);
+    ret = WSAStartup(wVer, &data) == 0;
+    if (ret) {
+        tmpSock = socket(AF_INET, SOCK_STREAM, 0);
+        GetWinSockFunc(tmpSock, &guidAcceptEx, &host->readonly._AcceptEx);
+        GetWinSockFunc(tmpSock, &guidConnectEx, &host->readonly._ConnectEx);
+        GetWinSockFunc(tmpSock, &guidGetAcceptExSockAddrs, &host->readonly._GetAcceptExSockAddrs);
+        closesocket(tmpSock);
     }
     return ret;
 }
@@ -155,18 +155,18 @@ BOOL SockCleanup()
     return WSACleanup() == 0;
 }
 
-BOOL InitOsStruct( DzHost* host )
+BOOL InitOsStruct(DzHost* host)
 {
     DzHost* firstHost = host->hostId == 0 ? NULL : host->mgr->hostArr[0];
 
-    if( !firstHost ){
-        if( !SockStartup( &host->os ) ){
+    if (!firstHost) {
+        if (!SockStartup(host)) {
             return FALSE;
         }
-    }else{
-        host->os._AcceptEx = firstHost->os._AcceptEx;
-        host->os._ConnectEx = firstHost->os._ConnectEx;
-        host->os._GetAcceptExSockAddrs = firstHost->os._GetAcceptExSockAddrs;
+    } else {
+        host->readonly._AcceptEx = firstHost->readonly._AcceptEx;
+        host->readonly._ConnectEx = firstHost->readonly._ConnectEx;
+        host->readonly._GetAcceptExSockAddrs = firstHost->readonly._GetAcceptExSockAddrs;
     }
     host->os.iocp = CreateIoCompletionPort(
         INVALID_HANDLE_VALUE,
@@ -175,14 +175,15 @@ BOOL InitOsStruct( DzHost* host )
         1
         );
     host->os.originExceptPtr = GetExceptPtr();
-
+    host->os.overlappedEntryList = (OVERLAPPED_ENTRY*)
+        AllocChunk(host, sizeof(OVERLAPPED_ENTRY) * OVERLAPPED_ENTRY_LIST_SIZE);
     return host->os.iocp != NULL;
 }
 
-void CleanOsStruct( DzHost* host )
+void CleanOsStruct(DzHost* host)
 {
-    CloseHandle( host->os.iocp );
-    if( host->hostId == 0 ){
+    CloseHandle(host->os.iocp);
+    if (host->hostId == 0) {
         SockCleanup();
     }
 }

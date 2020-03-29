@@ -27,7 +27,7 @@ struct _DzStackBottom
 };
 
 static inline
-void InitExceptPtr( DzStackBottom* bottom, void* ptr )
+void InitExceptPtr(DzStackBottom* bottom, void* ptr)
 {
     bottom->exceptPtr = ptr;
 }

@@ -12,18 +12,18 @@
 #include "DzSynObj.h"
 #include "DzCore.h"
 
-BOOL MemeryPoolGrow( DzHost* host )
+BOOL MemeryPoolGrow(DzHost* host)
 {
     char* pool;
     DzLNode* node;
 
-    pool = (char*)PageReserv( MEMERY_POOL_GROW_SIZE );
-    if( !pool ){
+    pool = (char*)PageReserv(MEMERY_POOL_GROW_SIZE);
+    if (!pool) {
         return FALSE;
     }
     host->memPoolPos = pool;
     host->memPoolEnd = pool + MEMERY_POOL_GROW_SIZE;
-    node = AllocLNode( host );
+    node = AllocLNode(host);
     node->d1 = (intptr_t)pool;
     node->d2 = MEMERY_POOL_GROW_SIZE;
     node->lItr.next = host->poolGrowList;
@@ -31,7 +31,7 @@ BOOL MemeryPoolGrow( DzHost* host )
     return TRUE;
 }
 
-void ReleaseMemoryPool( DzHost* host )
+void ReleaseMemoryPool(DzHost* host)
 {
     DzLNode* node;
     void** p;
@@ -40,36 +40,36 @@ void ReleaseMemoryPool( DzHost* host )
     int poolGrowCount = 0;
     DzLItr* lItr = host->poolGrowList;
 
-    while( lItr ){
+    while (lItr) {
         poolGrowCount++;
         lItr = lItr->next;
     }
-    if( !poolGrowCount ){
+    if (!poolGrowCount) {
         return;
     }
-    p = (void**)alloca( sizeof(void*) * poolGrowCount );
-    len = (int*)alloca( sizeof(int) * poolGrowCount );
+    p = (void**)alloca(sizeof(void*) * poolGrowCount);
+    len = (int*)alloca(sizeof(int) * poolGrowCount);
     lItr = host->poolGrowList;
-    while( lItr ){
-        node = MEMBER_BASE( lItr, DzLNode, lItr );
+    while (lItr) {
+        node = MEMBER_BASE(lItr, DzLNode, lItr);
         *(p + count) = (void*)node->d1;
         *(len + count++) = (int)node->d2;
         lItr = lItr->next;
     }
-    for( count = 0; count < poolGrowCount; count++ ){
-        PageFree( p[ count ], len[ count ] );
+    for (count = 0; count < poolGrowCount; count++) {
+        PageFree(p[count], len[count]);
     }
 }
 
-BOOL AllocListNodePool( DzHost* host )
+BOOL AllocListNodePool(DzHost* host)
 {
     DzLNode* p;
     DzLNode* end;
     DzLNode* tmp;
     DzLItr* lItr;
 
-    p = (DzLNode*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzLNode ) );
-    if( !p ){
+    p = (DzLNode*)AllocChunk(host, OBJ_POOL_GROW_COUNT * sizeof(DzLNode));
+    if (!p) {
         return FALSE;
     }
 
@@ -77,30 +77,30 @@ BOOL AllocListNodePool( DzHost* host )
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
     tmp = p;
-    while( tmp != end ){
+    while (tmp != end) {
         lItr = &tmp->lItr;
         lItr->next = &(++tmp)->lItr;
     }
     return TRUE;
 }
 
-BOOL AllocDzCotPool( DzHost* host )
+BOOL AllocDzCotPool(DzHost* host)
 {
     DzCot* p;
     DzCot* end;
     DzLItr* lItr;
 
-    p = (DzCot*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzCot ) );
-    if( !p ){
+    p = (DzCot*)AllocChunk(host, OBJ_POOL_GROW_COUNT * sizeof(DzCot));
+    if (!p) {
         return FALSE;
     }
 
     host->cotPool = &p->lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
-    InitDzCot( host, end );
-    while( p != end ){
-        InitDzCot( host, p );
+    InitDzCot(host, end);
+    while (p != end) {
+        InitDzCot(host, p);
         lItr = &p->lItr;
         lItr->next = &(++p)->lItr;
     }
@@ -108,25 +108,25 @@ BOOL AllocDzCotPool( DzHost* host )
 }
 
 static inline
-void* AllocHandleChunk( DzHost* host, size_t size )
+void* AllocHandleChunk(DzHost* host, size_t size)
 {
     char* p = host->handlePoolPos;
 
     host->handlePoolPos += size;
-    if( host->handlePoolPos > host->handlePoolEnd ){
+    if (host->handlePoolPos > host->handlePoolEnd) {
         return NULL;
     }
-    return PageCommit( p, size );
+    return PageCommit(p, size);
 }
 
-BOOL AllocSynObjPool( DzHost* host )
+BOOL AllocSynObjPool(DzHost* host)
 {
     DzSynObj* p;
     DzSynObj* end;
     DzLItr* lItr;
 
-    p = (DzSynObj*)AllocChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzSynObj ) );
-    if( !p ){
+    p = (DzSynObj*)AllocChunk(host, OBJ_POOL_GROW_COUNT * sizeof(DzSynObj));
+    if (!p) {
         return FALSE;
     }
 
@@ -134,39 +134,47 @@ BOOL AllocSynObjPool( DzHost* host )
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->lItr.next = NULL;
     end->ref = 0;
-    InitDList( &end->waitQ[ CP_HIGH ] );
-    InitDList( &end->waitQ[ CP_NORMAL ] );
-    InitDList( &end->waitQ[ CP_LOW ] );
-    while( p != end ){
+    InitDList(&end->waitQ[CP_HIGH]);
+    InitDList(&end->waitQ[CP_NORMAL]);
+    InitDList(&end->waitQ[CP_LOW]);
+    while (p != end) {
         p->ref = 0;
-        InitDList( &p->waitQ[ CP_HIGH ] );
-        InitDList( &p->waitQ[ CP_NORMAL ] );
-        InitDList( &p->waitQ[ CP_LOW ] );
+        InitDList(&p->waitQ[CP_HIGH]);
+        InitDList(&p->waitQ[CP_NORMAL]);
+        InitDList(&p->waitQ[CP_LOW]);
         lItr = &p->lItr;
         lItr->next = &(++p)->lItr;
     }
     return TRUE;
 }
 
-BOOL AllocDzFdPool( DzHost* host )
+// make sure DzFd size is integer multiple of DZ_MAX_HOST
+#define DZ_FD_SIZE      (((sizeof(DzFd) + DZ_MAX_HOST - 1) & ~(DZ_MAX_HOST - 1)))
+
+union PaddedDzFd {
+    DzFd        fd;
+    intptr_t    _padding[DZ_FD_SIZE / sizeof(intptr_t)];
+};
+
+BOOL AllocDzFdPool(DzHost* host)
 {
-    DzFd* p;
-    DzFd* end;
+    union PaddedDzFd* p;
+    union PaddedDzFd* end;
     DzLItr* lItr;
 
-    p = (DzFd*)AllocHandleChunk( host, OBJ_POOL_GROW_COUNT * sizeof( DzFd ) );
-    if( !p ){
+    p = (char*)AllocHandleChunk(host, OBJ_POOL_GROW_COUNT * sizeof(union PaddedDzFd));
+    if (!p) {
         return FALSE;
     }
 
-    host->dzFdPool = &p->lItr;
+    host->dzFdPool = &p->fd.lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
-    end->lItr.next = NULL;
-    InitDzFd( end );
-    while( p != end ){
-        InitDzFd( p );
-        lItr = &p->lItr;
-        lItr->next = &(++p)->lItr;
+    end->fd.lItr.next = NULL;
+    InitDzFd(end);
+    while (p != end) {
+        InitDzFd(p);
+        lItr = &p->fd.lItr;
+        lItr->next = &(++p)->fd.lItr;
     }
     return TRUE;
 }

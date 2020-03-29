@@ -44,9 +44,9 @@ struct _DzEasyEvt
 
 struct _DzFastEvt
 {
-    union{
+    union {
         DzTimerNode     timerNode;
-        struct{
+        struct {
             int         type;
             int         _unused1;
             int64_t     _unusedTimestamp;
@@ -54,7 +54,7 @@ struct _DzFastEvt
             int         status;
         };
     };
-    union{
+    union {
         DzWaitHelper*   helper;     // for timeout
         DzCot*          dzCot;      // for fast event
     };
@@ -62,10 +62,10 @@ struct _DzFastEvt
 
 struct _DzSynObj
 {
-    union{
+    union {
         DzLItr          lItr;
         DzTimerNode     timerNode;
-        struct{
+        struct {
             int         type;
             int         _unused1;
             int64_t     _unusedTimestamp;
@@ -74,14 +74,14 @@ struct _DzSynObj
         };
     };
     int                 ref;
-    union{
-        struct{
-            DzDList     waitQ[ COT_PRIORITY_COUNT ];
+    union {
+        struct {
+            DzDList     waitQ[COT_PRIORITY_COUNT];
         };
         // used for CallbackTimer, must reset
-        // the waitQ[ 0 ] and waitQ[ 1 ]
+        // the waitQ[0] and waitQ[1]
         // when release CallbackTimer
-        struct{
+        struct {
             DzEntry     routine;
             intptr_t    context;
             int         priority;
@@ -92,7 +92,7 @@ struct _DzSynObj
 
 struct _DzWaitNode
 {
-    union{
+    union {
         DzLItr      lItr;
         DzDlItr     dlItr;
     };
@@ -124,11 +124,11 @@ struct _DzShareConstant
 
 struct _DzHostsMgr
 {
-    DzHost*         hostArr[ DZ_MAX_HOST ];
-    DzSysAutoEvt    sysAutoEvt[ DZ_MAX_HOST ];
-    int volatile    rmtCheckSign[ DZ_MAX_HOST ];
-    int volatile    rmtWritePos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
-    int volatile    rmtReadPos[ DZ_MAX_HOST ][ DZ_MAX_HOST ];
+    DzHost*         hostArr[DZ_MAX_HOST];
+    DzSysAutoEvt    sysAutoEvt[DZ_MAX_HOST];
+    int volatile    rmtCheckSign[DZ_MAX_HOST];
+    int volatile    rmtWritePos[DZ_MAX_HOST][DZ_MAX_HOST];
+    int volatile    rmtReadPos[DZ_MAX_HOST][DZ_MAX_HOST];
     int volatile    liveSign;
     int             hostCount;
     int             workerNowDepth;
@@ -147,8 +147,8 @@ struct _DzHostsMgr
 struct _DzHost
 {
     // the first cache will be used only by the host itself.
-    union{
-        struct{
+    union {
+        struct {
             // running cot
             DzCot*          currCot;
 
@@ -159,7 +159,7 @@ struct _DzHost
             int             scheduleCd;
 
             // host's io reaction rate,
-            // check io state after ( ioReactionRate ) cots switches
+            // check io state after (ioReactionRate) cots switches
             int             ioReactionRate;
 
             // iterator for task lists when scheduling
@@ -180,13 +180,13 @@ struct _DzHost
         DzCot               centerCot;
 
         // CPU cache align
-        DzCacheChunk        _pending1;
+        DzCacheChunk        _padding1;
     };
 
     // the second cache align may be read by all hosts.
     // it is read only when hosts are running, so there's no false sharing
-    union{
-        struct{
+    union {
+        struct {
             // host's id
             int             hostId;
 
@@ -204,14 +204,14 @@ struct _DzHost
         };
 
         // CPU cache align
-        DzCacheChunk        _pending2;
+        DzCacheChunk        _padding2;
     };
 
     // the third cache align
     // local access only, frequently
 
     // schedule tasks' list
-    DzSList         taskLs[ COT_PRIORITY_COUNT ];
+    DzSList         taskLs[COT_PRIORITY_COUNT];
 
     // dlmalloc heap
     void*           mSpace;
@@ -223,9 +223,9 @@ struct _DzHost
     // resource pools, local access only, frequently
 
     // DzCot struct pool
-    DzLItr*         cotPools[ STACK_TYPE_COUNT ];
-    int             cotPoolNowDepth[ STACK_TYPE_COUNT ];
-    int             cotStackSize[ STACK_TYPE_COUNT ];
+    DzLItr*         cotPools[STACK_TYPE_COUNT];
+    int             cotPoolNowDepth[STACK_TYPE_COUNT];
+    int             cotStackSize[STACK_TYPE_COUNT];
     DzLItr*         cotPool;
 
     // DzSynObj struct pool
@@ -276,28 +276,29 @@ struct _DzHost
     // the seventh cache align on 64 bit platform begin
 
     // configure data
-    int             cotPoolSetDepth[ STACK_TYPE_COUNT ];
+    int             cotPoolSetDepth[STACK_TYPE_COUNT];
+    DzOsReadOnly    readonly;
 
     // debug struct
-    __DBG_STRUCT( DzHost )
+    __DBG_STRUCT(DzHost)
 };
 
 struct _DzSysParam
 {
     DzEntry             threadEntry;
     int                 result;
-    union{
-        struct{
+    union {
+        struct {
             DzSynObj*   evt;
             DzHostsMgr* hostMgr;
             DzCot*      returnCot;
             int         hostId;
         } hs;   // used for host start
-        struct{
+        struct {
             DzEntry     entry;
             intptr_t    context;
         } cs;   // used for cot start
-        struct{
+        struct {
             DzEntry     entry;
             intptr_t    context;
             DzCot*      dzCot;

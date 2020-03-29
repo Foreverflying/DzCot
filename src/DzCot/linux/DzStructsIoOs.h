@@ -13,7 +13,7 @@
 
 struct _DzFd
 {
-    union{
+    union {
         DzLItr      lItr;
         int         fd;
     };

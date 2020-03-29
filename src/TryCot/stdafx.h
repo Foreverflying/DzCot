@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined( _WIN32 )
+#if defined(_WIN32)
 #include <malloc.h>
-#elif defined( __linux__ )
+#elif defined(__linux__)
 #include <alloca.h>
 #endif
 
@@ -19,7 +19,7 @@
 #else
 #define _tmain      main
 #define _TCHAR      char
-#define _T( str )   str
+#define _T(str)   str
 #endif
 
 // TODO: reference additional headers your program requires here

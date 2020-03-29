@@ -35,11 +35,11 @@
 
 struct PGconn;
 
-extern int pqSendSome( PGconn* conn, int len );
-extern int pqSocketCheck( PGconn* conn, int forRead, int forWrite, time_t end );
-extern int pqReadData( PGconn* conn );
-extern int PqSocket( int domain, int type, int protocol );
-extern int PqClose( int fd );
+extern int pqSendSome(PGconn* conn, int len);
+extern int pqSocketCheck(PGconn* conn, int forRead, int forWrite, time_t end);
+extern int pqReadData(PGconn* conn);
+extern int PqSocket(int domain, int type, int protocol);
+extern int PqClose(int fd);
 
 #undef socket
 #define socket          PqSocket
@@ -51,10 +51,10 @@ extern int PqClose( int fd );
 #define close           PqClose
 
 #undef pg_set_noblock
-#define pg_set_noblock( conn )      true
+#define pg_set_noblock(conn)      true
 
 #undef pg_set_block
-#define pg_set_block( conn )        true
+#define pg_set_block(conn)        true
 
 #undef pthread_mutex_init
 #define pthread_mutex_init          pq_pthread_mutex_init
@@ -86,7 +86,7 @@ typedef void* MtxAttr;
 
 #elif defined __linux__
 
-int Pq_fcntl( int fd, int cmd, int arg );
+int Pq_fcntl(int fd, int cmd, int arg);
 
 #define fcntl               Pq_fcntl
 #define pthread_mutex_t     DzHandle
@@ -101,4 +101,4 @@ typedef const pthread_mutexattr_t* MtxAttr;
 #define pqReadData          _pqReadData
 #define pqSendSome          _pqSendSome
 
-#endif  //ifdef __DZCOT_HACKED_LIBPQ
+#endif  // ifdef __DZCOT_HACKED_LIBPQ

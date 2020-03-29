@@ -10,4 +10,4 @@
 
 #include "stdafx.h"
 
-void StartHosts( DzEntry firstEntry, int hostCount = 0, intptr_t context = 0 );
+void StartHosts(DzEntry firstEntry, int hostCount = 0, intptr_t context = 0);

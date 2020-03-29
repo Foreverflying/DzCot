@@ -18,7 +18,12 @@
 struct _DzOsStruct
 {
     HANDLE                      iocp;
+    OVERLAPPED_ENTRY*           overlappedEntryList;
     void*                       originExceptPtr;
+};
+
+struct _DzOsReadOnly
+{
     LPFN_ACCEPTEX               _AcceptEx;
     LPFN_CONNECTEX              _ConnectEx;
     LPFN_GETACCEPTEXSOCKADDRS   _GetAcceptExSockAddrs;
@@ -26,23 +31,23 @@ struct _DzOsStruct
 
 struct _DzCot
 {
-    union{
-        struct{
+    union {
+        struct {
             DzLItr              lItr;
             void*               sp;
             char*               stack;
             char*               stackLimit;
             int                 sType;
             int                 priority;
-            union{
+            union {
                 DzEntry         entry;
                 intptr_t        cotData;
             };
-            union{
+            union {
                 DzEasyEvt*      easyEvt;
                 DzSynObj*       evt;
             };
-            //used for remote cot
+            // used for remote cot
             int                 hostId;
             short               feedType;
             short               evtType;
@@ -50,7 +55,7 @@ struct _DzCot
         DzCacheChunk            _padding;
     };
 
-    __DBG_STRUCT( DzCot )
+    __DBG_STRUCT(DzCot)
 };
 
 struct _DzSysAutoEvt

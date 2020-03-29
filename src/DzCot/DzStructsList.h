@@ -35,11 +35,11 @@ struct _DzDList
 
 struct _DzLNode
 {
-    union{
-        struct{
-            union{
-                struct{
-                    union{
+    union {
+        struct {
+            union {
+                struct {
+                    union {
                         DzLItr      lItr;
                         intptr_t    d8;
                     };

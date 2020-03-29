@@ -25,7 +25,7 @@ public:
         // returns a random integer in the range [low,high)
         // if low > high, the result would be undefined
         randomize();
-        return high > low ? seed % ( high - low ) + low : low;
+        return high > low ? seed % (high - low) + low : low;
     }
     double real()
     {

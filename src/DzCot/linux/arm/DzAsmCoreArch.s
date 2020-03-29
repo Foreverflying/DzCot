@@ -15,14 +15,14 @@
 .globl CallDzCotEntry
 .globl DzSwitch
 
-@ void CallDzCotEntry( void )
+@ void CallDzCotEntry(void)
 CallDzCotEntry:
     mov     r0, r11             @ r11 is pointer of host
     mov     r1, sp
     add     r2, sp, #4
     bx      r10                 @ r10 is pointer of function DzCotEntry
 
-@ void DzSwitch( DzHost* host, DzCot* dzCot );
+@ void DzSwitch(DzHost* host, DzCot* dzCot);
 @ host$ = r0
 @ dzCot$ = r1
 DzSwitch:

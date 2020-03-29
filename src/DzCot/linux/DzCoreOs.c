@@ -9,32 +9,32 @@
 #include "../DzInc.h"
 #include "../DzCore.h"
 
-DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType )
+DzCot* InitCot(DzHost* host, DzCot* dzCot, int sType)
 {
     int size;
 
-    size = host->cotStackSize[ sType ];
-    if( size < DZ_MIN_PAGE_STACK_SIZE ){
-        dzCot->stack = (char*)AllocChunk( host, size );
-        if( !dzCot->stack ){
+    size = host->cotStackSize[sType];
+    if (size < DZ_MIN_PAGE_STACK_SIZE) {
+        dzCot->stack = (char*)AllocChunk(host, size);
+        if (!dzCot->stack) {
             return NULL;
         }
         dzCot->stack += size;
-    }else{
-        dzCot->stack = AllocStack( size );
-        if( !dzCot->stack ){
+    } else {
+        dzCot->stack = AllocStack(size);
+        if (!dzCot->stack) {
             return NULL;
         }
     }
     dzCot->sType = sType;
-    InitCotStack( host, dzCot );
+    InitCotStack(host, dzCot);
     return dzCot;
 }
 
-void* SysThreadMain( void* context )
+void* SysThreadMain(void* context)
 {
     DzSysParam* param = (DzSysParam*)context;
-    param->threadEntry( (intptr_t)param );
+    param->threadEntry((intptr_t)param);
     return NULL;
 }
 
@@ -48,59 +48,59 @@ void __stdcall DzCotEntry(
     intptr_t volatile*  contextPtr
     )
 {
-    __Dbg( MarkCurrStackForCheck )( host );
-    while(1){
-        //call the entry
-        ( *entryPtr )( *contextPtr );
+    __Dbg(MarkCurrStackForCheck)(host);
+    while (1) {
+        // call the entry
+        (*entryPtr)(*contextPtr);
 
-        //free the cot
+        // free the cot
         host->cotCount--;
-        FreeDzCot( host, host->currCot );
+        FreeDzCot(host, host->currCot);
 
-        //then schedule another cot
-        Schedule( host );
+        // then schedule another cot
+        Schedule(host);
     }
 }
 
-BOOL InitOsStruct( DzHost* host )
+BOOL InitOsStruct(DzHost* host)
 {
     int flag;
     struct rlimit fdLimit;
     struct epoll_event evt;
 
-    if( host->hostId == 0 ){
-        if( getrlimit( RLIMIT_NOFILE, &fdLimit ) != 0 ){
+    if (host->hostId == 0) {
+        if (getrlimit(RLIMIT_NOFILE, &fdLimit) != 0) {
             return FALSE;
         }
         host->os.maxFdCount = fdLimit.rlim_cur;
-    }else{
+    } else {
         host->os.maxFdCount = host->mgr->hostArr[0]->os.maxFdCount;
     }
-    host->os.epollFd = epoll_create( host->os.maxFdCount );
-    if( host->os.epollFd < 0 ){
+    host->os.epollFd = epoll_create(host->os.maxFdCount);
+    if (host->os.epollFd < 0) {
         return FALSE;
     }
-    if( pipe( host->os.pipe ) != 0 ){
-        close( host->os.epollFd );
+    if (pipe(host->os.pipe) != 0) {
+        close(host->os.epollFd);
         return FALSE;
     }
-    host->os.pipeFd = CreateDzFd( host );
+    host->os.pipeFd = CreateDzFd(host);
     evt.data.ptr = host->os.pipeFd;
     evt.events = EPOLLIN;
-    flag = fcntl( host->os.pipe[0], F_GETFL, 0 );
-    fcntl( host->os.pipe[0], F_SETFL, flag | O_NONBLOCK );
-    flag = fcntl( host->os.pipe[1], F_GETFL, 0 );
-    fcntl( host->os.pipe[1], F_SETFL, flag | O_NONBLOCK );
-    epoll_ctl( host->os.epollFd, EPOLL_CTL_ADD, host->os.pipe[0], &evt );
+    flag = fcntl(host->os.pipe[0], F_GETFL, 0);
+    fcntl(host->os.pipe[0], F_SETFL, flag | O_NONBLOCK);
+    flag = fcntl(host->os.pipe[1], F_GETFL, 0);
+    fcntl(host->os.pipe[1], F_SETFL, flag | O_NONBLOCK);
+    epoll_ctl(host->os.epollFd, EPOLL_CTL_ADD, host->os.pipe[0], &evt);
     host->os.evtList = (struct epoll_event*)
-        AllocChunk( host, sizeof( struct epoll_event ) * EPOLL_EVT_LIST_SIZE );
+        AllocChunk(host, sizeof(struct epoll_event) * EPOLL_EVT_LIST_SIZE);
     return TRUE;
 }
 
-void CleanOsStruct( DzHost* host )
+void CleanOsStruct(DzHost* host)
 {
-    CloseDzFd( host, host->os.pipeFd );
-    close( host->os.pipe[1] );
-    close( host->os.pipe[0] );
-    close( host->os.epollFd );
+    CloseDzFd(host, host->os.pipeFd);
+    close(host->os.pipe[1]);
+    close(host->os.pipe[0]);
+    close(host->os.epollFd);
 }

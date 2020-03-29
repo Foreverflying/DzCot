@@ -9,9 +9,9 @@
 #ifndef __DzCot_h__
 #define __DzCot_h__
 
-#if defined( _WIN32 )
+#if defined(_WIN32)
 #include <Ws2tcpip.h>
-#elif defined( __linux__ )
+#elif defined(__linux__)
 #include <stddef.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -84,57 +84,57 @@ enum DzShutFlag
 /** 64 bytes struct used for passing common parameter data */
 typedef struct
 {
-    union{
-        struct{
+    union {
+        struct {
             int     d8a;
             int     d8;
         };
         void*       p8;
     };
-    union{
-        struct{
+    union {
+        struct {
             int     d7a;
             int     d7;
         };
         void*       p7;
     };
-    union{
-        struct{
+    union {
+        struct {
             int     d6a;
             int     d6;
         };
         void*       p6;
     };
-    union{
-        struct{
+    union {
+        struct {
             int     d5a;
             int     d5;
         };
         void*       p5;
     };
-    union{
-        struct{
+    union {
+        struct {
             int     d4a;
             int     d4;
         };
         void*       p4;
     };
-    union{
-        struct{
+    union {
+        struct {
             int     d3a;
             int     d3;
         };
         void*       p3;
     };
-    union{
-        struct{
+    union {
+        struct {
             int     d2a;
             int     d2;
         };
         void*       p2;
     };
-    union{
-        struct{
+    union {
+        struct {
             int     d1a;
             int     d1;
         };
@@ -175,8 +175,8 @@ typedef int BOOL;
 
 #endif
 
-#if defined( __linux__ )
-#if defined( __i386 )
+#if defined(__linux__)
+#if defined(__i386)
 #define __stdcall __attribute__((stdcall))
 #else
 #define __stdcall
@@ -184,15 +184,15 @@ typedef int BOOL;
 #endif
 
 /** Cot entry function type */
-typedef void (__stdcall *DzEntry)( intptr_t context );
+typedef void (__stdcall *DzEntry)(intptr_t context);
 
 #define CotEntry    void __stdcall 
 
 /** default parameter used in c++ */
 #ifndef __cplusplus
-#define __DZ_DFT_ARG( x )
+#define __DZ_DFT_ARG(x)
 #else
-#define __DZ_DFT_ARG( x ) = ( x )
+#define __DZ_DFT_ARG(x) = (x)
 extern "C"{
 #endif
 
@@ -275,8 +275,8 @@ int DzRunHosts(
     int         dftPri,
     int         dftSType,
     DzEntry     firstEntry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    DzEntry     cleanEntry      __DZ_DFT_ARG( NULL )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    DzEntry     cleanEntry      __DZ_DFT_ARG(NULL)
     );
 
 /** DzStartCot
@@ -303,9 +303,9 @@ int DzRunHosts(
  */
 int DzStartCot(
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 /** DzStartCotInstant
@@ -334,9 +334,9 @@ int DzStartCot(
  */
 int DzStartCotInstant(
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 
@@ -369,9 +369,9 @@ int DzStartCotInstant(
 int DzEvtStartCot(
     DzHandle    evt,
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 /** DzEvtStartCotInstant
@@ -406,9 +406,9 @@ int DzEvtStartCot(
 int DzEvtStartCotInstant(
     DzHandle    evt,
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 /** DzStartRemoteCot
@@ -441,9 +441,9 @@ int DzEvtStartCotInstant(
 int DzStartRemoteCot(
     int         rmtId,
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 /** DzEvtStartRemoteCot
@@ -481,9 +481,9 @@ int DzEvtStartRemoteCot(
     DzHandle    evt,
     int         rmtId,
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 /** DzRunRemoteCot
@@ -518,9 +518,9 @@ int DzEvtStartRemoteCot(
 int DzRunRemoteCot(
     int         rmtId,
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 /** DzRunWorker
@@ -541,7 +541,7 @@ int DzRunRemoteCot(
  */
 int DzRunWorker(
     DzEntry     entry,
-    intptr_t    context         __DZ_DFT_ARG( 0 )
+    intptr_t    context         __DZ_DFT_ARG(0)
     );
 
 /** DzGetCotData
@@ -556,7 +556,7 @@ intptr_t DzGetCotData();
  *  @param data
  *      The data to set.
  */
-void DzSetCotData( intptr_t data );
+void DzSetCotData(intptr_t data);
 
 /** DzGetCotCount
  *  gets current host's cot count.
@@ -584,7 +584,7 @@ int DzGetHostId();
  *      if priority < 0, the cot's priority doesn't change,
  *      use this way to fetch the priority of current cot.
  */
-int DzSetPriority( int priority );
+int DzSetPriority(int priority);
 
 /** DzSetCotPoolDepth
  *  sets current host's cot pool's depth.
@@ -610,7 +610,7 @@ int DzSetPriority( int priority );
  *      if depth < 0, the cot's pool depth doesn't change,
  *      use this way to fetch the current depth of the cot pool.
  */
-int DzSetCotPoolDepth( int sType, int depth );
+int DzSetCotPoolDepth(int sType, int depth);
 
 /** DzSetWorkerPoolDepth
  *  sets worker thread pool depth.
@@ -625,7 +625,7 @@ int DzSetCotPoolDepth( int sType, int depth );
  *  All cot hosts share the worker pool, when hosts starting the worker
  *  pool depth is 0.
  */
-int DzSetWorkerPoolDepth( int depth );
+int DzSetWorkerPoolDepth(int depth);
 
 /** DzSetHostParam
  *  sets current cot host's lowest priority, default priority and
@@ -651,7 +651,7 @@ int DzSetWorkerPoolDepth( int depth );
  *      If defSType < 0, the default cot stack type of current host
  *      doesn't change.
  */
-int DzSetHostParam( int lowestPri, int dftPri, int dftSType );
+int DzSetHostParam(int lowestPri, int dftPri, int dftSType);
 
 /** DzSetHostIoReaction
  *  sets the current host's i/o reaction rate.
@@ -671,7 +671,7 @@ int DzSetHostParam( int lowestPri, int dftPri, int dftSType );
  *      If rate <= 0, the current host's i/o reaction rate doesn't change,
  *      use this way to fetch the current host's i/o reaction rate.
  */
-int DzSetHostIoReaction( int rate );
+int DzSetHostIoReaction(int rate);
 
 /** DzWaitSynObj
  *  waits until the synchronize object is signaled state
@@ -696,7 +696,7 @@ int DzSetHostIoReaction( int rate );
  */
 int DzWaitSynObj(
     DzHandle    obj,
-    int         timeout         __DZ_DFT_ARG( -1 )
+    int         timeout         __DZ_DFT_ARG(-1)
     );
 
 /** DzWaitMultiSynObj
@@ -732,7 +732,7 @@ int DzWaitMultiSynObj(
     int         count,
     DzHandle*   objs,
     BOOL        waitAll,
-    int         timeout         __DZ_DFT_ARG( -1 )
+    int         timeout         __DZ_DFT_ARG(-1)
     );
 
 /** DzCreateMtx
@@ -755,7 +755,7 @@ int DzWaitMultiSynObj(
  *      All the created or cloned synchronize objects need to delete after
  *      using, by calling DzDelSynObj.
  */
-DzHandle DzCreateMtx( BOOL owner );
+DzHandle DzCreateMtx(BOOL owner);
 
 /** DzReleaseMtx
  *  releases the ownership of a mutex object.
@@ -770,7 +770,7 @@ DzHandle DzCreateMtx( BOOL owner );
  *      the mutex. So you must make sure a cot never wait a mutex that
  *      already owned, nor release a mutex that doesn't owned.
  */
-BOOL DzReleaseMtx( DzHandle mtx );
+BOOL DzReleaseMtx(DzHandle mtx);
 
 /** DzCreateManualEvt
  *  creates a manual event object.
@@ -791,7 +791,7 @@ BOOL DzReleaseMtx( DzHandle mtx );
  *      All the created or cloned synchronize objects need to delete after
  *      using, by calling DzDelSynObj.
  */
-DzHandle DzCreateManualEvt( BOOL notified );
+DzHandle DzCreateManualEvt(BOOL notified);
 
 /** DzCreateAutoEvt
  *  creates an auto event object.
@@ -813,7 +813,7 @@ DzHandle DzCreateManualEvt( BOOL notified );
  *      All the created or cloned synchronize objects need to delete after
  *      using, by calling DzDelSynObj.
  */
-DzHandle DzCreateAutoEvt( BOOL notified );
+DzHandle DzCreateAutoEvt(BOOL notified);
 
 /** DzCreateCdEvt
  *  creates a countdown event object.
@@ -835,7 +835,7 @@ DzHandle DzCreateAutoEvt( BOOL notified );
  *      All the created or cloned synchronize objects need to delete after
  *      using, by calling DzDelSynObj.
  */
-DzHandle DzCreateCdEvt( int count );
+DzHandle DzCreateCdEvt(int count);
 
 /** DzSetEvt
  *  sets the specified event object to signaled.
@@ -848,7 +848,7 @@ DzHandle DzCreateCdEvt( int count );
  *  @see
  *      DzCreateManualEvt, DzCreateAutoEvt, DzCreateCdEvt
  */
-BOOL DzSetEvt( DzHandle evt );
+BOOL DzSetEvt(DzHandle evt);
 
 /** DzResetEvt
  *  sets the specified event object to non-signaled.
@@ -861,7 +861,7 @@ BOOL DzSetEvt( DzHandle evt );
  *  @see
  *      DzCreateManualEvt, DzCreateAutoEvt, DzCreateCdEvt
  */
-BOOL DzResetEvt( DzHandle evt );
+BOOL DzResetEvt(DzHandle evt);
 
 /** DzCreateSem
  *  creates a semaphore object.
@@ -881,7 +881,7 @@ BOOL DzResetEvt( DzHandle evt );
  *      All the created or cloned synchronize objects need to delete after
  *      using, by calling DzDelSynObj.
  */
-DzHandle DzCreateSem( int count );
+DzHandle DzCreateSem(int count);
 
 /** DzReleaseSem
  *  increases a semaphore's count by a specified amount.
@@ -892,7 +892,7 @@ DzHandle DzCreateSem( int count );
  *  @return
  *      The current count of the semaphore.
  */
-int DzReleaseSem( DzHandle sem, int count );
+int DzReleaseSem(DzHandle sem, int count);
 
 /** DzCreateTimer
  *  creates a wait-able timer object.
@@ -917,7 +917,7 @@ int DzReleaseSem( DzHandle sem, int count );
  *      All the created or cloned synchronize objects need to delete after
  *      using, by calling DzDelSynObj.
  */
-DzHandle DzCreateTimer( int milSec, BOOL repeat );
+DzHandle DzCreateTimer(int milSec, BOOL repeat);
 
 /** DzIsNotified
  *  check whether a synchronize object is notified.
@@ -926,7 +926,7 @@ DzHandle DzCreateTimer( int milSec, BOOL repeat );
  *  @return
  *      TRUE if notified or else FALSE.
  */
-BOOL DzIsNotified( DzHandle obj );
+BOOL DzIsNotified(DzHandle obj);
 
 /** DzCloneSynObj
  *  clones a handle of a synchronize object.
@@ -939,7 +939,7 @@ BOOL DzIsNotified( DzHandle obj );
  *  should clone it, or else you need to carefully ensure it's deletion
  *  execute after all using finished.
  */
-DzHandle DzCloneSynObj( DzHandle obj );
+DzHandle DzCloneSynObj(DzHandle obj);
 
 /** DzDelSynObj
  *  deletes a synchronize object.
@@ -950,7 +950,7 @@ DzHandle DzCloneSynObj( DzHandle obj );
  *
  *  All the created or cloned synchronize objects need to delete after using.
  */
-BOOL DzDelSynObj( DzHandle obj );
+BOOL DzDelSynObj(DzHandle obj);
 
 /** DzCreateCallbackTimer
  *  creates a callback timer.
@@ -989,9 +989,9 @@ DzHandle DzCreateCallbackTimer(
     int         milSec,
     BOOL        repeat,
     DzEntry     callback,
-    intptr_t    context         __DZ_DFT_ARG( 0 ),
-    int         priority        __DZ_DFT_ARG( CP_DEFAULT ),
-    int         sType           __DZ_DFT_ARG( ST_DEFAULT )
+    intptr_t    context         __DZ_DFT_ARG(0),
+    int         priority        __DZ_DFT_ARG(CP_DEFAULT),
+    int         sType           __DZ_DFT_ARG(ST_DEFAULT)
     );
 
 /** DzDelCallbackTimer
@@ -1004,7 +1004,7 @@ DzHandle DzCreateCallbackTimer(
  *  After a callback timer's deletion, no more callback cot will be
  *  created or executed.
  */
-BOOL DzDelCallbackTimer( DzHandle timer );
+BOOL DzDelCallbackTimer(DzHandle timer);
 
 /** DzSleep
  *  suspends current cot for a specified period.
@@ -1018,7 +1018,7 @@ BOOL DzDelCallbackTimer( DzHandle timer );
  *      other cots with same priority scheduled. Cots with lower priority
  *      will never scheduled until all higher priority cots suspended.
  */
-void DzSleep( int milSec );
+void DzSleep(int milSec);
 
 /** DzSocket
  *  creates a socket.
@@ -1049,7 +1049,7 @@ void DzSleep( int milSec );
  *      Also, it can be used only in the cot host which creates it,
  *      never pass it to a remote cot host.
  */
-int DzSocket( int domain, int type, int protocol );
+int DzSocket(int domain, int type, int protocol);
 
 /** DzRawSocket
  *  gets the system socket from a file descriptor.
@@ -1058,7 +1058,7 @@ int DzSocket( int domain, int type, int protocol );
  *  @return
  *      The system socket.
  */
-intptr_t DzRawSocket( int fd );
+intptr_t DzRawSocket(int fd);
 
 /** DzGetSockOpt
  *  gets options on sockets.
@@ -1081,7 +1081,7 @@ intptr_t DzRawSocket( int fd );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzGetSockOpt( int fd, int level, int name, void* option, socklen_t* len );
+int DzGetSockOpt(int fd, int level, int name, void* option, socklen_t* len);
 
 /** DzSetSockOpt
  *  sets options on sockets.
@@ -1108,7 +1108,7 @@ int DzGetSockOpt( int fd, int level, int name, void* option, socklen_t* len );
  *  @remarks
  *      The socket option SO_LINGER can not be assigned.
  */
-int DzSetSockOpt( int fd, int level, int name, const void* option, socklen_t len );
+int DzSetSockOpt(int fd, int level, int name, const void* option, socklen_t len);
 
 /** DzGetSockName
  *  retrieves the local name for a socket.
@@ -1122,7 +1122,7 @@ int DzSetSockOpt( int fd, int level, int name, const void* option, socklen_t len
  *  @return
  *      0 if succeed or else -1.
  */
-int DzGetSockName( int fd, struct sockaddr* addr, socklen_t* addrLen );
+int DzGetSockName(int fd, struct sockaddr* addr, socklen_t* addrLen);
 
 /** DzGetPeerName
  *  retrieves the address of the peer to which a socket is connected.
@@ -1136,7 +1136,7 @@ int DzGetSockName( int fd, struct sockaddr* addr, socklen_t* addrLen );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzGetPeerName( int fd, struct sockaddr* addr, socklen_t* addrLen );
+int DzGetPeerName(int fd, struct sockaddr* addr, socklen_t* addrLen);
 
 /** DzBind
  *  associates a local address with a socket.
@@ -1150,7 +1150,7 @@ int DzGetPeerName( int fd, struct sockaddr* addr, socklen_t* addrLen );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzBind( int fd, const struct sockaddr* addr, socklen_t addrLen );
+int DzBind(int fd, const struct sockaddr* addr, socklen_t addrLen);
 
 /** DzListen
  *  places a socket in a state in which it is listening for an
@@ -1164,7 +1164,7 @@ int DzBind( int fd, const struct sockaddr* addr, socklen_t addrLen );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzListen( int fd, int backlog );
+int DzListen(int fd, int backlog);
 
 /** DzShutdown
  *  disables sends or receives on a socket.
@@ -1192,7 +1192,7 @@ int DzListen( int fd, int backlog );
  *      Never shutdown reading when a socket is reading, and never
  *      shutdown writing when a socket is writing.
  */
-int DzShutdown( int fd, int how );
+int DzShutdown(int fd, int how);
 
 /** DzConnect
  *  establishes a connection to a specified socket.
@@ -1207,7 +1207,7 @@ int DzShutdown( int fd, int how );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzConnect( int fd, const struct sockaddr* addr, socklen_t addrLen );
+int DzConnect(int fd, const struct sockaddr* addr, socklen_t addrLen);
 
 /** DzAccept
  *  permits an incoming connection attempt on a socket.
@@ -1233,7 +1233,7 @@ int DzConnect( int fd, const struct sockaddr* addr, socklen_t addrLen );
  *      Also, it can be used only in the cot host which creates it,
  *      never pass it to a remote cot host.
  */
-int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen );
+int DzAccept(int fd, struct sockaddr* addr, socklen_t* addrLen);
 
 /** DzIovSend
  *  sends data in vectored i/o mode on a socket.
@@ -1264,7 +1264,7 @@ int DzAccept( int fd, struct sockaddr* addr, socklen_t* addrLen );
  *      But you can read and write simultaneously (.e.g read and write in
  *      two active cots), for socket is a full duplex device.
  */
-int DzIovSend( int fd, DzIov* bufs, size_t bufCount, int flags );
+int DzIovSend(int fd, DzIov* bufs, size_t bufCount, int flags);
 
 /** DzIovRecv
  *  receives data in vectored i/o mode on a socket.
@@ -1295,10 +1295,10 @@ int DzIovSend( int fd, DzIov* bufs, size_t bufCount, int flags );
  *      But you can read and write simultaneously (.e.g read and write in
  *      two active cots), for socket is a full duplex device.
  */
-int DzIovRecv( int fd, DzIov* bufs, size_t bufCount, int flags );
+int DzIovRecv(int fd, DzIov* bufs, size_t bufCount, int flags);
 
-int DzSend( int fd, const void* buf, size_t len, int flags );
-int DzRecv( int fd, void* buf, size_t len, int flags );
+int DzSend(int fd, const void* buf, size_t len, int flags);
+int DzRecv(int fd, void* buf, size_t len, int flags);
 int DzIovSendTo(
     int                     fd,
     DzIov*                  bufs,
@@ -1346,9 +1346,9 @@ int DzGetAddrInfo(
     const struct addrinfo*  hints,
     struct addrinfo**       res
     );
-void DzFreeAddrInfo( struct addrinfo *res );
-int DzInetPton( int af, const char* src, void* dst );
-const char* DzInetNtop( int af, const void* src, char* dst, socklen_t size );
+void DzFreeAddrInfo(struct addrinfo *res);
+int DzInetPton(int af, const char* src, void* dst);
+const char* DzInetNtop(int af, const void* src, char* dst, socklen_t size);
 
 /** DzOpen
  *  creates or opens a file.
@@ -1385,7 +1385,7 @@ const char* DzInetNtop( int af, const void* src, char* dst, socklen_t size );
  *      be used only in the cot host which creates it, never pass it to
  *      a remote cot host.
  */
-int DzOpen( const char* fileName, int flags );
+int DzOpen(const char* fileName, int flags);
 
 /** DzRead
  *  reads data from an opened file.
@@ -1412,7 +1412,7 @@ int DzOpen( const char* fileName, int flags );
  *      active cots) on a disk file (but you can do this on a full duplex
  *      device descriptor such as a socket).
  */
-ssize_t DzRead( int fd, void* buf, size_t count );
+ssize_t DzRead(int fd, void* buf, size_t count);
 
 /** DzWrite
  *  writes data to an opened file.
@@ -1439,7 +1439,7 @@ ssize_t DzRead( int fd, void* buf, size_t count );
  *      active cots) on a disk file (but you can do this on a full duplex
  *      device descriptor such as a socket).
  */
-ssize_t DzWrite( int fd, const void* buf, size_t count );
+ssize_t DzWrite(int fd, const void* buf, size_t count);
 
 /** DzSeek
  *  sets the file's read/write position.
@@ -1461,7 +1461,7 @@ ssize_t DzWrite( int fd, const void* buf, size_t count );
  *      Never set a file's position while reading or writing on it
  *      (.e.g reading in a active cot and seek it in another active cot).
  */
-size_t DzSeek( int fd, ssize_t offset, int whence );
+size_t DzSeek(int fd, ssize_t offset, int whence);
 
 /** DzFileSize
  *  gets the file's size.
@@ -1470,10 +1470,10 @@ size_t DzSeek( int fd, ssize_t offset, int whence );
  *  @return
  *      The file's size in bytes.
  */
-size_t DzFileSize( int fd );
+size_t DzFileSize(int fd);
 
-intptr_t DzGetFdData( int fd );
-void DzSetFdData( int fd, intptr_t data );
+intptr_t DzGetFdData(int fd);
+void DzSetFdData(int fd, intptr_t data);
 
 /** DzClose
  *  closes a socket or an opened file.
@@ -1482,25 +1482,25 @@ void DzSetFdData( int fd, intptr_t data );
  *  @return
  *      0 if succeed or else -1.
  */
-int DzClose( int fd );
+int DzClose(int fd);
 
 DzParamNode* DzAllocParamNode();
-void DzFreeParamNode( DzParamNode* node );
+void DzFreeParamNode(DzParamNode* node);
 
-void* DzAllocPermanentChunk( size_t size );
-void* DzPageAlloc( size_t size );
-void DzPageFree( void* p, size_t size );
-void* DzMalloc( size_t size );
-void DzFree( void* p );
-void* DzMallocEx( size_t size );
-void DzFreeEx( void* p );
+void* DzAllocPermanentChunk(size_t size);
+void* DzPageAlloc(size_t size);
+void DzPageFree(void* p, size_t size);
+void* DzMalloc(size_t size);
+void DzFree(void* p);
+void* DzMallocEx(size_t size);
+void DzFreeEx(void* p);
 
 unsigned long long DzUnixTime();
 unsigned long long DzMilUnixTime();
 unsigned long long DzLatestMilUnixTime();
 
 int __DzDbgLastErr();
-int __DzDbgMaxStackUse( int sType );
+int __DzDbgMaxStackUse(int sType);
 int __DzDbgSynObjLeak();
 int __DzDbgFdLeak();
 int __DzDbgHeapLeak();
@@ -1523,14 +1523,14 @@ int DzGetAddrInfoW(
     const struct addrinfoW* hints,
     struct addrinfoW**      res
     );
-void DzFreeAddrInfoW( struct addrinfoW *res );
-int DzInetPtonW( int af, const wchar_t* src, void* dst );
-const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, socklen_t size );
-int DzOpenW( const wchar_t* fileName, int flags );
+void DzFreeAddrInfoW(struct addrinfoW *res);
+int DzInetPtonW(int af, const wchar_t* src, void* dst);
+const wchar_t* DzInetNtopW(int af, const void* src, wchar_t* dst, socklen_t size);
+int DzOpenW(const wchar_t* fileName, int flags);
 
 #endif
 
-#if defined( _WIN32 ) && defined( UNICODE )
+#if defined(_WIN32) && defined(UNICODE)
 
 #define DzOpenT             DzOpenW
 #define DzGetNameInfoT      DzGetNameInfoW

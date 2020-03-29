@@ -13,6 +13,6 @@
 #define __fastcall
 
 //for debug check
-#define CHECK_RESERV_SIZE           ( PAGE_SIZE * 2 )
+#define CHECK_RESERV_SIZE           (PAGE_SIZE * 2)
 
 #endif // __DzIncArch_h__

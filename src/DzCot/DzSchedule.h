@@ -15,10 +15,10 @@
 #include "DzDebug.h"
 
 static inline
-BOOL UpdateCurrPriority( DzHost* host, int currPriority )
+BOOL UpdateCurrPriority(DzHost* host, int currPriority)
 {
-    if( currPriority > CP_FIRST  ){
-        if( host->taskLs[ CP_FIRST ].head ){
+    if (currPriority > CP_FIRST) {
+        if (host->taskLs[CP_FIRST].head) {
             host->currPri = CP_FIRST;
             return TRUE;
         }
@@ -31,54 +31,54 @@ BOOL UpdateCurrPriority( DzHost* host, int currPriority )
 // the dzCot is in the block queue or new created
 // put the cot to the active queue
 static inline
-void DispatchCot( DzHost* host, DzCot* dzCot )
+void DispatchCot(DzHost* host, DzCot* dzCot)
 {
-    AddLItrToTail( &host->taskLs[ dzCot->priority ], &dzCot->lItr );
+    AddLItrToTail(&host->taskLs[dzCot->priority], &dzCot->lItr);
 }
 
 static inline
-void PushCotToTop( DzHost* host, DzCot* dzCot )
+void PushCotToTop(DzHost* host, DzCot* dzCot)
 {
-    AddLItrToHead( &host->taskLs[ CP_FIRST ], &dzCot->lItr );
+    AddLItrToHead(&host->taskLs[CP_FIRST], &dzCot->lItr);
     host->currPri = CP_FIRST;
 }
 
 static inline
-void SwitchToCot( DzHost* host, DzCot* dzCot )
+void SwitchToCot(DzHost* host, DzCot* dzCot)
 {
-    __Dbg( CheckCotStackOverflow )( host, host->currCot );
-    DzSwitch( host, dzCot );
+    __Dbg(CheckCotStackOverflow)(host, host->currCot);
+    DzSwitch(host, dzCot);
 }
 
 // Schedule:
 // schedule cot according to the priority
 // if no cot is active, schedule the ScheduleCenter
 static inline
-void Schedule( DzHost* host )
+void Schedule(DzHost* host)
 {
     DzCot* dzCot;
 
-    if( host->scheduleCd ){
-        do{
-            if( host->taskLs[ host->currPri ].head ){
+    if (host->scheduleCd) {
+        do {
+            if (host->taskLs[host->currPri].head) {
                 host->scheduleCd--;
-                dzCot = MEMBER_BASE( host->taskLs[ host->currPri ].head, DzCot, lItr );
-                EraseListHead( &host->taskLs[ host->currPri ] );
-                SwitchToCot( host, dzCot );
+                dzCot = MEMBER_BASE(host->taskLs[host->currPri].head, DzCot, lItr);
+                EraseListHead(&host->taskLs[host->currPri]);
+                SwitchToCot(host, dzCot);
                 return;
-            }else{
+            } else {
                 host->currPri++;
             }
-        }while( host->currPri <= host->lowestPri );
+        } while (host->currPri <= host->lowestPri);
     }
-    SwitchToCot( host, &host->centerCot );
+    SwitchToCot(host, &host->centerCot);
 }
 
 static inline
-void DispatchCurrCot( DzHost* host )
+void DispatchCurrCot(DzHost* host)
 {
-    AddLItrToTail( &host->taskLs[ host->lowestPri ], &host->currCot->lItr );
-    Schedule( host );
+    AddLItrToTail(&host->taskLs[host->lowestPri], &host->currCot->lItr);
+    Schedule(host);
 }
 
 #endif // __DzSchedule_h__

@@ -13,14 +13,14 @@
 .globl CallDzCotEntry
 .globl DzSwitch
 
-# void __stdcall CallDzCotEntry( void )
+# void __stdcall CallDzCotEntry(void)
 CallDzCotEntry:
     leaq    8(%rsp), %rdx
     leaq    (%rsp), %rsi
     movq    %r12, %rdi          # r12 is pointer of host
     call    *%r13               # r13 is pointer of function DzCotEntry
 
-# void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
+# void __fastcall DzSwitch(DzHost* host, DzCot* dzCot);
 # host$ = rdi
 # dzCot$ = rsi
 DzSwitch:

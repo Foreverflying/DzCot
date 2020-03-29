@@ -14,7 +14,7 @@
 // used for cache align to avoid false sharing
 struct _DzCacheChunk
 {
-    char        _padding[ CPU_CACHE_ALIGN ];
+    intptr_t        _padding[CPU_CACHE_ALIGN / sizeof(intptr_t)];
 };
 
 typedef struct _DzCacheChunk    DzCacheChunk;
@@ -65,6 +65,7 @@ struct _DzCot;
 struct _DzSysAutoEvt;
 
 typedef struct _DzOsStruct      DzOsStruct;
+typedef struct _DzOsReadOnly    DzOsReadOnly;
 typedef struct _DzCot           DzCot;
 typedef struct _DzSysAutoEvt    DzSysAutoEvt;
 

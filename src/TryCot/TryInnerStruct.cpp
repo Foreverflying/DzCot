@@ -10,6 +10,6 @@ namespace Inner{
 
 void TryInnerStruct()
 {
-    printf( "Host size is %d\r\n", (int)sizeof( Inner::DzHost ) );
-    printf( "DzCot size is %d\r\n", (int)sizeof( Inner::DzCot ) );
+    printf("Host size is %d\r\n", (int)sizeof(Inner::DzHost));
+    printf("DzCot size is %d\r\n", (int)sizeof(Inner::DzCot));
 }

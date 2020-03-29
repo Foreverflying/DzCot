@@ -10,7 +10,7 @@
 #include "../DzCore.h"
 #include "DzIoOs.h"
 
-void __stdcall GetNameInfoEntry( intptr_t context )
+void __stdcall GetNameInfoEntry(intptr_t context)
 {
     DzLNode* node = (DzLNode*)context;
 
@@ -25,7 +25,7 @@ void __stdcall GetNameInfoEntry( intptr_t context )
         );
 }
 
-void __stdcall GetNameInfoEntryW( intptr_t context )
+void __stdcall GetNameInfoEntryW(intptr_t context)
 {
     DzLNode* node = (DzLNode*)context;
 
@@ -40,7 +40,7 @@ void __stdcall GetNameInfoEntryW( intptr_t context )
         );
 }
 
-void __stdcall GetAddrInfoEntry( intptr_t context )
+void __stdcall GetAddrInfoEntry(intptr_t context)
 {
     DzLNode* node = (DzLNode*)context;
 
@@ -52,7 +52,7 @@ void __stdcall GetAddrInfoEntry( intptr_t context )
         );
 }
 
-void __stdcall GetAddrInfoEntryW( intptr_t context )
+void __stdcall GetAddrInfoEntryW(intptr_t context)
 {
     DzLNode* node = (DzLNode*)context;
 
@@ -75,9 +75,9 @@ int DzGetNameInfoW(
     )
 {
     DzHost* dzHost = GetHost();
-    assert( dzHost );
+    assert(dzHost);
 
-    return DGetNameInfoW( dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags );
+    return DGetNameInfoW(dzHost, sa, salen, host, (int)hostlen, serv, (int)servlen, flags);
 }
 
 int DzGetAddrInfoW(
@@ -88,30 +88,30 @@ int DzGetAddrInfoW(
     )
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return DGetAddrInfoW( host, node, service, hints, res );
+    return DGetAddrInfoW(host, node, service, hints, res);
 }
 
-void DzFreeAddrInfoW( struct addrinfoW *res )
+void DzFreeAddrInfoW(struct addrinfoW *res)
 {
-    DFreeAddrInfoW( res );
+    DFreeAddrInfoW(res);
 }
 
-int DzInetPtonW( int af, const wchar_t* src, void* dst )
+int DzInetPtonW(int af, const wchar_t* src, void* dst)
 {
-    return DInetPtonW( af, src, dst );
+    return DInetPtonW(af, src, dst);
 }
 
-const wchar_t* DzInetNtopW( int af, const void* src, wchar_t* dst, socklen_t size )
+const wchar_t* DzInetNtopW(int af, const void* src, wchar_t* dst, socklen_t size)
 {
-    return DInetNtopW( af, (PVOID)src, dst, size );
+    return DInetNtopW(af, (PVOID)src, dst, size);
 }
 
-int DzOpenW( const wchar_t* fileName, int flags )
+int DzOpenW(const wchar_t* fileName, int flags)
 {
     DzHost* host = GetHost();
-    assert( host );
+    assert(host);
 
-    return OpenW( host, fileName, flags );
+    return OpenW(host, fileName, flags);
 }

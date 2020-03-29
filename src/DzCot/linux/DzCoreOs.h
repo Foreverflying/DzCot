@@ -13,10 +13,10 @@
 #include "../DzResourceMgr.h"
 #include "../DzSynObj.h"
 
-void __stdcall CallDzCotEntry( void );
-BOOL InitOsStruct( DzHost* host );
-void CleanOsStruct( DzHost* host );
-DzCot* InitCot( DzHost* host, DzCot* dzCot, int sType );
+void __stdcall CallDzCotEntry(void);
+BOOL InitOsStruct(DzHost* host);
+void CleanOsStruct(DzHost* host);
+DzCot* InitCot(DzHost* host, DzCot* dzCot, int sType);
 
 void __stdcall DzCotEntry(
     DzHost*             host,
@@ -25,63 +25,63 @@ void __stdcall DzCotEntry(
     );
 
 static inline
-void InitDzCot( DzHost* host, DzCot* dzCot )
+void InitDzCot(DzHost* host, DzCot* dzCot)
 {
-    __Dbg( InitDzCot )( host, dzCot );
+    __Dbg(InitDzCot)(host, dzCot);
 }
 
 static inline
-void InitDzFd( DzFd* dzFd )
+void InitDzFd(DzFd* dzFd)
 {
-    CleanEasyEvt( &dzFd->inEvt );
-    CleanEasyEvt( &dzFd->outEvt );
+    CleanEasyEvt(&dzFd->inEvt);
+    CleanEasyEvt(&dzFd->outEvt);
     dzFd->ref = 0;
 }
 
 static inline
-DzFd* CreateDzFd( DzHost* host )
+DzFd* CreateDzFd(DzHost* host)
 {
     DzFd* dzFd;
 
-    if( !host->dzFdPool ){
-        if( !AllocDzFdPool( host ) ){
+    if (!host->dzFdPool) {
+        if (!AllocDzFdPool(host)) {
             return NULL;
         }
     }
-    dzFd = MEMBER_BASE( host->dzFdPool, DzFd, lItr );
+    dzFd = MEMBER_BASE(host->dzFdPool, DzFd, lItr);
     host->dzFdPool = host->dzFdPool->next;
     dzFd->err = 0;
     dzFd->ref++;
-    __Dbg( AllocFd )( host, dzFd );
+    __Dbg(AllocFd)(host, dzFd);
     return dzFd;
 }
 
 static inline
-void CloneDzFd( DzFd* dzFd )
+void CloneDzFd(DzFd* dzFd)
 {
     dzFd->ref++;
 }
 
 static inline
-void CloseDzFd( DzHost* host, DzFd* dzFd )
+void CloseDzFd(DzHost* host, DzFd* dzFd)
 {
     dzFd->ref--;
-    if( dzFd->ref == 0 ){
-        __Dbg( FreeFd )( host, dzFd );
+    if (dzFd->ref == 0) {
+        __Dbg(FreeFd)(host, dzFd);
         dzFd->lItr.next = host->dzFdPool;
         host->dzFdPool = &dzFd->lItr;
     }
 }
 
 static inline
-void SetCotEntry( DzCot* dzCot, DzEntry entry, intptr_t context )
+void SetCotEntry(DzCot* dzCot, DzEntry entry, intptr_t context)
 {
-    ( ( (DzStackBottom*)dzCot->stack ) - 1 )->entry = entry;
-    ( ( (DzStackBottom*)dzCot->stack ) - 1 )->context = context;
+    (((DzStackBottom*)dzCot->stack) - 1)->entry = entry;
+    (((DzStackBottom*)dzCot->stack) - 1)->context = context;
 }
 
 static inline
-char* AllocStack( int size )
+char* AllocStack(int size)
 {
     char* base;
 
@@ -94,24 +94,24 @@ char* AllocStack( int size )
         0
         );
 
-    if( base == MAP_FAILED ){
+    if (base == MAP_FAILED) {
         return NULL;
     }
     return base + size;
 }
 
 static inline
-void FreeStack( char* stack, int size )
+void FreeStack(char* stack, int size)
 {
-    munmap( stack - size, size );
+    munmap(stack - size, size);
 }
 
 static inline
-void InitCotStack( DzHost* host, DzCot* dzCot )
+void InitCotStack(DzHost* host, DzCot* dzCot)
 {
     DzStackBottom* bottom;
 
-    bottom = ( (DzStackBottom*)dzCot->stack ) - 1;
+    bottom = ((DzStackBottom*)dzCot->stack) - 1;
     bottom->dzCotEntry = DzCotEntry;
     bottom->host = host;
     bottom->ipEntry = CallDzCotEntry;
@@ -119,9 +119,9 @@ void InitCotStack( DzHost* host, DzCot* dzCot )
 }
 
 static inline
-void FreeCotStack( DzHost* host, DzCot* dzCot )
+void FreeCotStack(DzHost* host, DzCot* dzCot)
 {
-    FreeStack( dzCot->stack, host->cotStackSize[ dzCot->sType ] );
+    FreeStack(dzCot->stack, host->cotStackSize[dzCot->sType]);
 }
 
 #endif // __DzCoreOs_h__

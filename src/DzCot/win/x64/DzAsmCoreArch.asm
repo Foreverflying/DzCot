@@ -12,7 +12,7 @@ EXTRN   DzCotEntry : PROC
 
 _TEXT   SEGMENT
 
-; void CallDzCotEntry( void );
+; void CallDzCotEntry(void);
 CallDzCotEntry PROC
     lea     r8, [rsp+8]
     lea     rdx, [rsp]
@@ -21,7 +21,7 @@ CallDzCotEntry PROC
     call    rdi                 ; rdi is pointer of function DzCotEntry
 CallDzCotEntry ENDP
 
-; void DzSwitch( DzHost* host, DzCot* dzCot );
+; void DzSwitch(DzHost* host, DzCot* dzCot);
 ; host$ = rcx
 ; dzCot$ = rdx
 DzSwitch PROC

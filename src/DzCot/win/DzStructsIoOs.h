@@ -14,7 +14,7 @@
 
 struct _DzFd
 {
-    union{
+    union {
         DzLItr      lItr;
         HANDLE      fd;
         SOCKET      s;
@@ -24,7 +24,7 @@ struct _DzFd
     int             err;
     BOOL            notSock;
     BOOL            isFile;
-    void*           unused2;
+    socklen_t       addrLen;
     void*           unused3;
 };
 

@@ -1,12 +1,12 @@
 
 #include "CotTryUtil.h"
 
-CotEntry FooEntry( intptr_t context )
+CotEntry FooEntry(intptr_t context)
 {
-    printf( "Try foo\r\n" );
+    printf("Try foo\r\n");
 }
 
 void TryFoo()
 {
-    StartHosts( FooEntry );
+    StartHosts(FooEntry);
 }

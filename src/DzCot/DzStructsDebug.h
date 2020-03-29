@@ -13,35 +13,35 @@
 
 #ifndef __DBG_DEBUG_CHECK_MODE
 
-#define __DBG_STRUCT( structName )
-#define __DBG_INIT(  host, structName,obj )
+#define __DBG_STRUCT(structName)
+#define __DBG_INIT( host, structName,obj)
 
 #else
 
-#define __DBG_STRUCT( structName )\
+#define __DBG_STRUCT(structName)\
     struct __DbgData##structName   __dbgData;
 
-#define __DBG_DEF_STRUCT( structName )\
+#define __DBG_DEF_STRUCT(structName)\
     struct __DbgData##structName
 
-#define __DbgPtr( structAddr )\
-    ( &structAddr->__dbgData )
+#define __DbgPtr(structAddr)\
+    (&structAddr->__dbgData)
 
-#define __DbgPtrType( structName )\
+#define __DbgPtrType(structName)\
     struct __DbgData##structName*
 
-__DBG_DEF_STRUCT( DzHost )
+__DBG_DEF_STRUCT(DzHost)
 {
-    int         maxStkUse[ STACK_TYPE_COUNT ];
+    int         maxStkUse[STACK_TYPE_COUNT];
     int         synObjLeak;
     int         fdLeak;
     int         heapLeak;
     int         paramNodeLeak;
 };
 
-__DBG_DEF_STRUCT( DzCot ){
-    union{
-        struct{
+__DBG_DEF_STRUCT(DzCot) {
+    union {
+        struct {
             int         lastErr;
             int         maxStkUse;
         };

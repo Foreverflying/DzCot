@@ -10,7 +10,7 @@
 #include "../DzCore.h"
 #include "DzIoOs.h"
 
-void __stdcall GetNameInfoEntry( intptr_t context )
+void __stdcall GetNameInfoEntry(intptr_t context)
 {
     DzLNode* node = (DzLNode*)context;
 
@@ -25,7 +25,7 @@ void __stdcall GetNameInfoEntry( intptr_t context )
         );
 }
 
-void __stdcall GetAddrInfoEntry( intptr_t context )
+void __stdcall GetAddrInfoEntry(intptr_t context)
 {
     DzLNode* node = (DzLNode*)context;
 

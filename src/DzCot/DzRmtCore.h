@@ -14,11 +14,11 @@
 #include "DzBase.h"
 #include "DzSynObj.h"
 
-DzCot* CreateWaitFifoCot( DzHost* host );
-void __stdcall MainHostFirstEntry( intptr_t context );
-void __stdcall RemoteCotEntry( intptr_t context );
-void __stdcall DealLazyResEntry( intptr_t context );
-void __stdcall WorkerMain( intptr_t context );
+DzCot* CreateWaitFifoCot(DzHost* host);
+void __stdcall MainHostFirstEntry(intptr_t context);
+void __stdcall RemoteCotEntry(intptr_t context);
+void __stdcall DealLazyResEntry(intptr_t context);
+void __stdcall WorkerMain(intptr_t context);
 
 static inline
 void NotifyRmtFifo(
@@ -31,16 +31,16 @@ void NotifyRmtFifo(
 {
     int nowSign;
 
-    if( nowPos == RMT_CALL_FIFO_SIZE - 1 ){
+    if (nowPos == RMT_CALL_FIFO_SIZE - 1) {
         nowPos = 0;
-    }else{
+    } else {
         nowPos++;
     }
-    AtomSetInt( writePos, nowPos );
-    nowSign = AtomOrInt( rmtHost->rmtCheckSignPtr, hostMask );
-    if( nowSign == 0 ){
-        AtomOrInt( &hostMgr->liveSign, rmtHost->hostMask );
-        AwakeRemoteHost( rmtHost );
+    AtomSetInt(writePos, nowPos);
+    nowSign = AtomOrInt(rmtHost->rmtCheckSignPtr, hostMask);
+    if (nowSign == 0) {
+        AtomOrInt(&hostMgr->liveSign, rmtHost->hostMask);
+        AwakeRemoteHost(rmtHost);
     }
 }
 
@@ -58,36 +58,36 @@ BOOL SendRmtCot(
     DzCot* waitFifoCot;
     int writePos;
 
-    rmtHost = host->mgr->hostArr[ rmtId ];
+    rmtHost = host->mgr->hostArr[rmtId];
     fifo = rmtHost->rmtFifoArr + host->hostId;
-    writePos = AtomGetInt( fifo->writePos );
-    if( emergency ){
-        fifo->rmtCotArr[ writePos ] = cot;
-        NotifyRmtFifo( host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos );
+    writePos = AtomGetInt(fifo->writePos);
+    if (emergency) {
+        fifo->rmtCotArr[writePos] = cot;
+        NotifyRmtFifo(host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos);
         return TRUE;
-    }else if( fifo->pendRmtCot->tail ){
-        AddLItrToNonEptTail( fifo->pendRmtCot, &cot->lItr );
+    } else if (fifo->pendRmtCot->tail) {
+        AddLItrToNonEptTail(fifo->pendRmtCot, &cot->lItr);
         return FALSE;
     }
-    empty = AtomGetInt( fifo->readPos ) - writePos;
-    if( empty <= 0 ){
+    empty = AtomGetInt(fifo->readPos) - writePos;
+    if (empty <= 0) {
         empty += RMT_CALL_FIFO_SIZE;
     }
-    if( empty > 2 ){
-        fifo->rmtCotArr[ writePos ] = cot;
-        NotifyRmtFifo( host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos );
+    if (empty > 2) {
+        fifo->rmtCotArr[writePos] = cot;
+        NotifyRmtFifo(host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos);
         return TRUE;
-    }else{
-        waitFifoCot = CreateWaitFifoCot( host );
-        fifo->rmtCotArr[ writePos ] = waitFifoCot;
-        AddLItrToEptSList( fifo->pendRmtCot, &cot->lItr );
-        NotifyRmtFifo( host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos );
+    } else {
+        waitFifoCot = CreateWaitFifoCot(host);
+        fifo->rmtCotArr[writePos] = waitFifoCot;
+        AddLItrToEptSList(fifo->pendRmtCot, &cot->lItr);
+        NotifyRmtFifo(host->mgr, rmtHost, host->hostMask, fifo->writePos, writePos);
         return FALSE;
     }
 }
 
 static inline
-void StartLazyTimer( DzHost* host )
+void StartLazyTimer(DzHost* host)
 {
     host->lazyTimer = CreateCallbackTimer(
         host, LAZY_TIMER_INTERVAL, 1,
@@ -97,10 +97,10 @@ void StartLazyTimer( DzHost* host )
 }
 
 static inline
-void StopLazyTimer( DzHost* host )
+void StopLazyTimer(DzHost* host)
 {
     host->cotCount++;
-    CloseCallbackTimer( host, host->lazyTimer );
+    CloseCallbackTimer(host, host->lazyTimer);
     host->lazyTimer = NULL;
 }
 

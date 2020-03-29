@@ -13,7 +13,7 @@
 .globl CallDzCotEntry
 .globl DzSwitch
 
-# void __stdcall CallDzCotEntry( void )
+# void __stdcall CallDzCotEntry(void)
 CallDzCotEntry:
     leal    4(%esp), %edx
     leal    (%esp), %ecx
@@ -22,7 +22,7 @@ CallDzCotEntry:
     pushl   %esi                # esi is pointer of host
     call    *%edi               # edi is pointer of function DzCotEntry
 
-# void __fastcall DzSwitch( DzHost* host, DzCot* dzCot );
+# void __fastcall DzSwitch(DzHost* host, DzCot* dzCot);
 # host$ = ecx
 # dzCot$ = edx
 DzSwitch:
