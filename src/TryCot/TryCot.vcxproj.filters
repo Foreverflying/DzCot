@@ -24,9 +24,6 @@
     <ClCompile Include="CotTryUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TryInnerStruct.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TryFoo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -1,8 +1,8 @@
 
 AS      = $(CROSS_COMPILE)as
 LD      = $(CROSS_COMPILE)ld
-CC      = $(CROSS_COMPILE)gcc
-CXX     = $(CROSS_COMPILE)g++
+CC      = $(CROSS_COMPILE)cc
+CXX     = $(CROSS_COMPILE)c++
 AR      = $(CROSS_COMPILE)ar
 NM      = $(CROSS_COMPILE)nm
 STRIP   = $(CROSS_COMPILE)strip
@@ -22,7 +22,7 @@ PROJECT = TestCot
 SRC_DIRS = .
 TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
 OUT_DIR = ../../output/$(OS)-$(ARCH)
-INC_DIR = -I../../include
+INC_DIR = -I../googletest/googletest/include -I../../include
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lDzCot -lgtest -lpthread
 STATIC_LIBS =

@@ -50,4 +50,20 @@ char* GetStackPtr()
     return (char*)(__readgsqword(0x30) + 8);
 }
 
+static inline
+size_t ArchSeek(HANDLE handle, ssize_t offset, int whence)
+{
+    size_t ret;
+
+    return SetFilePointerEx(handle, *(LARGE_INTEGER*)&offset, (LARGE_INTEGER*)&ret, whence) ? ret : -1;
+}
+
+static inline
+size_t ArchFileSize(HANDLE handle)
+{
+    size_t ret;
+
+    return GetFileSizeEx(handle, (LARGE_INTEGER*)&ret) ? ret : -1;
+}
+
 #endif // __DzBaseArch_h__

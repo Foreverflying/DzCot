@@ -369,7 +369,7 @@ DzHandle DzCreateAutoEvt(BOOL notified)
     return CreateAutoEvt(host, notified);
 }
 
-DzHandle DzCreateCdEvt(u_int count)
+DzHandle DzCreateCdEvt(int count)
 {
     DzHost* host = GetHost();
     assert(host);

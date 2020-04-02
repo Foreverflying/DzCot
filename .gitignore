@@ -1,7 +1,9 @@
+.DS_Store
+.vs/
+buildtmp/
+output/
 *.suo
 *.sdf
 *.opensdf
 *.VC.opendb
 *.VC.db
-buildtmp/*
-output/*

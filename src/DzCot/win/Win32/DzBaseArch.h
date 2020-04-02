@@ -50,4 +50,16 @@ char* GetStackPtr()
     return (char*)__readfsdword(4);
 }
 
+static inline
+size_t ArchSeek(HANDLE handle, ssize_t offset, int whence)
+{
+    return (size_t)SetFilePointer(handle, (long)offset, NULL, whence);
+}
+
+static inline
+size_t ArchFileSize(HANDLE handle)
+{
+    return GetFileSize(handle, NULL);
+}
+
 #endif // __DzBaseArch_h__

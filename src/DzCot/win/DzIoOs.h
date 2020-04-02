@@ -20,6 +20,8 @@ void __stdcall GetNameInfoEntryW(intptr_t context);
 void __stdcall GetAddrInfoEntry(intptr_t context);
 void __stdcall GetAddrInfoEntryW(intptr_t context);
 
+void PopImmediatelySucceedOverlappedIo(DzHost* host, DzIoHelper* pHelper);
+
 static inline
 int Socket(DzHost* host, int domain, int type, int protocol)
 {
@@ -75,9 +77,13 @@ int GetPeerName(DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen
 static inline
 int Bind(DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLen)
 {
+    int ret;
     DzFd* dzFd = (DzFd*)(host->handleBase + hFd);
-    dzFd->addrLen = addrLen;
-    return bind(dzFd->s, addr, addrLen);
+    ret = bind(dzFd->s, addr, addrLen);
+    if (ret == 0) {
+        dzFd->addrLen = addrLen;
+    }
+    return ret;
 }
 
 static inline
@@ -119,9 +125,6 @@ int Connect(DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLe
     DWORD flag;
     int err;
     BOOL ret;
-    ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
@@ -139,15 +142,17 @@ int Connect(DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLe
             __Dbg(SetLastErr)(host, err);
             return -1;
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = WSAGetOverlappedResult(
         dzFd->s,
         &helper.overlapped,
@@ -160,6 +165,7 @@ int Connect(DzHost* host, int hFd, const struct sockaddr* addr, socklen_t addrLe
         return -1;
     }
     setsockopt(dzFd->s, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
+    dzFd->addrLen = addrLen;
     return 0;
 }
 
@@ -168,7 +174,7 @@ int Accept(DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen)
 {
     DzFd* dzFd;
     SOCKET s;
-    char buf[64];
+    char* buf;
     DWORD bytes;
     DzIoHelper helper;
     DWORD flag;
@@ -177,16 +183,19 @@ int Accept(DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen)
     struct sockaddr* lAddr;
     struct sockaddr* rAddr;
     int lAddrLen;
+    int rAddrLen;
     ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
+    if (!dzFd->addrLen) {
+        return -1;
+    }
     s = socket(AF_INET, SOCK_STREAM, 0);
     if (s == INVALID_SOCKET) {
         return -1;
     }
     lAddrLen = dzFd->addrLen + 16;
+    buf = (char*)alloca(lAddrLen * 2);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
     if (!host->readonly._AcceptEx(dzFd->s, s, buf, 0, lAddrLen, lAddrLen, &bytes, &helper.overlapped)) {
         err = WSAGetLastError();
@@ -195,15 +204,17 @@ int Accept(DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen)
             __Dbg(SetLastErr)(host, err);
             return -1;
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = WSAGetOverlappedResult(
         dzFd->s,
         &helper.overlapped,
@@ -219,11 +230,15 @@ int Accept(DzHost* host, int hFd, struct sockaddr* addr, socklen_t* addrLen)
     key = (ULONG_PTR)dzFd->s;
     setsockopt(s, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&key, sizeof(key));
     CreateIoCompletionPort((HANDLE)s, host->os.iocp, (ULONG_PTR)NULL, 0);
-    if (addr) {
-        host->readonly._GetAcceptExSockAddrs(buf, bytes, lAddrLen, lAddrLen, &lAddr, &lAddrLen, &rAddr, addrLen);
-        memcpy(addr, rAddr, *addrLen);
+    host->readonly._GetAcceptExSockAddrs(buf, bytes, lAddrLen, lAddrLen, &lAddr, &lAddrLen, &rAddr, &rAddrLen);
+    if (addrLen) {
+        if (*addrLen >= rAddrLen && addr) {
+            memcpy(addr, rAddr, rAddrLen);
+        }
+        *addrLen = rAddrLen;
     }
     dzFd = CreateDzFd(host);
+    dzFd->addrLen = rAddrLen;
     dzFd->s = s;
     return (int)((intptr_t)dzFd - host->handleBase);
 }
@@ -237,9 +252,6 @@ int IovSend(DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags)
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
-    ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
@@ -249,15 +261,17 @@ int IovSend(DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags)
             __Dbg(SetLastErr)(host, err);
             return -1;
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = WSAGetOverlappedResult(
         dzFd->s,
         &helper.overlapped,
@@ -281,9 +295,6 @@ int IovRecv(DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags)
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
-    ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
@@ -294,15 +305,17 @@ int IovRecv(DzHost* host, int hFd, DzIov* bufs, size_t bufCount, int flags)
             __Dbg(SetLastErr)(host, err);
             return -1;
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = WSAGetOverlappedResult(
         dzFd->s,
         &helper.overlapped,
@@ -354,9 +367,6 @@ int IovSendTo(
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
-    ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
@@ -366,15 +376,17 @@ int IovSendTo(
             __Dbg(SetLastErr)(host, err);
             return -1;
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = WSAGetOverlappedResult(
         dzFd->s,
         &helper.overlapped,
@@ -406,9 +418,6 @@ int IovRecvFrom(
     DWORD tmpFlag;
     DWORD err;
     BOOL ret;
-    ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
@@ -419,15 +428,17 @@ int IovRecvFrom(
             __Dbg(SetLastErr)(host, err);
             return -1;
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = WSAGetOverlappedResult(
         dzFd->s,
         &helper.overlapped,
@@ -626,9 +637,6 @@ ssize_t Read(DzHost* host, int hFd, void* buf, size_t count)
     DzIoHelper helper;
     DWORD err;
     BOOL ret;
-    ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
@@ -651,15 +659,17 @@ ssize_t Read(DzHost* host, int hFd, void* buf, size_t count)
                 return -1;
             }
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = GetOverlappedResult(
         dzFd->fd,
         &helper.overlapped,
@@ -689,9 +699,6 @@ ssize_t Write(DzHost* host, int hFd, const void* buf, size_t count)
     DzIoHelper helper;
     DWORD err;
     BOOL ret;
-    ULONG_PTR key;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helperPtr;
 
     dzFd = (DzFd*)(host->handleBase + hFd);
     ZeroMemory(&helper.overlapped, sizeof(helper.overlapped));
@@ -714,15 +721,17 @@ ssize_t Write(DzHost* host, int hFd, const void* buf, size_t count)
                 return -1;
             }
         }
-    }
-    CloneDzFd(dzFd);
-    WaitEasyEvt(host, &helper.easyEvt);
-    if (dzFd->err) {
-        __Dbg(SetLastErr)(host, dzFd->err);
+        CloneDzFd(dzFd);
+        WaitEasyEvt(host, &helper.easyEvt);
+        if (dzFd->err) {
+            __Dbg(SetLastErr)(host, dzFd->err);
+            CloseDzFd(host, dzFd);
+            return -1;
+        }
         CloseDzFd(host, dzFd);
-        return -1;
+    } else {
+        PopImmediatelySucceedOverlappedIo(host, &helper);
     }
-    CloseDzFd(host, dzFd);
     ret = GetOverlappedResult(
         dzFd->fd,
         &helper.overlapped,
@@ -748,34 +757,16 @@ static inline
 size_t Seek(DzHost* host, int hFd, ssize_t offset, int whence)
 {
     DzFd* dzFd = (DzFd*)(host->handleBase + hFd);
-    size_t ret;
 
-#if defined(_X86_)
-    ret = (size_t)SetFilePointer(dzFd->fd, (long)offset, NULL, whence);
-#elif defined(_M_AMD64)
-    if (!SetFilePointerEx(dzFd->fd, *(LARGE_INTEGER*)&offset, (LARGE_INTEGER*)&ret, whence)) {
-        return -1;
-    }
-#endif
-
-    return ret;
+    return ArchSeek(dzFd->fd, offset, whence);
 }
 
 static inline
 size_t FileSize(DzHost* host, int hFd)
 {
     DzFd* dzFd = (DzFd*)(host->handleBase + hFd);
-    size_t ret;
 
-#if defined(_X86_)
-    ret = GetFileSize(dzFd->fd, NULL);
-#elif defined(_M_AMD64)
-    if (!GetFileSizeEx(dzFd->fd, (LARGE_INTEGER*)&ret)) {
-        return -1;
-    }
-#endif
-
-    return ret;
+    return ArchFileSize(dzFd->fd);
 }
 
 static inline
@@ -899,19 +890,19 @@ int Close(DzHost* host, int hFd)
 static inline
 void BlockAndDispatchIo(DzHost* host, int timeout)
 {
+    DWORD bytes;
     ULONG_PTR key;
-    DWORD n;
     OVERLAPPED* overlapped;
     DzIoHelper* helper;
 
-    GetQueuedCompletionStatus(host->os.iocp, &n, &key, &overlapped, (DWORD)timeout);
+    GetQueuedCompletionStatus(host->os.iocp, &bytes, &key, &overlapped, (DWORD)timeout);
     AtomOrInt(host->rmtCheckSignPtr, RMT_CHECK_AWAKE_SIGN);
     while (overlapped != NULL) {
         if (!key) {
             helper = MEMBER_BASE(overlapped, DzIoHelper, overlapped);
             NotifyEasyEvt(host, &helper->easyEvt);
         }
-        GetQueuedCompletionStatus(host->os.iocp, &n, &key, &overlapped, 0);
+        GetQueuedCompletionStatus(host->os.iocp, &bytes, &key, &overlapped, 0);
     }
 
     /*
@@ -944,6 +935,20 @@ void BlockAndDispatchIo(DzHost* host, int timeout)
 static inline
 void BlockAndDispatchIoNoRmtCheck(DzHost* host, int timeout)
 {
+    DWORD bytes;
+    ULONG_PTR key;
+    OVERLAPPED* overlapped;
+    DzIoHelper* helper;
+
+    GetQueuedCompletionStatus(host->os.iocp, &bytes, &key, &overlapped, (DWORD)timeout);
+    while (overlapped != NULL) {
+        if (!key) {
+            helper = MEMBER_BASE(overlapped, DzIoHelper, overlapped);
+            NotifyEasyEvt(host, &helper->easyEvt);
+        }
+        GetQueuedCompletionStatus(host->os.iocp, &bytes, &key, &overlapped, 0);
+    }
+
     /*
     DzIoHelper* helper;
     ULONG listCount;
@@ -970,19 +975,6 @@ void BlockAndDispatchIoNoRmtCheck(DzHost* host, int timeout)
         }
     }
     */
-    ULONG_PTR key;
-    DWORD n;
-    OVERLAPPED* overlapped;
-    DzIoHelper* helper;
-
-    GetQueuedCompletionStatus(host->os.iocp, &n, &key, &overlapped, (DWORD)timeout);
-    while (overlapped != NULL) {
-        if (!key) {
-            helper = MEMBER_BASE(overlapped, DzIoHelper, overlapped);
-            NotifyEasyEvt(host, &helper->easyEvt);
-        }
-        GetQueuedCompletionStatus(host->os.iocp, &n, &key, &overlapped, 0);
-    }
 }
 
 #endif // __DzIoOs_h__
