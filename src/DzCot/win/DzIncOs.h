@@ -52,7 +52,7 @@ typedef struct _DzIov
 #endif
 
 // windows specific constants
-#define OVERLAPPED_ENTRY_LIST_SIZE  (1024)
+// #define OVERLAPPED_ENTRY_LIST_SIZE  (1024)
 
 // switchers
 #define STORE_HOST_IN_ARBITRARY_USER_POINTER

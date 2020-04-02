@@ -52,6 +52,7 @@ DzFd* CreateDzFd(DzHost* host)
     dzFd = MEMBER_BASE(host->dzFdPool, DzFd, lItr);
     host->dzFdPool = host->dzFdPool->next;
     dzFd->err = 0;
+    dzFd->addrLen = 0;
     dzFd->ref++;
     __Dbg(AllocFd)(host, dzFd);
     return dzFd;

@@ -175,8 +175,8 @@ BOOL InitOsStruct(DzHost* host)
         1
         );
     host->os.originExceptPtr = GetExceptPtr();
-    host->os.overlappedEntryList = (OVERLAPPED_ENTRY*)
-        AllocChunk(host, sizeof(OVERLAPPED_ENTRY) * OVERLAPPED_ENTRY_LIST_SIZE);
+    // host->os.overlappedEntryList = (OVERLAPPED_ENTRY*)
+    //     AllocChunk(host, sizeof(OVERLAPPED_ENTRY) * OVERLAPPED_ENTRY_LIST_SIZE);
     return host->os.iocp != NULL;
 }
 

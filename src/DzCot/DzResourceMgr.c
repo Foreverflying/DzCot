@@ -162,7 +162,7 @@ BOOL AllocDzFdPool(DzHost* host)
     union PaddedDzFd* end;
     DzLItr* lItr;
 
-    p = (char*)AllocHandleChunk(host, OBJ_POOL_GROW_COUNT * sizeof(union PaddedDzFd));
+    p = (union PaddedDzFd*)AllocHandleChunk(host, OBJ_POOL_GROW_COUNT * sizeof(union PaddedDzFd));
     if (!p) {
         return FALSE;
     }
@@ -170,9 +170,9 @@ BOOL AllocDzFdPool(DzHost* host)
     host->dzFdPool = &p->fd.lItr;
     end = p + OBJ_POOL_GROW_COUNT - 1;
     end->fd.lItr.next = NULL;
-    InitDzFd(end);
+    InitDzFd(&end->fd);
     while (p != end) {
-        InitDzFd(p);
+        InitDzFd(&p->fd);
         lItr = &p->fd.lItr;
         lItr->next = &(++p)->fd.lItr;
     }

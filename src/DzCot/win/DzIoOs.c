@@ -115,3 +115,27 @@ int DzOpenW(const wchar_t* fileName, int flags)
 
     return OpenW(host, fileName, flags);
 }
+
+void PopImmediatelySucceedOverlappedIo(DzHost* host, DzIoHelper* pHelper)
+{
+    DWORD bytes;
+    ULONG_PTR key;
+    OVERLAPPED* overlapped;
+    DzIoHelper* helper;
+
+    while (1) {
+        GetQueuedCompletionStatus(host->os.iocp, &bytes, &key, &overlapped, 0);
+        if (overlapped == &pHelper->overlapped) {
+            host->scheduleCd--;
+            if (!host->scheduleCd) {
+                DispatchCurrCot(host);
+            }
+            return;
+        }
+        if (!key) {
+            host->currPri = CP_FIRST;
+            helper = MEMBER_BASE(overlapped, DzIoHelper, overlapped);
+            NotifyEasyEvt(host, &helper->easyEvt);
+        }
+    }
+}

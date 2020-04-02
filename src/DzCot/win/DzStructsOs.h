@@ -18,8 +18,8 @@
 struct _DzOsStruct
 {
     HANDLE                      iocp;
-    OVERLAPPED_ENTRY*           overlappedEntryList;
     void*                       originExceptPtr;
+    // OVERLAPPED_ENTRY*           overlappedEntryList;
 };
 
 struct _DzOsReadOnly
