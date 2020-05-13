@@ -32,10 +32,13 @@ else
     CFLAGS += -O2
 endif
 
-PROJECT = DzCot
+SELF_DIR = $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+ROOT_DIR = $(shell echo $(SELF_DIR) | sed -r 's/(.*)\/src\/.*/\1/')
+PROJECT = $(notdir $(SELF_DIR))
+TMP_DIR = $(ROOT_DIR)/buildtmp/$(OS)-$(ARCH)/$(PROJECT)
+OUT_DIR = $(ROOT_DIR)/output/$(OS)-$(ARCH)
+
 SRC_DIRS = . ./thirdparty ./$(OS) ./$(OS)/$(ARCH_STR)
-TMP_DIR = ../../buildtmp/$(OS)-$(ARCH)/$(PROJECT)
-OUT_DIR = ../../output/$(OS)-$(ARCH)
 INC_DIR = -I./$(OS) -I./$(OS)/$(ARCH_STR)
 LIB_DIR = -L$(OUT_DIR)
 LIBS = -lpthread
