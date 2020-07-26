@@ -16,6 +16,10 @@ ifneq ($(OS), linux)
     $(error this Makefile only support linux)
 endif
 
+ifneq ($(firstword $(MAKEFILE_LIST)), Makefile)
+    $(error you need to cd to the same folder which contains this Makefile to run make command)
+endif
+
 ifneq ($(filter $(ARCH), i386 i486 i586 i686),)
     ARCH_STR = i386
 else
@@ -32,7 +36,7 @@ else
     CFLAGS += -O2
 endif
 
-SELF_DIR = $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+SELF_DIR = $(realpath $(dir $(realpath Makefile)))
 ROOT_DIR = $(shell echo $(SELF_DIR) | sed -r 's/(.*)\/src\/.*/\1/')
 PROJECT = $(notdir $(SELF_DIR))
 TMP_DIR = $(ROOT_DIR)/buildtmp/$(OS)-$(ARCH)/$(PROJECT)
@@ -55,36 +59,34 @@ OBJS = $(SRCS:.c=.o) $(ASMS:.s=.o)
 LIB_SHARED = $(OUT_DIR)/lib$(PROJECT).so
 LIB_STATIC = $(OUT_DIR)/lib$(PROJECT).a
 
+vpath %.h $(SRC_DIRS)
 vpath %.c $(SRC_DIRS)
 vpath %.s $(SRC_DIRS)
-vpath %.d $(TMP_DIR)
-vpath %.o $(TMP_DIR)
 
 $(shell mkdir -p $(TMP_DIR) $(OUT_DIR))
 
-all: $(OBJS)
-	$(MAKE) $(LIB_SHARED) $(LIB_STATIC)
+all: $(LIB_SHARED) $(LIB_STATIC)
 
 clean:
 	rm -f $(LIB_SHARED) $(LIB_STATIC); cd $(TMP_DIR); rm -f $(DEPS) $(OBJS)
 
 .PHONY: all clean
 
-%.d: %.c
+$(TMP_DIR)/%.d: %.c
 	@set -e; \
-	$(CC) $(CFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
-	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+	$(CC) $(CFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#$(TMP_DIR)\/\1.o $@ :#g' > $@; \
+	[ -s $@ ] || rm -f $@
 
-sinclude $(DEPS)
+$(TMP_DIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
+$(TMP_DIR)/%.o: %.s
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.s
-	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
-
-$(LIB_SHARED): $(OBJS)
+$(LIB_SHARED): $(addprefix $(TMP_DIR)/, $(OBJS))
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
-$(LIB_STATIC): $(OBJS)
+$(LIB_STATIC): $(addprefix $(TMP_DIR)/, $(OBJS))
 	$(AR) rcs $@ $^
+
+-include $(addprefix $(TMP_DIR)/, $(DEPS))

@@ -12,13 +12,21 @@ OBJDUMP = $(CROSS_COMPILE)objdump
 ARCH = $(shell $(CC) -dumpmachine | tail -n 1 | awk -F '-' '{print $$1}')
 OS = $(shell uname -s | tr '[A-Z]' '[a-z]')
 
+ifneq ($(OS), linux)
+    $(error this Makefile only support linux)
+endif
+
+ifneq ($(firstword $(MAKEFILE_LIST)), Makefile)
+    $(error you need to cd to the same folder which contains this Makefile to run make command)
+endif
+
 ifdef DEBUG
     CFLAGS += -g3 -D_DEBUG
 else
     CFLAGS += -O2
 endif
 
-SELF_DIR = $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+SELF_DIR = $(realpath $(dir $(realpath Makefile)))
 ROOT_DIR = $(shell echo $(SELF_DIR) | sed -r 's/(.*)\/src\/.*/\1/')
 PROJECT = $(notdir $(SELF_DIR))
 TMP_DIR = $(ROOT_DIR)/buildtmp/$(OS)-$(ARCH)/$(PROJECT)
@@ -44,56 +52,57 @@ DEPS = $(CPP_SRCS:.cpp=.d) $(CXX_SRCS:.cxx=.d) $(CC_SRCS:.cc=.d) $(C_SRCS:.c=.d)
 OBJS = $(DEPS:.d=.o)
 TARGET = $(OUT_DIR)/$(PROJECT)
 
+vpath %.h $(SRC_DIRS)
+vpath %.hpp $(SRC_DIRS)
+vpath %.hxx $(SRC_DIRS)
+vpath %.hh $(SRC_DIRS)
 vpath %.c $(SRC_DIRS)
 vpath %.cpp $(SRC_DIRS)
 vpath %.cxx $(SRC_DIRS)
 vpath %.cc $(SRC_DIRS)
-vpath %.d $(TMP_DIR)
-vpath %.o $(TMP_DIR)
 
 $(shell mkdir -p $(TMP_DIR) $(OUT_DIR))
 
-all: $(OBJS)
-	$(MAKE) $(TARGET)
+all: $(TARGET)
 
 clean:
 	rm -f $(TARGET); cd $(TMP_DIR); rm -f $(DEPS) $(OBJS)
 
 .PHONY: all clean
 
-%.d: %.c
+$(TMP_DIR)/%.d: %.c
 	@set -e; \
-	$(CC) $(CFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
-	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+	$(CC) $(CFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#$(TMP_DIR)\/\1.o $@ :#g' > $@; \
+	[ -s $@ ] || rm -f $@
 
-%.d: %.cpp
+$(TMP_DIR)/%.d: %.cpp
 	@set -e; \
-	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
-	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#$(TMP_DIR)\/\1.o $@ :#g' > $@; \
+	[ -s $@ ] || rm -f $@
 
-%.d: %.cxx
+$(TMP_DIR)/%.d: %.cxx
 	@set -e; \
-	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
-	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#$(TMP_DIR)\/\1.o $@ :#g' > $@; \
+	[ -s $@ ] || rm -f $@
 
-%.d: %.cc
+$(TMP_DIR)/%.d: %.cc
 	@set -e; \
-	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#\1.o $@ :#g' > $(TMP_DIR)/$@; \
-	[ -s $(TMP_DIR)/$@ ] || rm -f $(TMP_DIR)/$@
+	$(CXX) $(CPPFLAGS) -MM $< | sed -e 's#\($*\)\.o[ :]*#$(TMP_DIR)\/\1.o $@ :#g' > $@; \
+	[ -s $@ ] || rm -f $@
 
-sinclude $(DEPS)
+$(TMP_DIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $(TMP_DIR)/$@ $^
+$(TMP_DIR)/%.o: %.cpp
+	$(CXX) $(CPPFLAGS) -c -o $@ $<
 
-%.o: %.cpp
-	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
+$(TMP_DIR)/%.o: %.cxx
+	$(CXX) $(CPPFLAGS) -c -o $@ $<
 
-%.o: %.cxx
-	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
+$(TMP_DIR)/%.o: %.cc
+	$(CXX) $(CPPFLAGS) -c -o $@ $<
 
-%.o: %.cc
-	$(CXX) $(CPPFLAGS) -c -o $(TMP_DIR)/$@ $^
-
-$(TARGET): $(OBJS)
+$(TARGET): $(addprefix $(TMP_DIR)/, $(OBJS))
 	$(CXX) -o $@ $^ $(LDFLAGS)
+
+-include $(addprefix $(TMP_DIR)/, $(DEPS))
