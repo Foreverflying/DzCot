@@ -41,6 +41,7 @@ ROOT_DIR = $(shell echo $(SELF_DIR) | sed -r 's/(.*)\/src\/.*/\1/')
 PROJECT = $(notdir $(SELF_DIR))
 TMP_DIR = $(ROOT_DIR)/buildtmp/$(OS)-$(ARCH)/$(PROJECT)
 OUT_DIR = $(ROOT_DIR)/output/$(OS)-$(ARCH)
+INSTALL_DIR = /usr/local/lib
 
 SRC_DIRS = . ./thirdparty ./$(OS) ./$(OS)/$(ARCH_STR)
 INC_DIR = -I./$(OS) -I./$(OS)/$(ARCH_STR)
@@ -70,7 +71,16 @@ all: $(LIB_SHARED) $(LIB_STATIC)
 clean:
 	rm -f $(LIB_SHARED) $(LIB_STATIC); cd $(TMP_DIR); rm -f $(DEPS) $(OBJS)
 
-.PHONY: all clean
+install_shared: $(LIB_SHARED)
+	mkdir -p $(INSTALL_DIR)/DzCot/ && cp $(LIB_SHARED) $(INSTALL_DIR)/DzCot/
+
+install_static: $(LIB_STATIC)
+	mkdir -p $(INSTALL_DIR)/DzCot/ && cp $(LIB_STATIC) $(INSTALL_DIR)/DzCot/
+
+uninstall:
+	rm -rf $(INSTALL_DIR)/DzCot/
+
+.PHONY: all clean install_shared install_static uninstall
 
 $(TMP_DIR)/%.d: %.c
 	@set -e; \
