@@ -115,4 +115,6 @@ $(TMP_DIR)/%.o: %.cc
 $(TARGET): $(addprefix $(TMP_DIR)/, $(OBJS))
 	$(CXX) -o $@ $^ $(LDFLAGS)
 
+ifneq ($(MAKECMDGOALS), clean)
 -include $(addprefix $(TMP_DIR)/, $(DEPS))
+endif

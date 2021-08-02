@@ -99,4 +99,6 @@ $(LIB_SHARED): $(addprefix $(TMP_DIR)/, $(OBJS))
 $(LIB_STATIC): $(addprefix $(TMP_DIR)/, $(OBJS))
 	$(AR) rcs $@ $^
 
+ifneq ($(MAKECMDGOALS), clean)
 -include $(addprefix $(TMP_DIR)/, $(DEPS))
+endif
