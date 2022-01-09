@@ -1,7 +1,7 @@
 /**
  *  @file       DzStructsArch.h
  *  @brief      for windows x64
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2015/09/13
  *
  */

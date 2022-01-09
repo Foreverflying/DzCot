@@ -250,7 +250,7 @@ int pqReadData(PGconn* conn)
                 )
             );
         pqDropConnection(conn);
-        conn->status = CONNECTION_BAD;		/* No more connection to backend */
+        conn->status = CONNECTION_BAD;      /* No more connection to backend */
         return -1;
     }
     conn->inEnd += helper->recvLen;

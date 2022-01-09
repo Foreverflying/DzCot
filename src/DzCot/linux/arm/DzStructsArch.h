@@ -1,7 +1,7 @@
 /**
  *  @file       DzStructsArch.h
  *  @brief      for linux arm32
- *  @author	    Foreverflying <foreverflying@live.cn>
+ *  @author     Foreverflying <foreverflying@live.cn>
  *  @date       2016/04/07
  *
  */

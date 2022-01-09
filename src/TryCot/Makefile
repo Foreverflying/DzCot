@@ -23,7 +23,7 @@ endif
 ifneq ($(filter $(ARCH), i386 i486 i586 i686),)
     ARCH_STR = i386
 else
-    ifneq ($(filter $(ARCH), x86_64 arm),)
+    ifneq ($(filter $(ARCH), x86_64 arm aarch64),)
         ARCH_STR = $(ARCH)
     else
         $(error this Makefile does not support arch $(ARCH))
